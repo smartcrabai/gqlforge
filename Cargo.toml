@@ -230,7 +230,7 @@ datatest-stable = "0.3.3"
 flate2 = "1.1.9"
 gqlforge-fixtures = { path = "./gqlforge-fixtures", version = "0.1.0" }
 gqlforge-formatter = { path = "gqlforge-formatter", version = "0.1.0" }
-http-cache-semantics = { version = "2", default-features = false, features = [
+http-cache-semantics = { version = "3", default-features = false, features = [
   "serde",
   "reqwest",
 ] }
