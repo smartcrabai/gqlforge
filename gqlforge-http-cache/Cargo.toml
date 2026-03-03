@@ -10,7 +10,7 @@ http-cache-reqwest = { version = "1.0.0-alpha.4", default-features = false, feat
 moka = { version = "0.12.13", default-features = false, features = [
     "future",
 ]}
-http-cache-semantics = { version = "3", default-features = false, features = ["serde", "reqwest"]}
+http-cache-semantics = { version = "2", default-features = false, features = ["serde", "reqwest"]}
 serde = "1.0.228"
 async-trait = "0.1.89"
 

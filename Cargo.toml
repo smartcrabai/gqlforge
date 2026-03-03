@@ -221,7 +221,7 @@ rquickjs = { "version" = "0.11.0", optional = true, features = [
 ] }
 
 [dev-dependencies]
-bincode = "3"
+bincode = "1"
 cacache = { version = "13.1.0", default-features = false, features = [
   "tokio-runtime",
   "mmap",
@@ -230,7 +230,7 @@ datatest-stable = "0.3.3"
 flate2 = "1.1.9"
 gqlforge-fixtures = { path = "./gqlforge-fixtures", version = "0.1.0" }
 gqlforge-formatter = { path = "gqlforge-formatter", version = "0.1.0" }
-http-cache-semantics = { version = "3", default-features = false, features = [
+http-cache-semantics = { version = "2", default-features = false, features = [
   "serde",
   "reqwest",
 ] }
