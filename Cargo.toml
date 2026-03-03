@@ -344,6 +344,7 @@ inherits = "release"
 [workspace.metadata.dist]
 cargo-dist-version = "0.31.0"
 ci = ["github"]
+allow-dirty = ["ci"]
 installers = ["shell", "homebrew"]
 publish-jobs = ["homebrew"]
 tap = "takumi3488/homebrew-tap"
