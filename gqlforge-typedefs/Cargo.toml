@@ -17,4 +17,4 @@ tokio = { version = "1.49.0", features = ["full"] }
 tracing = "0.1.44"
 gqlforge-typedefs-common = { path = "../gqlforge-typedefs-common" }
 async-graphql = { workspace = true }
-strum = "0.27.2"
+strum = "0.28.0"
