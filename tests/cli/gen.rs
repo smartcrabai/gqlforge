@@ -38,7 +38,7 @@ pub mod cacache_manager {
             policy: CachePolicy,
         ) -> Result<HttpResponse> {
             let data = Store { response: response.clone(), policy };
-            let bytes = bincode::serde::encode_to_vec(&data, bincode::config::standard())?;
+            let bytes = serde_json::to_vec(&data)?;
 
             let mut encoder = GzEncoder::new(Vec::new(), Compression::default());
             encoder.write_all(&bytes)?;
@@ -54,11 +54,10 @@ pub mod cacache_manager {
                     let mut decoder = flate2::read::GzDecoder::new(compressed_data.as_slice());
                     let mut serialized_data = Vec::new();
                     decoder.read_to_end(&mut serialized_data)?;
-                    let (store, _): (Store, usize) = bincode::serde::decode_from_slice(
-                        &serialized_data,
-                        bincode::config::standard(),
-                    )?;
-                    Ok(Some((store.response, store.policy)))
+                    match serde_json::from_slice::<Store>(&serialized_data) {
+                        Ok(store) => Ok(Some((store.response, store.policy))),
+                        Err(_) => Ok(None),
+                    }
                 }
                 Err(_) => Ok(None),
             }
@@ -202,7 +201,7 @@ pub mod test {
                 policy: CachePolicy,
             ) -> Result<HttpResponse> {
                 let data = Store { response: response.clone(), policy };
-                let bytes = bincode::serde::encode_to_vec(&data, bincode::config::standard())?;
+                let bytes = serde_json::to_vec(&data)?;
 
                 let mut encoder = GzEncoder::new(Vec::new(), Compression::default());
                 encoder.write_all(&bytes)?;
@@ -218,11 +217,10 @@ pub mod test {
                         let mut decoder = flate2::read::GzDecoder::new(compressed_data.as_slice());
                         let mut serialized_data = Vec::new();
                         decoder.read_to_end(&mut serialized_data)?;
-                        let (store, _): (Store, usize) = bincode::serde::decode_from_slice(
-                            &serialized_data,
-                            bincode::config::standard(),
-                        )?;
-                        Ok(Some((store.response, store.policy)))
+                        match serde_json::from_slice::<Store>(&serialized_data) {
+                            Ok(store) => Ok(Some((store.response, store.policy))),
+                            Err(_) => Ok(None),
+                        }
                     }
                     Err(_) => Ok(None),
                 }
