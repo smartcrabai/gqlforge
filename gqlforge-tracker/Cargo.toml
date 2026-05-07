@@ -20,7 +20,7 @@ serde_json = { workspace = true }
 machineid-rs = "1.2.4"
 tokio = { workspace = true, features = ["rt", "time", "process"] }
 tracing = { workspace = true }
-sysinfo = "0.38.1"
+sysinfo = "0.39.0"
 gqlforge-version = { path = "../gqlforge-version", version = "0.1.0" }
 posthog-rs = { version = "0.7.0" }
 async-trait = "0.1.89"
