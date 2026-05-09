@@ -87,8 +87,7 @@ pub async fn start_http_2(
                     let is_sse = parts.method == Method::POST
                         && parts.uri.path() == graphql_endpoint
                         && serde_json::from_slice::<GraphQLRequest>(&bytes)
-                            .map(|mut r| r.is_subscription())
-                            .unwrap_or(false);
+                            .is_ok_and(|mut r| r.is_subscription());
 
                     let req = http::Request::from_parts(parts, Full::new(bytes));
 

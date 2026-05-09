@@ -1,4 +1,4 @@
-use anyhow::{Result, anyhow};
+use anyhow::Result;
 
 use crate::core::runtime::TargetRuntime;
 
@@ -16,12 +16,14 @@ fn cache_metrics(runtime: &TargetRuntime) {
         .build();
 }
 
+#[expect(clippy::unused_async)]
 async fn process_resources_metrics() -> Result<()> {
-    let meter = opentelemetry::global::meter("process-resources");
-
-    opentelemetry_system_metrics::init_process_observer(meter)
-        .await
-        .map_err(|err| anyhow!(err))
+    // TODO: Re-enable when opentelemetry-system-metrics 0.32 is released
+    // let meter = opentelemetry::global::meter("process-resources");
+    // opentelemetry_system_metrics::init_process_observer(meter)
+    //     .await
+    //     .map_err(|err| anyhow!(err))
+    Ok(())
 }
 
 ///

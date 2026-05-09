@@ -308,7 +308,7 @@ impl<'a> Builder<'a> {
             }
             fields.push(field);
         }
-        fields.sort_by(|a, b| a.id.cmp(&b.id));
+        fields.sort_by_key(|a| a.id);
         fields
     }
     #[inline]

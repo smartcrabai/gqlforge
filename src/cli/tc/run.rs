@@ -22,7 +22,7 @@ pub async fn run() -> Result<()> {
     let cli = Cli::parse();
     std::thread::spawn(update_checker::check_for_update);
     // Initialize ping event every 60 seconds
-    let () = TRACKER.init_ping(tokio::time::Duration::from_secs(60));
+    let () = TRACKER.init_ping(tokio::time::Duration::from_mins(1));
 
     // Dispatch the command as an event
     let _ = TRACKER

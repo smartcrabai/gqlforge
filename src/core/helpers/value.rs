@@ -28,7 +28,7 @@ pub fn hash<H: Hasher>(const_value: &ConstValue, state: &mut H) {
         ConstValue::List(list) => list.iter().for_each(|val| hash(val, state)),
         ConstValue::Object(object) => {
             let mut tmp_list: Vec<_> = object.iter().collect();
-            tmp_list.sort_by(|(key1, _), (key2, _)| key1.cmp(key2));
+            tmp_list.sort_by_key(|(key1, _)| *key1);
             for (key, value) in &tmp_list {
                 key.hash(state);
                 hash(value, state);

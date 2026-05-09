@@ -78,7 +78,7 @@ mod tests {
         let headers = cache_control_header(3600);
         let response = Response::default().headers(headers);
 
-        assert_eq!(max_age(&response), Some(Duration::from_secs(3600)));
+        assert_eq!(max_age(&response), Some(Duration::from_hours(1)));
     }
 
     #[test]
@@ -94,7 +94,7 @@ mod tests {
         let headers = cache_control_header_visibility(3600, "public");
         let response = Response::default().headers(headers);
 
-        assert_eq!(max_age(&response), Some(Duration::from_secs(3600)));
+        assert_eq!(max_age(&response), Some(Duration::from_hours(1)));
         assert_eq!(cache_visibility(&response), "public");
     }
 
@@ -103,7 +103,7 @@ mod tests {
         let headers = cache_control_header_visibility(3600, "private");
         let response = Response::default().headers(headers);
 
-        assert_eq!(max_age(&response), Some(Duration::from_secs(3600)));
+        assert_eq!(max_age(&response), Some(Duration::from_hours(1)));
         assert_eq!(cache_visibility(&response), "private");
     }
 }

@@ -20,8 +20,7 @@ impl core::Type {
             ) => {
                 if name != other_name {
                     return Valid::fail(format!(
-                        "Type mismatch: expected `{}`, got `{}`",
-                        &name, other_name
+                        "Type mismatch: expected `{name}`, got `{other_name}`"
                     ));
                 }
 
