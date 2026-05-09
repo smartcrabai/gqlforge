@@ -462,6 +462,33 @@ fn infer_view_columns_from_projection(
                     }
                 }
             }
+            SelectItem::ExprWithAliases { expr, aliases } => {
+                let (base_name, qualifier) = match expr {
+                    Expr::Identifier(i) => (Some(i.value.clone()), None),
+                    Expr::CompoundIdentifier(parts) => {
+                        let col = parts.last().map(|i| i.value.clone());
+                        let qual = (parts.len() >= 2).then(|| parts[parts.len() - 2].value.clone());
+                        (col, qual)
+                    }
+                    _ => (None, None),
+                };
+                // Create a column for each alias
+                for alias in aliases {
+                    let pg_type = base_name
+                        .as_deref()
+                        .and_then(|n| {
+                            find_col_type_in_tables(n, qualifier.as_deref(), from_tables, schema)
+                        })
+                        .unwrap_or(PgType::Text);
+                    columns.push(Column {
+                        name: alias.value.clone(),
+                        pg_type: pg_type.clone(),
+                        is_nullable: true,
+                        has_default: false,
+                        is_generated: false,
+                    });
+                }
+            }
             SelectItem::UnnamedExpr(_) => {
                 // Complex expressions without aliases (functions, arithmetic,
                 // etc.) cannot have their column name or type
@@ -495,6 +522,15 @@ fn infer_type_at_projection_pos(
             (col, qual)
         }
         SelectItem::ExprWithAlias { expr, .. } => match expr {
+            Expr::Identifier(i) => (Some(i.value.clone()), None),
+            Expr::CompoundIdentifier(parts) => {
+                let col = parts.last().map(|i| i.value.clone());
+                let qual = (parts.len() >= 2).then(|| parts[parts.len() - 2].value.clone());
+                (col, qual)
+            }
+            _ => (None, None),
+        },
+        SelectItem::ExprWithAliases { expr, .. } => match expr {
             Expr::Identifier(i) => (Some(i.value.clone()), None),
             Expr::CompoundIdentifier(parts) => {
                 let col = parts.last().map(|i| i.value.clone());
