@@ -16,6 +16,7 @@ fn cache_metrics(runtime: &TargetRuntime) {
         .build();
 }
 
+#[expect(clippy::unused_async)]
 async fn process_resources_metrics() -> Result<()> {
     // TODO: Re-enable when opentelemetry-system-metrics 0.32 is released
     // let meter = opentelemetry::global::meter("process-resources");

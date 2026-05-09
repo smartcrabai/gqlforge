@@ -114,7 +114,9 @@ fn ensure_usable_cors_rules(
     if layer.allow_credentials {
         let allowing_all_headers = layer
             .allow_headers
-            .as_ref().as_ref().is_some_and(|val| is_wildcard(val));
+            .as_ref()
+            .as_ref()
+            .is_some_and(|val| is_wildcard(val));
 
         if allowing_all_headers {
             return Err(ValidationError::new(
@@ -126,7 +128,9 @@ fn ensure_usable_cors_rules(
 
         let allowing_all_methods = layer
             .allow_methods
-            .as_ref().as_ref().is_some_and(|val| is_wildcard(val));
+            .as_ref()
+            .as_ref()
+            .is_some_and(|val| is_wildcard(val));
 
         if allowing_all_methods {
             return Err(ValidationError::new(

@@ -106,9 +106,9 @@ impl APIBody {
                                 core::panic!("Failed to read file by path: {}", path.display())
                             })
                         }
-                        _ => core::panic!("Invalid file path: {} {}", prefix, file),
+                        _ => core::panic!("Invalid file path: {prefix} {file}"),
                     },
-                    _ => core::panic!("Invalid file path: {}", file),
+                    _ => core::panic!("Invalid file path: {file}"),
                 }
             }
         }

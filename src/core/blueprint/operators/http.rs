@@ -161,10 +161,9 @@ fn count_dynamic_paths(json: &serde_json::Value) -> usize {
                 count += count_dynamic_paths(v);
             }
         }
-        serde_json::Value::String(s)
-            if !Mustache::parse(s).is_const() => {
-                count += 1;
-            }
+        serde_json::Value::String(s) if !Mustache::parse(s).is_const() => {
+            count += 1;
+        }
         _ => {}
     }
     count
