@@ -622,9 +622,7 @@ impl Config {
 
     /// Returns a list of all the arguments in the configuration
     fn arguments(&self) -> Vec<(&String, &Arg)> {
-        self.types
-            .iter()
-            .flat_map(|(_, type_of)| type_of.fields.iter())
+        self.types.values().flat_map(|type_of| type_of.fields.iter())
             .flat_map(|(_, field)| field.args.iter())
             .collect::<Vec<_>>()
     }

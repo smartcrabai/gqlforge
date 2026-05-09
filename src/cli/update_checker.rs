@@ -61,7 +61,7 @@ impl InstallationMethod {
 }
 
 fn show_update_message(name: &str, latest_version: &Version) {
-    let github_release_url = format!("https://github.com/{name}/releases/tag/{latest_version}",);
+    let github_release_url = format!("https://github.com/{name}/releases/tag/{latest_version}");
     tracing::warn!(
         "{} {} {} {}. {}. Release notes: {}",
         "A new release of gqlforge is available:",

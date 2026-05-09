@@ -68,7 +68,7 @@ mimalloc = { version = "0.1.48", default-features = false, optional = true }
 moka = { version = "0.12.13", default-features = false, features = [
   "future",
 ], optional = true }
-opentelemetry-otlp = { version = "0.32", features = [
+opentelemetry-otlp = { version = "0.31", features = [
   "trace",
   "logs",
   "metrics",
@@ -76,7 +76,6 @@ opentelemetry-otlp = { version = "0.32", features = [
   # required to make grpc requests
   "tls-roots",
 ], optional = true }
-opentelemetry-system-metrics = { version = "0.31", optional = true }
 rustls = { version = "0.23.36", optional = true, features = [
   "std",
   "aws_lc_rs",
@@ -154,7 +153,8 @@ async-graphql = { workspace = true, features = [
   "dynamic-schema",
   "dataloader",
   "apollo_tracing",
-  "opentelemetry",
+  # TODO: Re-enable when async-graphql supports opentelemetry 0.32
+  # "opentelemetry",
 ] }
 async-graphql-value = "7.2.1"
 base64 = "0.22.1"
@@ -176,17 +176,17 @@ indenter = "0.3.4"
 jsonwebtoken = { version = "10.3.0", features = ["aws_lc_rs"] }
 mime = "0.3.17"
 num = "0.4.3"
-opentelemetry = { version = "0.32", features = ["trace", "logs", "metrics"] }
-opentelemetry-appender-tracing = "0.32"
-opentelemetry-http = "0.32"
-opentelemetry-prometheus = "0.32"
-opentelemetry-semantic-conventions = "0.32"
-opentelemetry-stdout = { version = "0.32", features = [
+opentelemetry = { version = "0.31", features = ["trace", "logs", "metrics"] }
+opentelemetry-appender-tracing = "0.31"
+opentelemetry-http = "0.31"
+opentelemetry-prometheus = "0.31"
+opentelemetry-semantic-conventions = "0.31"
+opentelemetry-stdout = { version = "0.31", features = [
   "trace",
   "logs",
   "metrics",
 ] }
-opentelemetry_sdk = { version = "0.32", features = [
+opentelemetry_sdk = { version = "0.31", features = [
   "trace",
   "logs",
   "metrics",
@@ -266,7 +266,6 @@ cli = [
   "opentelemetry_sdk/testing",
   "opentelemetry_sdk/rt-tokio",
   "dep:opentelemetry-otlp",
-  "dep:opentelemetry-system-metrics",
   "dep:gqlforge-tracker",
   "dep:gqlforge-http-cache",
   "dep:gqlforge-version",
@@ -301,7 +300,8 @@ members = [
   "gqlforge-macros",
   "gqlforge-formatter",
   "gqlforge-fixtures",
-  "gqlforge-upstream-grpc",
+  # TODO: Re-enable when opentelemetry ecosystem stabilizes on 0.32
+  # "gqlforge-upstream-grpc",
   "gqlforge-tracker",
   "gqlforge-hasher",
   "gqlforge-http-cache",
