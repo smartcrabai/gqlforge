@@ -33,7 +33,8 @@ pub struct Blueprint {
 /// Describes how to connect to a PostgreSQL-compatible database.
 #[derive(Clone, Debug)]
 pub enum PostgresConnectionSpec {
-    /// Standard `PostgreSQL` connection URL (e.g. `postgresql://user:pass@host/db`).
+    /// Standard `PostgreSQL` connection URL (e.g.
+    /// `postgresql://user:pass@host/db`).
     Url(String),
     /// Aurora DSQL connection using AWS IAM authentication.
     AuroraDsql {

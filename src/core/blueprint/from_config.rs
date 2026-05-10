@@ -7,11 +7,10 @@ use indexmap::IndexMap;
 use self::telemetry::to_opentelemetry;
 use super::Server;
 use crate::core::Type;
-use crate::core::blueprint::PostgresConnectionSpec;
 use crate::core::blueprint::compress::compress;
 use crate::core::blueprint::{
-    Blueprint, BlueprintError, Definition, Links, TryFoldConfig, Upstream, telemetry,
-    to_definitions, to_schema, update_federation,
+    Blueprint, BlueprintError, Definition, Links, PostgresConnectionSpec, TryFoldConfig, Upstream,
+    telemetry, to_definitions, to_schema, update_federation,
 };
 use crate::core::config::transformer::Required;
 use crate::core::config::{Arg, Batch, Config, ConfigModule};
@@ -19,7 +18,8 @@ use crate::core::ir::model::{IO, IR};
 use crate::core::json::JsonSchema;
 use crate::core::try_fold::TryFold;
 
-/// Maps a single `Postgres` or `AuroraDsql` link to a `(id, PostgresConnectionSpec)` pair.
+/// Maps a single `Postgres` or `AuroraDsql` link to a `(id,
+/// PostgresConnectionSpec)` pair.
 fn link_to_connection_spec(
     link: &crate::core::config::Link,
 ) -> anyhow::Result<(String, PostgresConnectionSpec)> {

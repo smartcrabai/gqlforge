@@ -4,8 +4,8 @@ use std::sync::OnceLock;
 ///
 /// # Errors
 ///
-/// Returns an error if AWS credential resolution fails, the signer configuration
-/// is invalid, or the token generation API call fails.
+/// Returns an error if AWS credential resolution fails, the signer
+/// configuration is invalid, or the token generation API call fails.
 pub async fn generate_dsql_token(
     config: &aws_types::sdk_config::SdkConfig,
     endpoint: &str,
@@ -49,7 +49,8 @@ pub fn load_dsql_aws_config() -> anyhow::Result<&'static aws_types::sdk_config::
     let config = rt.block_on(aws_config::load_defaults(
         aws_config::BehaviorVersion::latest(),
     ));
-    // set may fail if another thread initialized first — use the cached value instead
+    // set may fail if another thread initialized first - use the cached value
+    // instead
     let _ = CACHED_AWS_CONFIG.set(config);
     CACHED_AWS_CONFIG
         .get()
