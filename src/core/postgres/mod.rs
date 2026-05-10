@@ -1,4 +1,5 @@
 pub mod data_loader;
+pub mod dsql_token;
 pub mod introspector;
 pub mod request_template;
 pub mod schema;

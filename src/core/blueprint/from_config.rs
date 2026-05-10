@@ -7,6 +7,7 @@ use indexmap::IndexMap;
 use self::telemetry::to_opentelemetry;
 use super::Server;
 use crate::core::Type;
+use crate::core::blueprint::PostgresConnectionSpec;
 use crate::core::blueprint::compress::compress;
 use crate::core::blueprint::{
     Blueprint, BlueprintError, Definition, Links, TryFoldConfig, Upstream, telemetry,
@@ -17,6 +18,26 @@ use crate::core::config::{Arg, Batch, Config, ConfigModule};
 use crate::core::ir::model::{IO, IR};
 use crate::core::json::JsonSchema;
 use crate::core::try_fold::TryFold;
+
+/// Maps a single `Postgres` or `AuroraDsql` link to a `(id, PostgresConnectionSpec)` pair.
+fn link_to_connection_spec(
+    link: &crate::core::config::Link,
+) -> anyhow::Result<(String, PostgresConnectionSpec)> {
+    let id = link.id.clone().unwrap_or_else(|| "default".to_string());
+    let spec = match link.type_of {
+        crate::core::config::LinkType::Postgres => PostgresConnectionSpec::Url(link.src.clone()),
+        crate::core::config::LinkType::AuroraDsql => {
+            let region = link
+                .dsql_region()
+                .ok_or_else(|| anyhow::anyhow!("AuroraDsql link requires meta.region"))?
+                .to_string();
+            let admin = link.dsql_admin();
+            PostgresConnectionSpec::AuroraDsql { endpoint: link.src.clone(), region, admin }
+        }
+        _ => unreachable!("caller must filter to Postgres/AuroraDsql only"),
+    };
+    Ok((id, spec))
+}
 
 pub fn config_blueprint<'a>() -> TryFold<'a, ConfigModule, Blueprint, BlueprintError> {
     let server = TryFoldConfig::<Blueprint>::new(|config_module, blueprint| {
@@ -47,17 +68,22 @@ pub fn config_blueprint<'a>() -> TryFold<'a, ConfigModule, Blueprint, BlueprintE
     );
 
     let postgres_connections = TryFoldConfig::<Blueprint>::new(|config_module, mut blueprint| {
-        let connections: Vec<(String, String)> = config_module
+        let connections: Result<Vec<_>, _> = config_module
             .links
             .iter()
-            .filter(|link| link.type_of == crate::core::config::LinkType::Postgres)
-            .map(|link| {
-                let id = link.id.clone().unwrap_or_else(|| "default".to_string());
-                (id, link.src.clone())
+            .filter(|link| {
+                link.type_of == crate::core::config::LinkType::Postgres
+                    || link.type_of == crate::core::config::LinkType::AuroraDsql
             })
+            .map(link_to_connection_spec)
             .collect();
-        blueprint.postgres_connections = connections;
-        Valid::succeed(blueprint)
+        match connections {
+            Ok(connections) => {
+                blueprint.postgres_connections = connections;
+                Valid::succeed(blueprint)
+            }
+            Err(e) => Valid::fail(BlueprintError::Error(e)),
+        }
     });
 
     server
@@ -159,5 +185,122 @@ impl TryFrom<&ConfigModule> for Blueprint {
                 }
             })
             .to_result()
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::core::config::{Link, LinkType};
+
+    fn make_link(
+        type_of: LinkType,
+        src: &str,
+        id: Option<&str>,
+        meta: Option<serde_json::Value>,
+    ) -> Link {
+        Link {
+            type_of,
+            src: src.to_string(),
+            id: id.map(str::to_string),
+            meta,
+            ..Default::default()
+        }
+    }
+
+    #[test]
+    fn postgres_link_maps_to_url_spec() -> anyhow::Result<()> {
+        let link = make_link(
+            LinkType::Postgres,
+            "postgresql://user:pass@host/db",
+            None,
+            None,
+        );
+        let (id, spec) = link_to_connection_spec(&link)?;
+        assert_eq!(id, "default");
+        assert!(
+            matches!(spec, PostgresConnectionSpec::Url(u) if u == "postgresql://user:pass@host/db")
+        );
+        Ok(())
+    }
+
+    #[test]
+    fn postgres_link_with_explicit_id() -> anyhow::Result<()> {
+        let link = make_link(
+            LinkType::Postgres,
+            "postgresql://host/db",
+            Some("main"),
+            None,
+        );
+        let (id, _spec) = link_to_connection_spec(&link)?;
+        assert_eq!(id, "main");
+        Ok(())
+    }
+
+    #[test]
+    fn aurora_dsql_link_maps_to_dsql_spec() -> anyhow::Result<()> {
+        let link = make_link(
+            LinkType::AuroraDsql,
+            "cluster.dsql.us-east-1.on.aws",
+            None,
+            Some(serde_json::json!({ "region": "us-east-1" })),
+        );
+        let (id, spec) = link_to_connection_spec(&link)?;
+        assert_eq!(id, "default");
+        assert!(matches!(
+            spec,
+            PostgresConnectionSpec::AuroraDsql {
+                ref endpoint,
+                ref region,
+                admin: false,
+            }
+            if endpoint == "cluster.dsql.us-east-1.on.aws" && region == "us-east-1"
+        ));
+        Ok(())
+    }
+
+    #[test]
+    fn aurora_dsql_link_with_admin_true() -> anyhow::Result<()> {
+        let link = make_link(
+            LinkType::AuroraDsql,
+            "cluster.dsql.us-east-1.on.aws",
+            Some("dsql_admin"),
+            Some(serde_json::json!({ "region": "us-east-1", "admin": true })),
+        );
+        let (id, spec) = link_to_connection_spec(&link)?;
+        assert_eq!(id, "dsql_admin");
+        assert!(matches!(
+            spec,
+            PostgresConnectionSpec::AuroraDsql { admin: true, .. }
+        ));
+        Ok(())
+    }
+
+    #[test]
+    fn aurora_dsql_link_missing_region_returns_error() {
+        let link = make_link(
+            LinkType::AuroraDsql,
+            "cluster.dsql.eu-west-1.on.aws",
+            None,
+            Some(serde_json::json!({})),
+        );
+        let Err(e) = link_to_connection_spec(&link) else {
+            panic!("expected error for missing region");
+        };
+        assert!(e.to_string().contains("meta.region"));
+    }
+
+    #[test]
+    fn aurora_dsql_link_null_meta_returns_error() {
+        let link = make_link(
+            LinkType::AuroraDsql,
+            "cluster.dsql.us-east-1.on.aws",
+            None,
+            None,
+        );
+        let Err(e) = link_to_connection_spec(&link) else {
+            panic!("expected error for null meta");
+        };
+        assert!(e.to_string().contains("meta.region"));
     }
 }

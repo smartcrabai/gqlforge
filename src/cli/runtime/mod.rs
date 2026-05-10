@@ -10,7 +10,7 @@ use std::sync::Arc;
 pub use http::NativeHttp;
 use inquire::{Confirm, Select};
 
-use crate::core::blueprint::Blueprint;
+use crate::core::blueprint::{Blueprint, PostgresConnectionSpec};
 use crate::core::cache::InMemoryCache;
 use crate::core::runtime::TargetRuntime;
 use crate::core::worker::{Command, Event};
@@ -75,18 +75,38 @@ fn init_in_memory_cache<K: Hash + Eq, V: Clone>() -> InMemoryCache<K, V> {
 ///
 /// Returns an error if the operation fails.
 pub fn init(blueprint: &Blueprint) -> anyhow::Result<TargetRuntime> {
+    let postgres = build_postgres_connections(blueprint)?;
+    Ok(build_runtime(blueprint, postgres))
+}
+
+fn build_postgres_connections(
+    blueprint: &Blueprint,
+) -> anyhow::Result<HashMap<String, Arc<dyn crate::core::postgres::PostgresIO>>> {
+    let mut postgres = HashMap::new();
+    for (id, spec) in &blueprint.postgres_connections {
+        let io: Arc<dyn crate::core::postgres::PostgresIO> = match spec {
+            PostgresConnectionSpec::Url(url) => Arc::new(
+                crate::cli::postgres::pool::PostgresPool::new(url)
+                    .map_err(|e| anyhow::anyhow!("Failed to create Postgres pool '{id}': {e}"))?,
+            ),
+            PostgresConnectionSpec::AuroraDsql { endpoint, region, admin } => Arc::new(
+                crate::cli::postgres::dsql_pool::AuroraDsqlPool::new(endpoint, region, *admin)
+                    .map_err(|e| anyhow::anyhow!("Failed to create DSQL pool '{id}': {e}"))?,
+            ),
+        };
+        postgres.insert(id.clone(), io);
+    }
+    Ok(postgres)
+}
+
+fn build_runtime(
+    blueprint: &Blueprint,
+    postgres: HashMap<String, Arc<dyn crate::core::postgres::PostgresIO>>,
+) -> TargetRuntime {
     #[cfg(not(feature = "js"))]
     tracing::warn!("JS capabilities are disabled in this build");
 
-    let mut postgres: HashMap<String, Arc<dyn crate::core::postgres::PostgresIO>> = HashMap::new();
-
-    for (id, url) in &blueprint.postgres_connections {
-        let pool = crate::cli::postgres::pool::PostgresPool::new(url)
-            .map_err(|e| anyhow::anyhow!("Failed to create Postgres pool '{id}': {e}"))?;
-        postgres.insert(id.clone(), Arc::new(pool));
-    }
-
-    Ok(TargetRuntime {
+    TargetRuntime {
         http: init_http(blueprint),
         http2_only: init_http2_only(blueprint),
         env: init_env(),
@@ -97,7 +117,7 @@ pub fn init(blueprint: &Blueprint) -> anyhow::Result<TargetRuntime> {
         worker: init_resolver_worker_io(blueprint.server.script.clone()),
         postgres,
         s3: HashMap::new(),
-    })
+    }
 }
 
 ///

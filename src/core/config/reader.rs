@@ -176,6 +176,25 @@ impl ConfigReader {
                         force_path_style,
                     });
                 }
+                LinkType::AuroraDsql => {
+                    let region = link
+                        .dsql_region()
+                        .ok_or_else(|| {
+                            anyhow::anyhow!("@link(type: AuroraDsql) requires meta.region")
+                        })?
+                        .to_string();
+                    let admin = link.dsql_admin();
+                    let config = crate::core::postgres::dsql_token::load_dsql_aws_config()?;
+                    let token = crate::core::postgres::dsql_token::generate_dsql_token(
+                        config, &link.src, &region, admin,
+                    )
+                    .await?;
+                    let url =
+                        crate::core::postgres::dsql_token::build_dsql_url(&link.src, &token, admin);
+                    let db_schema = crate::core::postgres::introspector::introspect(&url).await?;
+                    let id = link.id.clone().or_else(|| Some("default".to_string()));
+                    extensions.add_database_schema(id, db_schema);
+                }
             }
         }
 
