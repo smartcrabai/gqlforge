@@ -80,8 +80,18 @@ pub async fn introspect(connection_url: &str) -> Result<DatabaseSchema> {
         WHERE schemaname NOT IN ('pg_catalog', 'information_schema')
         ORDER BY schemaname, matviewname
     ";
-    let matview_rows = client.query(matviews_query, &[]).await?;
-
+    let matview_rows = client.query(matviews_query, &[]).await.or_else(|e| {
+        if e.as_db_error().is_some_and(|db_err| {
+            db_err.code() == &tokio_postgres::error::SqlState::UNDEFINED_TABLE
+        }) {
+            tracing::warn!(
+                "Materialized views not available (pg_catalog.pg_matviews not found): {e}"
+            );
+            Ok(vec![])
+        } else {
+            Err(anyhow::Error::new(e).context("Failed to query materialized views"))
+        }
+    })?;
     for row in &matview_rows {
         let table_schema: String = row.get("table_schema");
         let table_name: String = row.get("table_name");
@@ -224,23 +234,28 @@ async fn fetch_foreign_keys(
 ) -> Result<Vec<ForeignKey>> {
     let query = r"
         SELECT
-            a1.attname AS column_name,
-            ns2.nspname AS foreign_table_schema,
-            cl2.relname AS foreign_table_name,
-            a2.attname AS foreign_column_name,
-            con.conname AS constraint_name
-        FROM pg_catalog.pg_constraint con
-        JOIN pg_catalog.pg_class cl ON cl.oid = con.conrelid
-        JOIN pg_catalog.pg_namespace ns ON ns.oid = cl.relnamespace
-        JOIN pg_catalog.pg_class cl2 ON cl2.oid = con.confrelid
-        JOIN pg_catalog.pg_namespace ns2 ON ns2.oid = cl2.relnamespace
-        CROSS JOIN LATERAL unnest(con.conkey, con.confkey) WITH ORDINALITY AS u(conkey, confkey, ord)
-        JOIN pg_catalog.pg_attribute a1 ON a1.attrelid = con.conrelid AND a1.attnum = u.conkey
-        JOIN pg_catalog.pg_attribute a2 ON a2.attrelid = con.confrelid AND a2.attnum = u.confkey
-        WHERE con.contype = 'f'
-          AND ns.nspname = $1
-          AND cl.relname = $2
-        ORDER BY con.conname, u.ord
+            fk_kcu.column_name          AS column_name,
+            ref_tc.table_schema         AS foreign_table_schema,
+            ref_tc.table_name           AS foreign_table_name,
+            ref_kcu.column_name         AS foreign_column_name,
+            rc.constraint_name
+        FROM information_schema.referential_constraints rc
+        JOIN information_schema.table_constraints fk_tc
+          ON fk_tc.constraint_name = rc.constraint_name
+         AND fk_tc.table_schema    = rc.constraint_schema
+        JOIN information_schema.key_column_usage fk_kcu
+          ON fk_kcu.constraint_name = rc.constraint_name
+         AND fk_kcu.table_schema    = rc.constraint_schema
+        JOIN information_schema.table_constraints ref_tc
+          ON ref_tc.constraint_name = rc.unique_constraint_name
+         AND ref_tc.table_schema    = rc.unique_constraint_schema
+        JOIN information_schema.key_column_usage ref_kcu
+          ON ref_kcu.constraint_name    = rc.unique_constraint_name
+         AND ref_kcu.table_schema       = rc.unique_constraint_schema
+         AND ref_kcu.ordinal_position   = fk_kcu.position_in_unique_constraint
+        WHERE fk_tc.table_schema = $1
+          AND fk_tc.table_name   = $2
+        ORDER BY rc.constraint_name, fk_kcu.ordinal_position
     ";
     let rows = client.query(query, &[&schema, &table]).await?;
 
