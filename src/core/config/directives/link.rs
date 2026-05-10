@@ -65,6 +65,99 @@ pub enum LinkType {
     /// Points to an S3 or S3-compatible endpoint. The endpoint URL and
     /// region/credentials metadata are used by the `@s3` directive.
     S3,
+
+    /// Points to an Aurora DSQL cluster endpoint. The cluster will be
+    /// introspected at startup using AWS IAM authentication.
+    /// `src` should be the cluster endpoint (without scheme).
+    /// `meta.region` is required; `meta.admin` defaults to false.
+    AuroraDsql,
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn aurora_dsql_link_type_display() {
+        assert_eq!(LinkType::AuroraDsql.to_string(), "AuroraDsql");
+    }
+
+    #[test]
+    fn aurora_dsql_link_type_serializes_to_json() -> serde_json::Result<()> {
+        let link = Link {
+            type_of: LinkType::AuroraDsql,
+            src: "cluster123.dsql.us-east-1.on.aws".to_string(),
+            meta: Some(serde_json::json!({ "region": "us-east-1", "admin": true })),
+            ..Default::default()
+        };
+        let json = serde_json::to_value(&link)?;
+        assert_eq!(json["type"], "AuroraDsql");
+        assert_eq!(json["src"], "cluster123.dsql.us-east-1.on.aws");
+        Ok(())
+    }
+
+    #[test]
+    fn aurora_dsql_link_type_deserializes_from_json() -> serde_json::Result<()> {
+        let json = r#"{"src":"cluster.dsql.us-east-1.on.aws","type":"AuroraDsql","meta":{"region":"us-east-1"}}"#;
+        let link: Link = serde_json::from_str(json)?;
+        assert_eq!(link.type_of, LinkType::AuroraDsql);
+        assert_eq!(link.src, "cluster.dsql.us-east-1.on.aws");
+        Ok(())
+    }
+
+    #[test]
+    fn aurora_dsql_meta_region_extracted() {
+        let link = Link {
+            type_of: LinkType::AuroraDsql,
+            src: "cluster.dsql.ap-northeast-1.on.aws".to_string(),
+            meta: Some(serde_json::json!({ "region": "ap-northeast-1" })),
+            ..Default::default()
+        };
+        assert_eq!(link.dsql_region(), Some("ap-northeast-1"));
+    }
+
+    #[test]
+    fn aurora_dsql_meta_admin_defaults_to_false() {
+        let link = Link {
+            type_of: LinkType::AuroraDsql,
+            src: "cluster.dsql.us-east-1.on.aws".to_string(),
+            meta: Some(serde_json::json!({ "region": "us-east-1" })),
+            ..Default::default()
+        };
+        assert!(!link.dsql_admin());
+    }
+
+    #[test]
+    fn aurora_dsql_meta_admin_can_be_true() {
+        let link = Link {
+            type_of: LinkType::AuroraDsql,
+            src: "cluster.dsql.us-east-1.on.aws".to_string(),
+            meta: Some(serde_json::json!({ "region": "us-east-1", "admin": true })),
+            ..Default::default()
+        };
+        assert!(link.dsql_admin());
+    }
+}
+
+impl Link {
+    const REGION_KEY: &str = "region";
+    const ADMIN_KEY: &str = "admin";
+
+    #[must_use]
+    pub fn dsql_region(&self) -> Option<&str> {
+        self.meta
+            .as_ref()
+            .and_then(|m| m.get(Self::REGION_KEY))
+            .and_then(|v| v.as_str())
+    }
+
+    pub fn dsql_admin(&self) -> bool {
+        self.meta
+            .as_ref()
+            .and_then(|m| m.get(Self::ADMIN_KEY))
+            .and_then(serde_json::Value::as_bool)
+            .unwrap_or(false)
+    }
 }
 
 /// The @link directive allows you to import external resources, such as

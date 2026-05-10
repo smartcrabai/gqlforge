@@ -35,7 +35,7 @@ impl<'a> postgres_types::FromSql<'a> for EnumText {
 
 /// Wrapper that converts a string parameter to the type `PostgreSQL` expects.
 #[derive(Debug)]
-pub(super) struct TypedParam(pub(super) String);
+pub(crate) struct TypedParam(pub(crate) String);
 
 impl postgres_types::ToSql for TypedParam {
     fn to_sql(

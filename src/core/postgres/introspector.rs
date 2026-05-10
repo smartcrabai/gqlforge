@@ -1,4 +1,7 @@
+use std::sync::Arc;
+
 use anyhow::{Context, Result};
+use futures_util::future::join_all;
 
 use super::schema::{
     Column, DatabaseSchema, ForeignKey, PgType, PrimaryKey, Table, UniqueConstraint,
@@ -29,16 +32,17 @@ pub async fn introspect(connection_url: &str) -> Result<DatabaseSchema> {
             )
         })?;
 
-    // Spawn the connection handler.
     tokio::spawn(async move {
         if let Err(e) = connection.await {
             tracing::error!("PostgreSQL connection error: {e}");
         }
     });
 
+    let client = Arc::new(client);
     let mut schema = DatabaseSchema::new();
 
-    // --- 1. Fetch tables and views ---
+    // Fetch tables, views, and their metadata (columns, primary keys, foreign keys,
+    // unique constraints) in parallel per table.
     let tables_query = r"
         SELECT table_schema, table_name, table_type
         FROM information_schema.tables
@@ -54,11 +58,16 @@ pub async fn introspect(connection_url: &str) -> Result<DatabaseSchema> {
         let table_type: String = row.get("table_type");
         let is_view = table_type == "VIEW";
 
-        let columns = fetch_columns(&client, &table_schema, &table_name).await?;
-        let primary_key = fetch_primary_key(&client, &table_schema, &table_name).await?;
-        let foreign_keys = fetch_foreign_keys(&client, &table_schema, &table_name).await?;
-        let unique_constraints =
-            fetch_unique_constraints(&client, &table_schema, &table_name).await?;
+        let columns = fetch_columns(&client, &table_schema, &table_name);
+        let primary_key = fetch_primary_key(&client, &table_schema, &table_name);
+        let foreign_keys = fetch_foreign_keys(&client, &table_schema, &table_name);
+        let unique_constraints = fetch_unique_constraints(&client, &table_schema, &table_name);
+        let (columns, primary_key, foreign_keys, unique_constraints) =
+            tokio::join!(columns, primary_key, foreign_keys, unique_constraints);
+        let columns = columns?;
+        let primary_key = primary_key?;
+        let foreign_keys = foreign_keys?;
+        let unique_constraints = unique_constraints?;
 
         schema.add_table(Table {
             schema: table_schema,
@@ -71,9 +80,8 @@ pub async fn introspect(connection_url: &str) -> Result<DatabaseSchema> {
         });
     }
 
-    // --- 2. Fetch materialized views ---
-    // information_schema.tables does not include materialized views (relkind='m');
-    // they must be discovered via pg_catalog.pg_matviews.
+    // Materialized views use pg_catalog.pg_matviews since information_schema omits
+    // them (relkind = 'm').
     let matviews_query = r"
         SELECT schemaname AS table_schema, matviewname AS table_name
         FROM pg_catalog.pg_matviews
@@ -92,12 +100,22 @@ pub async fn introspect(connection_url: &str) -> Result<DatabaseSchema> {
             Err(anyhow::Error::new(e).context("Failed to query materialized views"))
         }
     })?;
-    for row in &matview_rows {
-        let table_schema: String = row.get("table_schema");
-        let table_name: String = row.get("table_name");
+    let matview_futures: Vec<_> = matview_rows
+        .iter()
+        .map(|row| {
+            let client = Arc::clone(&client);
+            async move {
+                let table_schema: String = row.get("table_schema");
+                let table_name: String = row.get("table_name");
+                let columns = fetch_matview_columns(&client, &table_schema, &table_name).await?;
+                anyhow::Result::<_>::Ok((table_schema, table_name, columns))
+            }
+        })
+        .collect();
+    let matview_results = join_all(matview_futures).await;
 
-        let columns = fetch_matview_columns(&client, &table_schema, &table_name).await?;
-
+    for result in matview_results {
+        let (table_schema, table_name, columns) = result?;
         schema.add_table(Table {
             schema: table_schema,
             name: table_name,

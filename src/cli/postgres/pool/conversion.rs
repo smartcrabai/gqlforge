@@ -1,4 +1,6 @@
+use async_graphql::Name;
 use async_graphql_value::ConstValue;
+use indexmap::IndexMap;
 
 use super::array::parse_pg_array;
 use super::binary_format::{
@@ -7,7 +9,7 @@ use super::binary_format::{
 };
 use super::types::{EnumText, RawBytes};
 
-pub(super) fn sanitize_graphql_name(name: &str) -> String {
+pub(crate) fn sanitize_graphql_name(name: &str) -> String {
     let mut result = String::with_capacity(name.len());
     for c in name.chars() {
         if c.is_ascii_alphanumeric() || c == '_' {
@@ -32,7 +34,7 @@ pub(super) fn sanitize_graphql_name(name: &str) -> String {
     clippy::too_many_lines,
     reason = "handles all Postgres type conversions"
 )]
-pub(super) fn row_value_to_const(
+pub(crate) fn row_value_to_const(
     row: &tokio_postgres::Row,
     idx: usize,
     col: &tokio_postgres::Column,
@@ -182,6 +184,19 @@ pub(super) fn row_value_to_const(
             }
         }
     }
+}
+
+pub(crate) fn rows_to_const_value(rows: &[tokio_postgres::Row]) -> anyhow::Result<ConstValue> {
+    let mut result = Vec::with_capacity(rows.len());
+    for row in rows {
+        let mut obj = IndexMap::new();
+        for (i, col) in row.columns().iter().enumerate() {
+            let value = row_value_to_const(row, i, col)?;
+            obj.insert(Name::new(sanitize_graphql_name(col.name())), value);
+        }
+        result.push(ConstValue::Object(obj));
+    }
+    Ok(ConstValue::List(result))
 }
 
 #[cfg(test)]

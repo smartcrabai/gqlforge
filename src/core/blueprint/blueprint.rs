@@ -25,9 +25,26 @@ pub struct Blueprint {
     pub server: Server,
     pub upstream: Upstream,
     pub telemetry: Telemetry,
-    /// `PostgreSQL` connection definitions: `(connection_id, connection_url)`.
+    /// `PostgreSQL` connection definitions: `(connection_id, connection_spec)`.
     #[setters(skip)]
-    pub postgres_connections: Vec<(String, String)>,
+    pub postgres_connections: Vec<(String, PostgresConnectionSpec)>,
+}
+
+/// Describes how to connect to a PostgreSQL-compatible database.
+#[derive(Clone, Debug)]
+pub enum PostgresConnectionSpec {
+    /// Standard `PostgreSQL` connection URL (e.g.
+    /// `postgresql://user:pass@host/db`).
+    Url(String),
+    /// Aurora DSQL connection using AWS IAM authentication.
+    AuroraDsql {
+        /// Cluster endpoint hostname (no scheme).
+        endpoint: String,
+        /// AWS region (e.g. `us-east-1`).
+        region: String,
+        /// Use admin token if true; regular user token otherwise.
+        admin: bool,
+    },
 }
 
 #[derive(Clone, Debug)]
@@ -273,5 +290,30 @@ impl Blueprint {
 
     pub fn index(&self) -> Index {
         Index::from(self)
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn postgres_connection_spec_aurora_dsql_stores_fields() {
+        let endpoint = "cluster123.dsql.us-east-1.on.aws";
+        let region = "us-east-1";
+        let spec = PostgresConnectionSpec::AuroraDsql {
+            endpoint: endpoint.to_string(),
+            region: region.to_string(),
+            admin: true,
+        };
+        assert!(matches!(
+            spec,
+            PostgresConnectionSpec::AuroraDsql {
+                endpoint: ref ep,
+                region: ref rg,
+                admin: true,
+            }
+            if ep == endpoint && rg == region
+        ));
     }
 }

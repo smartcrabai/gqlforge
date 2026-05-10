@@ -693,6 +693,11 @@
           "description": "Points to an S3 or S3-compatible endpoint. The endpoint URL and\nregion/credentials metadata are used by the `@s3` directive.",
           "type": "string",
           "const": "S3"
+        },
+        {
+          "description": "Points to an Aurora DSQL cluster endpoint. The cluster will be\nintrospected at startup using AWS IAM authentication.\n`src` should be the cluster endpoint (without scheme).\n`meta.region` is required; `meta.admin` defaults to false.",
+          "type": "string",
+          "const": "AuroraDsql"
         }
       ]
     },
