@@ -133,7 +133,8 @@ impl AppContext {
                                     None
                                 }
                                 IO::PostgresStream { .. } => {
-                                    // PostgresStream is used in subscriptions, no data loader needed
+                                    // PostgresStream is used in subscriptions, no data loader
+                                    // needed
                                     None
                                 }
                                 IO::Postgres {

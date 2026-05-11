@@ -42,7 +42,7 @@ pub fn compile_postgres(inputs: CompilePostgres) -> Valid<IR, BlueprintError> {
         }
     };
 
-    // LISTEN handling — only allowed on Subscription fields
+    // LISTEN handling -- only allowed on Subscription fields
     if pg.operation == PostgresOperation::Listen {
         let is_subscription = matches!(operation_type, GraphQLOperationType::Subscription);
         if !is_subscription {
@@ -399,7 +399,7 @@ mod tests {
         assert!(result.to_result().is_ok());
     }
 
-    // Tests for @postgres(operation: LISTEN) — PostgresStream
+    // Tests for @postgres(operation: LISTEN) -- PostgresStream
 
     #[test]
     fn listen_subscription_succeeds_and_returns_postgres_stream() {

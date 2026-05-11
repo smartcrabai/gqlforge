@@ -50,7 +50,8 @@ pub enum PostgresPayloadType {
     /// Parse the NOTIFY payload as JSON.
     #[default]
     Json,
-    /// Treat the NOTIFY payload as a raw string, wrapped in `ConstValue::String`.
+    /// Treat the NOTIFY payload as a raw string, wrapped in
+    /// `ConstValue::String`.
     Text,
 }
 

@@ -95,8 +95,9 @@ pub fn init(blueprint: &Blueprint) -> anyhow::Result<TargetRuntime> {
                 );
             }
             PostgresConnectionSpec::AuroraDsql { endpoint, region, admin } => {
-                let pool = crate::cli::postgres::dsql_pool::AuroraDsqlPool::new(endpoint, region, *admin)
-                    .map_err(|e| anyhow::anyhow!("Failed to create DSQL pool '{id}': {e}"))?;
+                let pool =
+                    crate::cli::postgres::dsql_pool::AuroraDsqlPool::new(endpoint, region, *admin)
+                        .map_err(|e| anyhow::anyhow!("Failed to create DSQL pool '{id}': {e}"))?;
                 postgres.insert(
                     id.clone(),
                     Arc::new(pool) as Arc<dyn crate::core::postgres::PostgresIO>,
@@ -151,10 +152,9 @@ pub async fn confirm_and_write(
             return Ok(());
         }
         Ok(_) => {
-            let confirm =
-                Confirm::new(&format!("Do you want to overwrite the file {path}?"))
-                    .with_default(false)
-                    .prompt()?;
+            let confirm = Confirm::new(&format!("Do you want to overwrite the file {path}?"))
+                .with_default(false)
+                .prompt()?;
             if !confirm {
                 return Ok(());
             }
