@@ -10,7 +10,6 @@ use hyper_util::rt::TokioExecutor;
 use opentelemetry::KeyValue;
 use opentelemetry::metrics::Counter;
 use opentelemetry::trace::SpanKind;
-use opentelemetry_http::HeaderInjector;
 use opentelemetry_semantic_conventions::trace::{
     HTTP_REQUEST_METHOD, HTTP_RESPONSE_STATUS_CODE, NETWORK_PROTOCOL_VERSION, URL_FULL,
 };
@@ -181,12 +180,16 @@ impl HttpIO for NativeHttp {
         let mut req_counter = RequestCounter::new(self.enable_telemetry, &request);
 
         if self.enable_telemetry {
-            opentelemetry::global::get_text_map_propagator(|propagator| {
-                propagator.inject_context(
-                    &tracing::Span::current().context(),
-                    &mut HeaderInjector(request.headers_mut()),
-                );
-            });
+            // TEMPORARY: Disabled due to opentelemetry version incompatibility
+            // tracing-opentelemetry v0.32.1 uses opentelemetry v0.31, but we
+            // use v0.32 TODO: Re-enable when tracing-opentelemetry
+            // supports opentelemetry v0.32
+            // opentelemetry::global::get_text_map_propagator(|propagator| {
+            //     propagator.inject_context(
+            //         &tracing::Span::current().context(),
+            //         &mut HeaderInjector(request.headers_mut()),
+            //     );
+            // });
         }
 
         tracing::info!(
@@ -202,8 +205,12 @@ impl HttpIO for NativeHttp {
         req_counter.update(&response);
 
         if self.enable_telemetry {
-            let status_code = get_response_status(&response);
-            tracing::Span::current().set_attribute(status_code.key, status_code.value);
+            let status_code_value = match &response {
+                Ok(resp) => resp.status().as_u16(),
+                Err(err) => err.status().map_or(0, |code| code.as_u16()),
+            };
+            tracing::Span::current()
+                .set_attribute(HTTP_RESPONSE_STATUS_CODE, i64::from(status_code_value));
         }
 
         // Get the response

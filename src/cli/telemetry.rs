@@ -1,5 +1,4 @@
 use anyhow::anyhow;
-use opentelemetry::trace::TracerProvider as _;
 use opentelemetry::{KeyValue, global};
 use opentelemetry_appender_tracing::layer::OpenTelemetryTracingBridge;
 use opentelemetry_otlp::{
@@ -56,15 +55,16 @@ fn set_trace_provider(
         // Prometheus works only with metrics
         TelemetryExporter::Prometheus(_) => return Ok(None),
     };
-    let tracer = provider.tracer("tracing");
-    let telemetry = tracing_opentelemetry::layer()
-        .with_location(false)
-        .with_threads(false)
-        .with_tracer(tracer);
 
+    // Set the global tracer provider for context propagation
     global::set_tracer_provider(provider);
 
-    Ok(Some(telemetry))
+    // TEMPORARY: Disable tracing-opentelemetry layer due to version incompatibility
+    // tracing-opentelemetry v0.32.1 depends on opentelemetry v0.31.0, but we use
+    // v0.32.0 This should be re-enabled once tracing-opentelemetry v0.33+ is
+    // released with opentelemetry v0.32 support
+    // TODO: Re-enable when tracing-opentelemetry supports opentelemetry v0.32
+    Ok(None)
 }
 
 fn set_logger_provider(
@@ -174,14 +174,18 @@ fn set_tracing_subscriber(subscriber: impl Subscriber + Send + Sync) {
 /// Returns an error if the operation fails.
 pub async fn init_opentelemetry(config: Telemetry, runtime: &TargetRuntime) -> anyhow::Result<()> {
     if let Some(export) = &config.export {
-        let trace_layer = set_trace_provider(export)?;
+        let _trace_layer = set_trace_provider(export)?;
         let log_layer = set_logger_provider(export)?;
         set_meter_provider(export)?;
 
         global::set_text_map_propagator(TraceContextPropagator::new());
 
+        // TEMPORARY: Build subscriber without trace_layer due to version
+        // incompatibility Once tracing-opentelemetry v0.33+ is released with
+        // opentelemetry v0.32 support, uncomment the trace_layer line below
         let subscriber = tracing_subscriber::registry()
-            .with(trace_layer)
+            // .with(trace_layer)  // TODO: Re-enable when tracing-opentelemetry supports
+            // opentelemetry v0.32
             .with(default_tracing())
             .with(
                 log_layer.with_filter(dynamic_filter_fn(|_metatada, context| {
