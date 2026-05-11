@@ -71,7 +71,7 @@ mimalloc = { version = "0.1.48", default-features = false, optional = true }
 moka = { version = "0.12.13", default-features = false, features = [
   "future",
 ], optional = true }
-opentelemetry-otlp = { version = "0.31", features = [
+opentelemetry-otlp = { version = "0.32", features = [
   "trace",
   "logs",
   "metrics",
@@ -179,17 +179,17 @@ indenter = "0.3.4"
 jsonwebtoken = { version = "10.3.0", features = ["aws_lc_rs"] }
 mime = "0.3.17"
 num = "0.4.3"
-opentelemetry = { version = "0.31", features = ["trace", "logs", "metrics"] }
-opentelemetry-appender-tracing = "0.31"
-opentelemetry-http = "0.31"
-opentelemetry-prometheus = "0.31"
-opentelemetry-semantic-conventions = "0.31"
-opentelemetry-stdout = { version = "0.31", features = [
+opentelemetry = { version = "0.32", features = ["trace", "logs", "metrics"] }
+opentelemetry-appender-tracing = "0.32"
+opentelemetry-http = "0.32"
+opentelemetry-prometheus = "0.32"
+opentelemetry-semantic-conventions = "0.32"
+opentelemetry-stdout = { version = "0.32", features = [
   "trace",
   "logs",
   "metrics",
 ] }
-opentelemetry_sdk = { version = "0.31", features = [
+opentelemetry_sdk = { version = "0.32", features = [
   "trace",
   "logs",
   "metrics",
