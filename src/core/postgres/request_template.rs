@@ -9,7 +9,7 @@ use crate::core::ir::model::{CacheKey, IoId};
 use crate::core::mustache::Mustache;
 use crate::core::path::PathString;
 
-fn quote_ident(name: &str) -> String {
+pub(crate) fn quote_ident(name: &str) -> String {
     format!("\"{}\"", name.replace('"', "\"\""))
 }
 
@@ -55,6 +55,11 @@ impl RequestTemplate {
             PostgresOperation::Insert => self.render_insert(ctx),
             PostgresOperation::Update => self.render_update(ctx),
             PostgresOperation::Delete => self.render_delete(ctx),
+            PostgresOperation::Listen => {
+                anyhow::bail!(
+                    "LISTEN is a subscription-only operation and must not be rendered as SQL"
+                );
+            }
         }
     }
 

@@ -4,7 +4,7 @@ use std::sync::Arc;
 use async_graphql_value::ConstValue;
 
 use super::ir::model::IoId;
-use crate::core::postgres::PostgresIO;
+use crate::core::postgres::{PostgresIO, PostgresListenerIO};
 use crate::core::s3::S3IO;
 use crate::core::schema_extension::SchemaExtension;
 use crate::core::worker::{Command, Event};
@@ -38,6 +38,9 @@ pub struct TargetRuntime {
     /// `PostgreSQL` connection pools for `@postgres` directives, keyed by
     /// connection id.
     pub postgres: HashMap<String, Arc<dyn PostgresIO>>,
+    /// `PostgreSQL` LISTEN/NOTIFY subscribers for `@postgres(operation:
+    /// LISTEN)` Subscription fields, keyed by connection id.
+    pub postgres_listeners: HashMap<String, Arc<dyn PostgresListenerIO>>,
     /// S3 clients keyed by @link id for `@s3` directives.
     pub s3: HashMap<String, Arc<dyn S3IO>>,
 }
@@ -200,6 +203,7 @@ pub mod test {
                 None => None,
             },
             postgres: HashMap::new(),
+            postgres_listeners: HashMap::new(),
             s3: HashMap::new(),
         }
     }

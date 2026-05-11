@@ -49,7 +49,7 @@ pub fn compile_resolver(
                 .trace(config::Expr::trace_name().as_str())
         }
         Resolver::Postgres(pg) => {
-            compile_postgres(super::CompilePostgres { config_module, postgres: pg })
+            compile_postgres(super::CompilePostgres { config_module, postgres: pg, operation_type })
                 .trace(config::Postgres::trace_name().as_str())
         }
         Resolver::S3(s3) => compile_s3(super::CompileS3 { config_module, s3 })

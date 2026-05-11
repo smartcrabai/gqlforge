@@ -2,7 +2,7 @@ use gqlforge_valid::{Valid, Validator};
 
 use crate::core::blueprint::BlueprintError;
 use crate::core::config::group_by::GroupBy;
-use crate::core::config::{ConfigModule, Postgres, PostgresOperation};
+use crate::core::config::{ConfigModule, GraphQLOperationType, Postgres, PostgresOperation};
 use crate::core::ir::model::{IO, IR};
 use crate::core::mustache::Mustache;
 use crate::core::postgres::request_template::RequestTemplate;
@@ -11,11 +11,14 @@ use crate::core::postgres::request_template::RequestTemplate;
 pub struct CompilePostgres<'a> {
     pub config_module: &'a ConfigModule,
     pub postgres: &'a Postgres,
+    pub operation_type: &'a GraphQLOperationType,
 }
 
 #[must_use]
+#[expect(clippy::too_many_lines)]
 pub fn compile_postgres(inputs: CompilePostgres) -> Valid<IR, BlueprintError> {
     let pg = inputs.postgres;
+    let operation_type = inputs.operation_type;
     let dedupe = pg.dedupe.unwrap_or_default();
     let schemas = &inputs.config_module.extensions().database_schemas;
 
@@ -38,6 +41,43 @@ pub fn compile_postgres(inputs: CompilePostgres) -> Valid<IR, BlueprintError> {
             }
         }
     };
+
+    // LISTEN handling — only allowed on Subscription fields
+    if pg.operation == PostgresOperation::Listen {
+        let is_subscription = matches!(operation_type, GraphQLOperationType::Subscription);
+        if !is_subscription {
+            return Valid::fail(BlueprintError::Cause(
+                "@postgres(operation: LISTEN) is only allowed on Subscription fields".to_string(),
+            ));
+        }
+        let channel = match pg.channel.as_deref() {
+            Some(c) if !c.is_empty() => c.to_string(),
+            _ => {
+                return Valid::fail(BlueprintError::Cause(
+                    "@postgres(operation: LISTEN) requires a non-empty 'channel'".to_string(),
+                ));
+            }
+        };
+        // Validate channel name
+        if !channel.chars().all(|c| c.is_alphanumeric() || c == '_') {
+            return Valid::fail(BlueprintError::Cause(format!(
+                "Invalid channel name '{channel}': only alphanumeric and underscore allowed"
+            )));
+        }
+
+        return Valid::succeed(IR::IO(Box::new(IO::PostgresStream {
+            connection_id,
+            channel,
+            payload_type: pg.payload_type.clone(),
+        })));
+    }
+
+    // Non-Listen operations on Subscription fields are not allowed
+    if matches!(operation_type, GraphQLOperationType::Subscription) {
+        return Valid::fail(BlueprintError::Cause(
+            "@postgres on Subscription requires operation: LISTEN".to_string(),
+        ));
+    }
 
     // Validate that the table exists in the database schema (if available).
     let db_schema = inputs
@@ -129,6 +169,7 @@ mod tests {
 
     use super::*;
     use crate::core::config::{Config, Content, Extensions};
+    use crate::core::postgres::PostgresPayloadType;
     use crate::core::postgres::schema::{Column, DatabaseSchema, PgType, Table};
 
     fn make_table(name: &str) -> Table {
@@ -189,7 +230,11 @@ mod tests {
             content: make_schema("users"),
         }]);
         let pg = Postgres { table: "users".to_string(), ..Default::default() };
-        let result = compile_postgres(CompilePostgres { config_module: &cm, postgres: &pg });
+        let result = compile_postgres(CompilePostgres {
+            config_module: &cm,
+            postgres: &pg,
+            operation_type: &GraphQLOperationType::Query,
+        });
         assert!(result.to_result().is_ok());
     }
 
@@ -197,7 +242,11 @@ mod tests {
     fn no_schema_uses_default_id() {
         let cm = make_config_module(vec![]);
         let pg = Postgres { table: "users".to_string(), ..Default::default() };
-        let result = compile_postgres(CompilePostgres { config_module: &cm, postgres: &pg });
+        let result = compile_postgres(CompilePostgres {
+            config_module: &cm,
+            postgres: &pg,
+            operation_type: &GraphQLOperationType::Query,
+        });
         // No schema -> skips table validation, succeeds with connection_id "default"
         let ir = result.to_result().unwrap();
         match ir {
@@ -221,7 +270,11 @@ mod tests {
             },
         ]);
         let pg = Postgres { table: "users".to_string(), ..Default::default() };
-        let result = compile_postgres(CompilePostgres { config_module: &cm, postgres: &pg });
+        let result = compile_postgres(CompilePostgres {
+            config_module: &cm,
+            postgres: &pg,
+            operation_type: &GraphQLOperationType::Query,
+        });
         assert!(result.to_result().is_err());
     }
 
@@ -239,7 +292,11 @@ mod tests {
             db: Some("main".to_string()),
             ..Default::default()
         };
-        let result = compile_postgres(CompilePostgres { config_module: &cm, postgres: &pg });
+        let result = compile_postgres(CompilePostgres {
+            config_module: &cm,
+            postgres: &pg,
+            operation_type: &GraphQLOperationType::Query,
+        });
         assert!(result.to_result().is_ok());
     }
 
@@ -254,7 +311,11 @@ mod tests {
             db: Some("main".to_string()),
             ..Default::default()
         };
-        let result = compile_postgres(CompilePostgres { config_module: &cm, postgres: &pg });
+        let result = compile_postgres(CompilePostgres {
+            config_module: &cm,
+            postgres: &pg,
+            operation_type: &GraphQLOperationType::Query,
+        });
         assert!(result.to_result().is_err());
     }
 
@@ -270,7 +331,11 @@ mod tests {
             db: Some("main".to_string()),
             ..Default::default()
         };
-        let result = compile_postgres(CompilePostgres { config_module: &cm, postgres: &pg });
+        let result = compile_postgres(CompilePostgres {
+            config_module: &cm,
+            postgres: &pg,
+            operation_type: &GraphQLOperationType::Query,
+        });
         assert!(result.to_result().is_err());
     }
 
@@ -286,7 +351,11 @@ mod tests {
             db: Some("main".to_string()),
             ..Default::default()
         };
-        let result = compile_postgres(CompilePostgres { config_module: &cm, postgres: &pg });
+        let result = compile_postgres(CompilePostgres {
+            config_module: &cm,
+            postgres: &pg,
+            operation_type: &GraphQLOperationType::Query,
+        });
         assert!(result.to_result().is_err());
     }
 
@@ -302,7 +371,11 @@ mod tests {
             db: Some("main".to_string()),
             ..Default::default()
         };
-        let result = compile_postgres(CompilePostgres { config_module: &cm, postgres: &pg });
+        let result = compile_postgres(CompilePostgres {
+            config_module: &cm,
+            postgres: &pg,
+            operation_type: &GraphQLOperationType::Query,
+        });
         assert!(result.to_result().is_err());
     }
 
@@ -318,7 +391,249 @@ mod tests {
             db: Some("main".to_string()),
             ..Default::default()
         };
-        let result = compile_postgres(CompilePostgres { config_module: &cm, postgres: &pg });
+        let result = compile_postgres(CompilePostgres {
+            config_module: &cm,
+            postgres: &pg,
+            operation_type: &GraphQLOperationType::Query,
+        });
         assert!(result.to_result().is_ok());
+    }
+
+    // Tests for @postgres(operation: LISTEN) — PostgresStream
+
+    #[test]
+    fn listen_subscription_succeeds_and_returns_postgres_stream() {
+        let cm = make_config_module(vec![Content {
+            id: Some("main".to_string()),
+            content: make_schema("users"),
+        }]);
+        let pg = Postgres {
+            table: "users".to_string(),
+            operation: PostgresOperation::Listen,
+            channel: Some("users_changes".to_string()),
+            ..Default::default()
+        };
+        let result = compile_postgres(CompilePostgres {
+            config_module: &cm,
+            postgres: &pg,
+            operation_type: &GraphQLOperationType::Subscription,
+        });
+        let ir = result.to_result().unwrap();
+        match ir {
+            IR::IO(io) => match io.as_ref() {
+                IO::PostgresStream { connection_id, channel, payload_type } => {
+                    assert_eq!(connection_id, "main");
+                    assert_eq!(channel, "users_changes");
+                    assert_eq!(*payload_type, PostgresPayloadType::Json);
+                }
+                other => panic!("Expected IO::PostgresStream, got: {other:?}"),
+            },
+            other => panic!("Expected IR::IO, got: {other:?}"),
+        }
+    }
+
+    #[test]
+    fn listen_on_query_fails() {
+        let cm = make_config_module(vec![Content {
+            id: Some("main".to_string()),
+            content: make_schema("users"),
+        }]);
+        let pg = Postgres {
+            table: "users".to_string(),
+            operation: PostgresOperation::Listen,
+            channel: Some("users_changes".to_string()),
+            ..Default::default()
+        };
+        let result = compile_postgres(CompilePostgres {
+            config_module: &cm,
+            postgres: &pg,
+            operation_type: &GraphQLOperationType::Query,
+        });
+        let err = result.to_result().unwrap_err();
+        assert!(
+            err.to_string()
+                .contains("LISTEN) is only allowed on Subscription"),
+            "unexpected error: {err}"
+        );
+    }
+
+    #[test]
+    fn listen_on_mutation_fails() {
+        let cm = make_config_module(vec![Content {
+            id: Some("main".to_string()),
+            content: make_schema("users"),
+        }]);
+        let pg = Postgres {
+            table: "users".to_string(),
+            operation: PostgresOperation::Listen,
+            channel: Some("users_changes".to_string()),
+            ..Default::default()
+        };
+        let result = compile_postgres(CompilePostgres {
+            config_module: &cm,
+            postgres: &pg,
+            operation_type: &GraphQLOperationType::Mutation,
+        });
+        let err = result.to_result().unwrap_err();
+        assert!(
+            err.to_string()
+                .contains("LISTEN) is only allowed on Subscription"),
+            "unexpected error: {err}"
+        );
+    }
+
+    #[test]
+    fn listen_without_channel_fails() {
+        let cm = make_config_module(vec![Content {
+            id: Some("main".to_string()),
+            content: make_schema("users"),
+        }]);
+        let pg = Postgres {
+            table: "users".to_string(),
+            operation: PostgresOperation::Listen,
+            channel: None,
+            ..Default::default()
+        };
+        let result = compile_postgres(CompilePostgres {
+            config_module: &cm,
+            postgres: &pg,
+            operation_type: &GraphQLOperationType::Subscription,
+        });
+        let err = result.to_result().unwrap_err();
+        assert!(
+            err.to_string()
+                .contains("LISTEN) requires a non-empty 'channel'"),
+            "unexpected error: {err}"
+        );
+    }
+
+    #[test]
+    fn listen_with_empty_channel_fails() {
+        let cm = make_config_module(vec![Content {
+            id: Some("main".to_string()),
+            content: make_schema("users"),
+        }]);
+        let pg = Postgres {
+            table: "users".to_string(),
+            operation: PostgresOperation::Listen,
+            channel: Some(String::new()),
+            ..Default::default()
+        };
+        let result = compile_postgres(CompilePostgres {
+            config_module: &cm,
+            postgres: &pg,
+            operation_type: &GraphQLOperationType::Subscription,
+        });
+        let err = result.to_result().unwrap_err();
+        assert!(
+            err.to_string()
+                .contains("LISTEN) requires a non-empty 'channel'"),
+            "unexpected error: {err}"
+        );
+    }
+
+    #[test]
+    fn listen_with_invalid_channel_name_fails() {
+        let cm = make_config_module(vec![Content {
+            id: Some("main".to_string()),
+            content: make_schema("users"),
+        }]);
+        let pg = Postgres {
+            table: "users".to_string(),
+            operation: PostgresOperation::Listen,
+            channel: Some("users; DROP TABLE".to_string()),
+            ..Default::default()
+        };
+        let result = compile_postgres(CompilePostgres {
+            config_module: &cm,
+            postgres: &pg,
+            operation_type: &GraphQLOperationType::Subscription,
+        });
+        let err = result.to_result().unwrap_err();
+        assert!(
+            err.to_string().contains("Invalid channel name"),
+            "unexpected error: {err}"
+        );
+    }
+
+    #[test]
+    fn select_on_subscription_fails() {
+        let cm = make_config_module(vec![Content {
+            id: Some("main".to_string()),
+            content: make_schema("users"),
+        }]);
+        let pg = Postgres {
+            table: "users".to_string(),
+            operation: PostgresOperation::Select,
+            ..Default::default()
+        };
+        let result = compile_postgres(CompilePostgres {
+            config_module: &cm,
+            postgres: &pg,
+            operation_type: &GraphQLOperationType::Subscription,
+        });
+        let err = result.to_result().unwrap_err();
+        assert!(
+            err.to_string()
+                .contains("@postgres on Subscription requires operation: LISTEN"),
+            "unexpected error: {err}"
+        );
+    }
+
+    #[test]
+    fn insert_on_subscription_fails() {
+        let cm = make_config_module(vec![Content {
+            id: Some("main".to_string()),
+            content: make_schema("users"),
+        }]);
+        let pg = Postgres {
+            table: "users".to_string(),
+            operation: PostgresOperation::Insert,
+            ..Default::default()
+        };
+        let result = compile_postgres(CompilePostgres {
+            config_module: &cm,
+            postgres: &pg,
+            operation_type: &GraphQLOperationType::Subscription,
+        });
+        let err = result.to_result().unwrap_err();
+        assert!(
+            err.to_string()
+                .contains("@postgres on Subscription requires operation: LISTEN"),
+            "unexpected error: {err}"
+        );
+    }
+
+    #[test]
+    fn listen_supports_custom_payload_type_text() {
+        let cm = make_config_module(vec![Content {
+            id: Some("main".to_string()),
+            content: make_schema("users"),
+        }]);
+        let pg = Postgres {
+            table: "users".to_string(),
+            operation: PostgresOperation::Listen,
+            channel: Some("events".to_string()),
+            payload_type: crate::core::postgres::PostgresPayloadType::Text,
+            ..Default::default()
+        };
+        let result = compile_postgres(CompilePostgres {
+            config_module: &cm,
+            postgres: &pg,
+            operation_type: &GraphQLOperationType::Subscription,
+        });
+        let ir = result.to_result().unwrap();
+        match ir {
+            IR::IO(io) => match io.as_ref() {
+                IO::PostgresStream { payload_type, .. } => {
+                    assert_eq!(
+                        *payload_type,
+                        crate::core::postgres::PostgresPayloadType::Text
+                    );
+                }
+                other => panic!("Expected IO::PostgresStream, got: {other:?}"),
+            },
+            other => panic!("Expected IR::IO, got: {other:?}"),
+        }
     }
 }

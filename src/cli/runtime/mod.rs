@@ -75,33 +75,47 @@ fn init_in_memory_cache<K: Hash + Eq, V: Clone>() -> InMemoryCache<K, V> {
 ///
 /// Returns an error if the operation fails.
 pub fn init(blueprint: &Blueprint) -> anyhow::Result<TargetRuntime> {
-    let postgres = build_postgres_connections(blueprint)?;
-    Ok(build_runtime(blueprint, postgres))
-}
-
-fn build_postgres_connections(
-    blueprint: &Blueprint,
-) -> anyhow::Result<HashMap<String, Arc<dyn crate::core::postgres::PostgresIO>>> {
     let mut postgres = HashMap::new();
+    let mut postgres_listeners = HashMap::new();
+
     for (id, spec) in &blueprint.postgres_connections {
-        let io: Arc<dyn crate::core::postgres::PostgresIO> = match spec {
-            PostgresConnectionSpec::Url(url) => Arc::new(
-                crate::cli::postgres::pool::PostgresPool::new(url)
-                    .map_err(|e| anyhow::anyhow!("Failed to create Postgres pool '{id}': {e}"))?,
-            ),
-            PostgresConnectionSpec::AuroraDsql { endpoint, region, admin } => Arc::new(
-                crate::cli::postgres::dsql_pool::AuroraDsqlPool::new(endpoint, region, *admin)
-                    .map_err(|e| anyhow::anyhow!("Failed to create DSQL pool '{id}': {e}"))?,
-            ),
-        };
-        postgres.insert(id.clone(), io);
+        match spec {
+            PostgresConnectionSpec::Url(url) => {
+                let pool = crate::cli::postgres::pool::PostgresPool::new(url)
+                    .map_err(|e| anyhow::anyhow!("Failed to create Postgres pool '{id}': {e}"))?;
+                postgres.insert(
+                    id.clone(),
+                    Arc::new(pool) as Arc<dyn crate::core::postgres::PostgresIO>,
+                );
+
+                postgres_listeners.insert(
+                    id.clone(),
+                    crate::cli::postgres::listener::PostgresListener::new(url)
+                        as Arc<dyn crate::core::postgres::PostgresListenerIO>,
+                );
+            }
+            PostgresConnectionSpec::AuroraDsql { endpoint, region, admin } => {
+                let pool = crate::cli::postgres::dsql_pool::AuroraDsqlPool::new(endpoint, region, *admin)
+                    .map_err(|e| anyhow::anyhow!("Failed to create DSQL pool '{id}': {e}"))?;
+                postgres.insert(
+                    id.clone(),
+                    Arc::new(pool) as Arc<dyn crate::core::postgres::PostgresIO>,
+                );
+                tracing::warn!(
+                    "Aurora DSQL listener not supported for connection '{id}'. \
+                     LISTEN on DSQL requires a separate long-lived connection design."
+                );
+            }
+        }
     }
-    Ok(postgres)
+
+    Ok(build_runtime(blueprint, postgres, postgres_listeners))
 }
 
 fn build_runtime(
     blueprint: &Blueprint,
     postgres: HashMap<String, Arc<dyn crate::core::postgres::PostgresIO>>,
+    postgres_listeners: HashMap<String, Arc<dyn crate::core::postgres::PostgresListenerIO>>,
 ) -> TargetRuntime {
     #[cfg(not(feature = "js"))]
     tracing::warn!("JS capabilities are disabled in this build");
@@ -116,6 +130,7 @@ fn build_runtime(
         cmd_worker: init_http_worker_io(blueprint.server.script.clone()),
         worker: init_resolver_worker_io(blueprint.server.script.clone()),
         postgres,
+        postgres_listeners,
         s3: HashMap::new(),
     }
 }
@@ -129,15 +144,23 @@ pub async fn confirm_and_write(
     path: &str,
     content: &[u8],
 ) -> anyhow::Result<()> {
-    let file_exists = fs::metadata(path).is_ok();
-
-    if file_exists {
-        let confirm = Confirm::new(&format!("Do you want to overwrite the file {path}?"))
-            .with_default(false)
-            .prompt()?;
-
-        if !confirm {
+    // Check existing content before writing
+    match runtime.file.read(path).await {
+        Ok(existing) if existing.as_bytes() == content => {
+            // Content is identical, no need to write
             return Ok(());
+        }
+        Ok(_) => {
+            let confirm =
+                Confirm::new(&format!("Do you want to overwrite the file {path}?"))
+                    .with_default(false)
+                    .prompt()?;
+            if !confirm {
+                return Ok(());
+            }
+        }
+        Err(_) => {
+            // File doesn't exist, proceed with write
         }
     }
 

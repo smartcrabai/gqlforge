@@ -132,6 +132,10 @@ impl AppContext {
                                     // HttpStream is used in subscriptions, no data loader needed
                                     None
                                 }
+                                IO::PostgresStream { .. } => {
+                                    // PostgresStream is used in subscriptions, no data loader needed
+                                    None
+                                }
                                 IO::Postgres {
                                     req_template,
                                     group_by,

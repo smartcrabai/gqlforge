@@ -102,6 +102,7 @@ pub fn create_runtime(
             None => None,
         },
         postgres: io.postgres.unwrap_or_default(),
+        postgres_listeners: HashMap::new(),
         s3: io.s3.unwrap_or_default(),
     }
 }
