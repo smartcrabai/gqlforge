@@ -323,6 +323,7 @@ impl ExecutionSpec {
             cmd_worker: http_worker,
             worker,
             postgres: HashMap::new(),
+            postgres_listeners: HashMap::new(),
             s3: HashMap::new(),
         };
 

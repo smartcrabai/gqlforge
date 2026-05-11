@@ -29,6 +29,30 @@ pub enum PostgresOperation {
     Update,
     /// DELETE a row.
     Delete,
+    /// LISTEN to a `PostgreSQL` channel and stream NOTIFY events.
+    Listen,
+}
+
+/// How to interpret the NOTIFY payload.
+#[derive(
+    Debug,
+    Clone,
+    Default,
+    PartialEq,
+    Eq,
+    Serialize,
+    Deserialize,
+    schemars::JsonSchema,
+    strum_macros::Display,
+)]
+#[serde(rename_all = "SCREAMING_SNAKE_CASE")]
+pub enum PostgresPayloadType {
+    /// Parse the NOTIFY payload as JSON.
+    #[default]
+    Json,
+    /// Treat the NOTIFY payload as a raw string, wrapped in
+    /// `ConstValue::String`.
+    Text,
 }
 
 /// The `@postgres` directive maps a GraphQL field to a `PostgreSQL` table
@@ -94,4 +118,81 @@ pub struct Postgres {
     /// Mustache template for the ORDER BY clause, e.g. `"{{.args.orderBy}}"`.
     #[serde(default, skip_serializing_if = "is_default")]
     pub order_by: Option<String>,
+
+    /// The channel name to LISTEN on (required when `operation: LISTEN`).
+    /// Mustache templates are NOT supported for the channel name.
+    #[serde(default, skip_serializing_if = "is_default")]
+    pub channel: Option<String>,
+
+    /// How to interpret the NOTIFY payload. Defaults to `JSON`.
+    #[serde(default, skip_serializing_if = "is_default")]
+    pub payload_type: PostgresPayloadType,
+}
+
+#[cfg(test)]
+mod tests {
+    #![expect(clippy::unwrap_used, reason = "test code")]
+    use super::*;
+
+    #[test]
+    fn deserialize_listen_operation() {
+        let json = serde_json::json!({
+            "table": "users",
+            "operation": "LISTEN",
+            "channel": "users_changes"
+        });
+        let pg: Postgres = serde_json::from_value(json).unwrap();
+        assert_eq!(pg.operation, PostgresOperation::Listen);
+        assert_eq!(pg.channel.as_deref(), Some("users_changes"));
+    }
+
+    #[test]
+    fn deserialize_listen_with_payload_type_json() {
+        let json = serde_json::json!({
+            "table": "users",
+            "operation": "LISTEN",
+            "channel": "events",
+            "payloadType": "JSON"
+        });
+        let pg: Postgres = serde_json::from_value(json).unwrap();
+        assert_eq!(pg.operation, PostgresOperation::Listen);
+        assert_eq!(pg.payload_type, PostgresPayloadType::Json);
+    }
+
+    #[test]
+    fn deserialize_listen_with_payload_type_text() {
+        let json = serde_json::json!({
+            "table": "users",
+            "operation": "LISTEN",
+            "channel": "events",
+            "payloadType": "TEXT"
+        });
+        let pg: Postgres = serde_json::from_value(json).unwrap();
+        assert_eq!(pg.operation, PostgresOperation::Listen);
+        assert_eq!(pg.payload_type, PostgresPayloadType::Text);
+    }
+
+    #[test]
+    fn deserialize_listen_defaults_payload_type_to_json() {
+        let json = serde_json::json!({
+            "table": "users",
+            "operation": "LISTEN",
+            "channel": "events"
+        });
+        let pg: Postgres = serde_json::from_value(json).unwrap();
+        assert_eq!(pg.payload_type, PostgresPayloadType::Json);
+    }
+
+    #[test]
+    fn deserialize_payload_type_json_lowercase() {
+        let json = serde_json::json!({
+            "table": "users",
+            "operation": "LISTEN",
+            "channel": "events",
+            "payloadType": "json"
+        });
+        // SCREAMING_SNAKE_CASE is case-sensitive; lowercase should fail
+        let result: Result<Postgres, _> = serde_json::from_value(json);
+        assert!(result.is_err());
+    }
 }

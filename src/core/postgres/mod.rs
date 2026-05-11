@@ -7,7 +7,11 @@ pub mod sql_parser;
 
 use async_graphql_value::ConstValue;
 pub use request_template::RequestTemplate;
+pub(crate) use request_template::quote_ident;
 pub use schema::DatabaseSchema;
+
+/// How to interpret NOTIFY payload bytes.
+pub use crate::core::config::PostgresPayloadType;
 
 /// Build a rustls-based TLS connector for `PostgreSQL` connections.
 pub(crate) fn make_tls_connect() -> anyhow::Result<tokio_postgres_rustls::MakeRustlsConnect> {
@@ -44,4 +48,22 @@ pub trait PostgresIO: Send + Sync + 'static {
     /// Execute a parameterised SQL query and return the result rows as a
     /// `ConstValue` (typically a JSON array of objects).
     async fn execute(&self, query: &str, params: &[String]) -> anyhow::Result<ConstValue>;
+}
+
+/// Trait for subscribing to `PostgreSQL` LISTEN/NOTIFY channels.
+/// Concrete implementations live in the CLI crate or in test utilities
+/// (mock listener).
+#[async_trait::async_trait]
+pub trait PostgresListenerIO: Send + Sync + 'static {
+    /// Subscribe to a `PostgreSQL` NOTIFY channel.
+    /// Returns a stream that yields one `ConstValue` per notification event.
+    async fn subscribe(
+        &self,
+        channel: &str,
+        payload_type: PostgresPayloadType,
+    ) -> anyhow::Result<
+        std::pin::Pin<
+            Box<dyn futures_util::Stream<Item = Result<ConstValue, anyhow::Error>> + Send>,
+        >,
+    >;
 }

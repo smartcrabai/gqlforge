@@ -154,6 +154,7 @@ pub mod test {
                 None => None,
             },
             postgres: HashMap::new(),
+            postgres_listeners: HashMap::new(),
             s3: HashMap::new(),
         }
     }

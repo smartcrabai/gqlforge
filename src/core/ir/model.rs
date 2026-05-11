@@ -9,6 +9,7 @@ use super::access_expr::AccessExpr;
 use super::discriminator::Discriminator;
 use super::{EvalContext, ResolverContextLike};
 use crate::core::blueprint::{Auth, DynamicValue};
+use crate::core::config::PostgresPayloadType;
 use crate::core::config::group_by::GroupBy;
 use crate::core::graphql::{self};
 use crate::core::worker_hooks::WorkerHooks;
@@ -89,6 +90,11 @@ pub enum IO {
         dedupe: bool,
         connection_id: String,
     },
+    PostgresStream {
+        connection_id: String,
+        channel: String,
+        payload_type: PostgresPayloadType,
+    },
     S3 {
         req_template: s3::RequestTemplate,
         dedupe: bool,
@@ -107,6 +113,7 @@ impl IO {
             IO::GrpcStream { .. }
             | IO::GraphQLStream { .. }
             | IO::HttpStream { .. }
+            | IO::PostgresStream { .. }
             | IO::Js { .. } => false,
         }
     }
@@ -253,10 +260,26 @@ impl<'a, Ctx: ResolverContextLike + Sync> CacheKey<EvalContext<'a, Ctx>> for IO 
             IO::GrpcStream { .. }
             | IO::GraphQLStream { .. }
             | IO::HttpStream { .. }
+            | IO::PostgresStream { .. }
             | IO::Js { .. } => None,
             IO::GraphQL { req_template, .. } => req_template.cache_key(ctx),
             IO::Postgres { req_template, .. } => req_template.cache_key(ctx),
             IO::S3 { req_template, .. } => req_template.cache_key(ctx),
         }
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn postgres_stream_dedupe_returns_false() {
+        let io = IO::PostgresStream {
+            connection_id: "main".to_string(),
+            channel: "users_changes".to_string(),
+            payload_type: PostgresPayloadType::Json,
+        };
+        assert!(!io.dedupe());
     }
 }

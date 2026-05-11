@@ -113,6 +113,9 @@ where
         IO::HttpStream { .. } => Err(Error::IO(
             "HttpStream should be resolved via subscription stream, not eval_io".to_string(),
         )),
+        IO::PostgresStream { .. } => Err(Error::IO(
+            "PostgresStream should be resolved via subscription stream, not eval_io".to_string(),
+        )),
         IO::Postgres { req_template, dl_id: _, connection_id, .. } => {
             let rendered = req_template
                 .render(ctx)
@@ -225,5 +228,37 @@ where
                 }
             }
         }
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    #![expect(clippy::unwrap_used, reason = "test code")]
+    use super::*;
+    use crate::core::blueprint::Blueprint;
+    use crate::core::config::PostgresPayloadType;
+    use crate::core::http::RequestContext;
+    use crate::core::ir::EmptyResolverContext;
+
+    #[tokio::test]
+    async fn postgres_stream_eval_io_returns_error() {
+        let io = IO::PostgresStream {
+            connection_id: "main".to_string(),
+            channel: "users_changes".to_string(),
+            payload_type: PostgresPayloadType::Json,
+        };
+        let runtime = crate::cli::runtime::init(&Blueprint::default()).unwrap();
+        let req_ctx = RequestContext::new(runtime);
+        let res_ctx = EmptyResolverContext {};
+        let mut eval_ctx = EvalContext::new(&req_ctx, &res_ctx);
+
+        let result = eval_io(&io, &mut eval_ctx).await;
+        assert!(result.is_err());
+        let err = result.unwrap_err();
+        assert!(
+            err.to_string()
+                .contains("PostgresStream should be resolved via subscription"),
+            "unexpected error: {err}"
+        );
     }
 }

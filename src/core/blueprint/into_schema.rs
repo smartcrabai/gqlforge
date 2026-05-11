@@ -311,6 +311,25 @@ fn to_subscription_type(def: &ObjectTypeDefinition) -> dynamic::Type {
                                     ))
                                 })?
                         }
+                        IO::PostgresStream { connection_id, channel, payload_type } => {
+                            let listener = req_ctx
+                                .runtime
+                                .postgres_listeners
+                                .get(&connection_id)
+                                .ok_or_else(|| {
+                                async_graphql::Error::new(format!(
+                                    "PostgreSQL listener '{connection_id}' not configured"
+                                ))
+                            })?;
+                            listener
+                                .subscribe(&channel, payload_type)
+                                .await
+                                .map_err(|e| {
+                                    async_graphql::Error::new(format!("LISTEN failed: {e}"))
+                                })?
+                                .map(|r| r.map_err(|e| crate::core::ir::Error::IO(e.to_string())))
+                                .boxed()
+                        }
                         _ => {
                             return Err(async_graphql::Error::new(
                                 "Subscription field does not have a streaming resolver",
