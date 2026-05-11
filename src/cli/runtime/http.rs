@@ -181,8 +181,9 @@ impl HttpIO for NativeHttp {
 
         if self.enable_telemetry {
             // TEMPORARY: Disabled due to opentelemetry version incompatibility
-            // tracing-opentelemetry v0.32.1 uses opentelemetry v0.31, but we use v0.32
-            // TODO: Re-enable when tracing-opentelemetry supports opentelemetry v0.32
+            // tracing-opentelemetry v0.32.1 uses opentelemetry v0.31, but we
+            // use v0.32 TODO: Re-enable when tracing-opentelemetry
+            // supports opentelemetry v0.32
             // opentelemetry::global::get_text_map_propagator(|propagator| {
             //     propagator.inject_context(
             //         &tracing::Span::current().context(),
