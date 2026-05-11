@@ -8,7 +8,6 @@ use opentelemetry_http::HeaderExtractor;
 use opentelemetry_semantic_conventions::trace::{
     HTTP_REQUEST_METHOD, HTTP_RESPONSE_STATUS_CODE, HTTP_ROUTE, URL_PATH,
 };
-use tracing_opentelemetry::OpenTelemetrySpanExt;
 
 use crate::core::blueprint::telemetry::Telemetry;
 
@@ -76,9 +75,12 @@ pub fn get_response_status_code(response: &Response<Full<Bytes>>) -> KeyValue {
 }
 
 pub fn propagate_context(req: &Request<Full<Bytes>>) {
-    let context = opentelemetry::global::get_text_map_propagator(|propagator| {
+    let _context = opentelemetry::global::get_text_map_propagator(|propagator| {
         propagator.extract(&HeaderExtractor(req.headers()))
     });
 
-    let _ = tracing::Span::current().set_parent(context);
+    // TEMPORARY: Disabled due to opentelemetry version incompatibility
+    // tracing-opentelemetry v0.32.1 uses opentelemetry v0.31, but we use v0.32
+    // TODO: Re-enable when tracing-opentelemetry supports opentelemetry v0.32
+    // let _ = tracing::Span::current().set_parent(context);
 }

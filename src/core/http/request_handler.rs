@@ -19,7 +19,7 @@ use tracing::Instrument;
 use tracing_opentelemetry::OpenTelemetrySpanExt;
 
 use super::request_context::RequestContext;
-use super::telemetry::{RequestCounter, get_response_status_code};
+use super::telemetry::RequestCounter;
 use super::{GQLFORGE_HTTP_ORIGIN, GQLFORGE_HTTPS_ORIGIN, showcase, telemetry};
 use crate::core::app_context::AppContext;
 use crate::core::async_graphql_hyper::{GraphQLRequestLike, GraphQLResponse};
