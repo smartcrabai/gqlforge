@@ -202,8 +202,12 @@ impl HttpIO for NativeHttp {
         req_counter.update(&response);
 
         if self.enable_telemetry {
-            let status_code = get_response_status(&response);
-            tracing::Span::current().set_attribute(status_code.key, status_code.value);
+            let status_code_value = match &response {
+                Ok(resp) => resp.status().as_u16(),
+                Err(err) => err.status().map_or(0, |code| code.as_u16()),
+            };
+            tracing::Span::current()
+                .set_attribute(HTTP_RESPONSE_STATUS_CODE, i64::from(status_code_value));
         }
 
         // Get the response

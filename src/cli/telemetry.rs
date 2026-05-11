@@ -56,13 +56,15 @@ fn set_trace_provider(
         // Prometheus works only with metrics
         TelemetryExporter::Prometheus(_) => return Ok(None),
     };
-    let tracer = provider.tracer("tracing");
+
+    // Set the global tracer provider first, then get the tracer from global
+    // to ensure compatibility between opentelemetry versions
+    global::set_tracer_provider(provider);
+    let tracer = global::tracer("tracing");
     let telemetry = tracing_opentelemetry::layer()
         .with_location(false)
         .with_threads(false)
         .with_tracer(tracer);
-
-    global::set_tracer_provider(provider);
 
     Ok(Some(telemetry))
 }

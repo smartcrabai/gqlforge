@@ -10,7 +10,9 @@ use http::request::Parts;
 use http::{HeaderMap, Method, Request, Response, StatusCode};
 use http_body_util::{BodyExt, Full};
 use opentelemetry::trace::SpanKind;
-use opentelemetry_semantic_conventions::trace::{HTTP_REQUEST_METHOD, HTTP_ROUTE};
+use opentelemetry_semantic_conventions::trace::{
+    HTTP_REQUEST_METHOD, HTTP_RESPONSE_STATUS_CODE, HTTP_ROUTE,
+};
 use prometheus::{Encoder, ProtobufEncoder, TEXT_FORMAT, TextEncoder};
 use serde::de::DeserializeOwned;
 use tracing::Instrument;
@@ -383,8 +385,8 @@ pub async fn handle_request<T: DeserializeOwned + GraphQLRequestLike>(
 
     req_counter.update(&response);
     if let Ok(response) = &response {
-        let status = get_response_status_code(response);
-        tracing::Span::current().set_attribute(status.key, status.value);
+        let status_code = response.status().as_u16();
+        tracing::Span::current().set_attribute(HTTP_RESPONSE_STATUS_CODE, i64::from(status_code));
     }
 
     response
