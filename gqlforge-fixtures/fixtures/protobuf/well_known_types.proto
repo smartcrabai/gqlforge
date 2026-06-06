@@ -1,0 +1,12 @@
+syntax = "proto3";
+
+package clock;
+
+import "google/protobuf/timestamp.proto";
+
+service Clock {
+  /**
+  * returns the time passed in the request
+  */
+  rpc Echo (google.protobuf.Timestamp) returns (google.protobuf.Timestamp) {}
+}

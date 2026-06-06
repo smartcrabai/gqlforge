@@ -45,9 +45,8 @@ impl Env {
 
 impl ExecutionSpec {
     #[expect(clippy::too_many_lines, reason = "test spec parser")]
-    #[expect(clippy::unused_async, reason = "async kept for caller compatibility")]
-    pub async fn from_source(path: &Path, contents: String) -> anyhow::Result<Self> {
-        let ast = markdown::to_mdast(&contents, &ParseOptions::default()).unwrap();
+    pub fn from_source(path: &Path, contents: &str) -> anyhow::Result<Self> {
+        let ast = markdown::to_mdast(contents, &ParseOptions::default()).unwrap();
         let mut children = ast
             .children()
             .unwrap_or_else(|| panic!("Failed to parse {}: empty file unexpected", path.display()))

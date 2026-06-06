@@ -1,0 +1,14 @@
+---
+source: src/core/generator/from_proto.rs
+expression: result
+---
+schema @server @upstream {
+  query: Query
+}
+
+type Query {
+  """
+  returns the time passed in the request
+  """
+  GEN__clock__Clock__Echo(dateTime: DateTime!): DateTime @grpc(url: "http://localhost:50051", body: "{{.args.dateTime}}", method: "clock.Clock.Echo")
+}

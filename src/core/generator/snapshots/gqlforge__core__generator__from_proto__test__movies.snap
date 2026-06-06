@@ -19,11 +19,6 @@ input GEN__google__protobuf__StringValue {
   value: String!
 }
 
-input GEN__google__protobuf__TimestampInput {
-  nanos: Int!
-  seconds: Int64!
-}
-
 """
 movie message payload
 """
@@ -40,7 +35,7 @@ input GEN__movies__MovieInput {
   SubMovie reference
   """
   subMovie: GEN__movies__Movie__SubMovieInput
-  time: GEN__google__protobuf__TimestampInput
+  time: DateTime
   year: GEN__google__protobuf__Int32ValueInput
 }
 
@@ -100,11 +95,6 @@ type GEN__google__protobuf__Int32Value {
   value: Int!
 }
 
-type GEN__google__protobuf__Timestamp {
-  nanos: Int!
-  seconds: Int64!
-}
-
   """
   movie message payload
   """
@@ -121,7 +111,7 @@ type GEN__movies__Movie {
   SubMovie reference
   """
   subMovie: GEN__movies__Movie__SubMovie
-  time: GEN__google__protobuf__Timestamp
+  time: DateTime
   year: GEN__google__protobuf__Int32Value
 }
 

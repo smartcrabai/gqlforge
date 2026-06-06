@@ -260,9 +260,8 @@ async fn test_spec(spec: ExecutionSpec) {
 
 pub async fn load_and_test_execution_spec(path: &Path) -> anyhow::Result<()> {
     let contents = fs::read_to_string(path)?;
-    let spec: ExecutionSpec = ExecutionSpec::from_source(path, contents)
-        .await
-        .with_context(|| path.display().to_string())?;
+    let spec: ExecutionSpec =
+        ExecutionSpec::from_source(path, &contents).with_context(|| path.display().to_string())?;
 
     match spec.runner {
         Some(Annotation::Skip) => {
