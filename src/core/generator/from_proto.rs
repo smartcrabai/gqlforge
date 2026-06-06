@@ -314,6 +314,10 @@ impl Context {
                     if self.map_types.contains(&type_name[1..]) {
                         // override type with single scalar
                         cfg_field.type_of = "JSON".to_string().into();
+                    } else if let Some(scalar) = well_known_type_scalar(type_name) {
+                        // well-known types are serialized to special JSON
+                        // representations by prost, so map them to matching scalars
+                        cfg_field.type_of = cfg_field.type_of.with_name(scalar.to_string());
                     } else {
                         // for non-primitive types
                         let type_of = graphql_type_from_ref(type_name)?
@@ -484,26 +488,41 @@ fn convert_primitive_type(proto_ty: &str) -> String {
     .to_string()
 }
 
-/// Determines the output type for a service method.
-fn get_output_type(output_ty: &str) -> Result<GraphQLType<Unparsed>> {
-    // type, required
-    match output_ty {
-        ".google.protobuf.Empty" => {
-            // If it's no response is expected, we return an Empty scalar type
-            Ok(GraphQLType::new("Empty"))
-        }
-        _ => {
-            // Setting it not null by default. There's no way to infer this from proto file
-            graphql_type_from_ref(output_ty)
-        }
+/// Maps well-known proto message types to matching scalar types.
+/// prost serializes them to special JSON representations instead of objects
+/// with their proto fields, see <https://protobuf.dev/programming-guides/json/>.
+/// Currently only `Timestamp` is mapped; other well-known types (`Duration`,
+/// wrapper types etc.) are still generated as object types.
+fn well_known_type_scalar(type_name: &str) -> Option<&'static str> {
+    match type_name {
+        // serialized as an RFC 3339 string, not a {seconds, nanos} object
+        ".google.protobuf.Timestamp" => Some("DateTime"),
+        _ => None,
     }
 }
 
-fn get_input_type(input_ty: &str) -> Result<Option<GraphQLType<Unparsed>>> {
-    match input_ty {
-        ".google.protobuf.Empty" | "" => Ok(None),
-        _ => graphql_type_from_ref(input_ty).map(Some),
+/// Determines the output type for a service method.
+fn get_output_type(output_ty: &str) -> Result<GraphQLType<Unparsed>> {
+    // type, required
+    if output_ty == ".google.protobuf.Empty" {
+        // If it's no response is expected, we return an Empty scalar type
+        return Ok(GraphQLType::new("Empty"));
     }
+    if let Some(scalar) = well_known_type_scalar(output_ty) {
+        return Ok(GraphQLType::new(scalar));
+    }
+    // Setting it not null by default. There's no way to infer this from proto file
+    graphql_type_from_ref(output_ty)
+}
+
+fn get_input_type(input_ty: &str) -> Result<Option<GraphQLType<Unparsed>>> {
+    if input_ty == ".google.protobuf.Empty" || input_ty.is_empty() {
+        return Ok(None);
+    }
+    if let Some(scalar) = well_known_type_scalar(input_ty) {
+        return Ok(Some(GraphQLType::new(scalar)));
+    }
+    graphql_type_from_ref(input_ty).map(Some)
 }
 
 /// The main entry point that builds a Config object from proto descriptor sets.
@@ -617,6 +636,11 @@ mod test {
     #[test]
     fn test_movies() {
         assert_gen!(protobuf::MOVIES);
+    }
+
+    #[test]
+    fn test_well_known_types() {
+        assert_gen!(protobuf::WELL_KNOWN_TYPES);
     }
 
     #[test]
