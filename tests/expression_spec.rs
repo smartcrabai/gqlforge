@@ -10,12 +10,12 @@ mod tests {
     use pretty_assertions::assert_eq;
     use serde_json::json;
 
-    async fn eval(expr: &IR) -> Result<Value, Error> {
+    async fn eval(expr: &IR) -> Result<Value, Box<Error>> {
         let runtime = gqlforge::cli::runtime::init(&Blueprint::default()).unwrap();
         let req_ctx = RequestContext::new(runtime);
         let res_ctx = EmptyResolverContext {};
         let mut eval_ctx = EvalContext::new(&req_ctx, &res_ctx);
-        expr.eval(&mut eval_ctx).await
+        expr.eval(&mut eval_ctx).await.map_err(Box::new)
     }
 
     #[tokio::test]
