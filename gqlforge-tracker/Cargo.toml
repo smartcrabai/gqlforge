@@ -22,7 +22,7 @@ tokio = { workspace = true, features = ["rt", "time", "process"] }
 tracing = { workspace = true }
 sysinfo = "0.39.0"
 gqlforge-version = { path = "../gqlforge-version", version = "0.1.6" }
-posthog-rs = { version = "0.15.0" }
+posthog-rs = { version = "0.17.0" }
 async-trait = "0.1.89"
 chrono = "0.4.43"
 whoami = "2.1.0"
