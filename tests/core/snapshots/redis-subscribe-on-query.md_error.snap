@@ -1,0 +1,15 @@
+---
+source: tests/core/spec.rs
+expression: errors
+---
+[
+  {
+    "message": "@redis(operation: SUBSCRIBE) is only allowed on Subscription fields",
+    "trace": [
+      "Query",
+      "alerts",
+      "@redis"
+    ],
+    "description": null
+  }
+]

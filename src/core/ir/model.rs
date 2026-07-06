@@ -12,8 +12,9 @@ use crate::core::blueprint::{Auth, DynamicValue};
 use crate::core::config::PostgresPayloadType;
 use crate::core::config::group_by::GroupBy;
 use crate::core::graphql::{self};
+use crate::core::redis::{RedisPayloadType, RedisStreamSource};
 use crate::core::worker_hooks::WorkerHooks;
-use crate::core::{grpc, http, postgres, s3};
+use crate::core::{grpc, http, postgres, redis, s3};
 
 #[derive(Clone, Debug, Display)]
 pub enum IR {
@@ -95,6 +96,16 @@ pub enum IO {
         channel: String,
         payload_type: PostgresPayloadType,
     },
+    Redis {
+        req_template: redis::RequestTemplate,
+        dedupe: bool,
+        connection_id: String,
+    },
+    RedisStream {
+        connection_id: String,
+        source: RedisStreamSource,
+        payload_type: RedisPayloadType,
+    },
     S3 {
         req_template: s3::RequestTemplate,
         dedupe: bool,
@@ -109,11 +120,13 @@ impl IO {
             | IO::GraphQL { dedupe, .. }
             | IO::Grpc { dedupe, .. }
             | IO::Postgres { dedupe, .. }
+            | IO::Redis { dedupe, .. }
             | IO::S3 { dedupe, .. } => *dedupe,
             IO::GrpcStream { .. }
             | IO::GraphQLStream { .. }
             | IO::HttpStream { .. }
             | IO::PostgresStream { .. }
+            | IO::RedisStream { .. }
             | IO::Js { .. } => false,
         }
     }
@@ -261,9 +274,13 @@ impl<'a, Ctx: ResolverContextLike + Sync> CacheKey<EvalContext<'a, Ctx>> for IO 
             | IO::GraphQLStream { .. }
             | IO::HttpStream { .. }
             | IO::PostgresStream { .. }
+            | IO::RedisStream { .. }
             | IO::Js { .. } => None,
             IO::GraphQL { req_template, .. } => req_template.cache_key(ctx),
             IO::Postgres { req_template, .. } => req_template.cache_key(ctx),
+            IO::Redis { req_template, connection_id, .. } => {
+                req_template.cache_key_with_connection(ctx, connection_id)
+            }
             IO::S3 { req_template, .. } => req_template.cache_key(ctx),
         }
     }
@@ -279,6 +296,18 @@ mod tests {
             connection_id: "main".to_string(),
             channel: "users_changes".to_string(),
             payload_type: PostgresPayloadType::Json,
+        };
+        assert!(!io.dedupe());
+    }
+
+    #[test]
+    fn redis_stream_dedupe_returns_false() {
+        let io = IO::RedisStream {
+            connection_id: "main".to_string(),
+            source: RedisStreamSource::PubSub {
+                channel: crate::core::mustache::Mustache::parse("events"),
+            },
+            payload_type: RedisPayloadType::Json,
         };
         assert!(!io.dedupe());
     }

@@ -71,6 +71,9 @@ pub enum LinkType {
     /// `src` should be the cluster endpoint (without scheme).
     /// `meta.region` is required; `meta.admin` defaults to false.
     AuroraDsql,
+
+    /// Points to a Redis connection URL. Used by the `@redis` directive.
+    Redis,
 }
 
 #[cfg(test)]

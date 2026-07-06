@@ -1,0 +1,19 @@
+---
+source: tests/core/spec.rs
+expression: formatted
+---
+scalar JSON
+
+type Mutation {
+  cacheValue(key: String!, value: String!): Boolean
+}
+
+type Query {
+  cachedValue(key: String!): String
+  userProfile(id: ID!): JSON
+}
+
+schema {
+  query: Query
+  mutation: Mutation
+}

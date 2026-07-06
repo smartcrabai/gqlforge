@@ -195,6 +195,11 @@ impl ConfigReader {
                     let id = link.id.clone().or_else(|| Some("default".to_string()));
                     extensions.add_database_schema(id, db_schema);
                 }
+                LinkType::Redis => {
+                    // No offline schema to introspect; the connection URL is
+                    // read directly from `link.src` when building the
+                    // blueprint (see `RedisConnectionSpec`).
+                }
             }
         }
 

@@ -30,6 +30,7 @@ pub mod postgres;
 pub mod primitive;
 pub mod print_schema;
 pub mod proto_reader;
+pub mod redis;
 pub mod resource_reader;
 pub mod rest;
 pub mod runtime;

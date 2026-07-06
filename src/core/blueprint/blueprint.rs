@@ -28,6 +28,9 @@ pub struct Blueprint {
     /// `PostgreSQL` connection definitions: `(connection_id, connection_spec)`.
     #[setters(skip)]
     pub postgres_connections: Vec<(String, PostgresConnectionSpec)>,
+    /// Redis connection definitions: `(connection_id, connection_spec)`.
+    #[setters(skip)]
+    pub redis_connections: Vec<(String, RedisConnectionSpec)>,
 }
 
 /// Describes how to connect to a PostgreSQL-compatible database.
@@ -45,6 +48,13 @@ pub enum PostgresConnectionSpec {
         /// Use admin token if true; regular user token otherwise.
         admin: bool,
     },
+}
+
+/// Describes how to connect to a Redis-compatible server.
+#[derive(Clone, Debug)]
+pub enum RedisConnectionSpec {
+    /// Standard Redis connection URL (e.g. `redis://user:pass@host:6379/0`).
+    Url(String),
 }
 
 #[derive(Clone, Debug)]

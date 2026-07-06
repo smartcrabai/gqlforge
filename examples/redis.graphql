@@ -1,0 +1,58 @@
+schema @server(port: 8000) @link(type: Redis, src: "redis://localhost:6379", id: "myredis") {
+  query: Query
+  mutation: Mutation
+  subscription: Subscription
+}
+
+type Query {
+  cachedValue(key: String!): String @redis(key: "cache:{{.args.key}}")
+  keyExists(key: String!): Boolean! @redis(operation: EXISTS, key: "cache:{{.args.key}}")
+
+  userField(id: ID!, field: String!): String @redis(operation: HGET, key: "user:{{.args.id}}", field: "{{.args.field}}")
+
+  userProfile(id: ID!): JSON @redis(operation: HGETALL, key: "user:{{.args.id}}")
+
+  recentEvents(stop: Int): [String!]! @redis(operation: LRANGE, key: "events:recent", stop: "{{.args.stop}}")
+
+  tags: [String!]! @redis(operation: SMEMBERS, key: "tags:all")
+}
+
+type Mutation {
+  cacheValue(key: String!, value: String!, ttlSeconds: Int): Boolean
+  @redis(
+    operation: SET
+    key: "cache:{{.args.key}}"
+    value: "{{.args.value}}"
+    ttl: "{{.args.ttlSeconds}}"
+  )
+
+  incrementCounter(key: String!): Int @redis(operation: INCR, key: "counter:{{.args.key}}")
+
+  deleteKey(key: String!): Int @redis(operation: DEL, key: "cache:{{.args.key}}")
+
+  setUserField(id: ID!, field: String!, value: String!): Boolean
+  @redis(
+    operation: HSET
+    key: "user:{{.args.id}}"
+    field: "{{.args.field}}"
+    value: "{{.args.value}}"
+  )
+
+  pushEvent(event: String!): Int @redis(operation: RPUSH, key: "events:recent", value: "{{.args.event}}")
+
+  addTag(tag: String!): Int @redis(operation: SADD, key: "tags:all", value: "{{.args.tag}}")
+
+  publishAlert(channel: String!, message: String!): Int
+  @redis(operation: PUBLISH, channel: "alerts:{{.args.channel}}", value: "{{.args.message}}")
+
+  recordEvent(streamKey: String!, payload: JSON!): String
+  @redis(operation: XADD, key: "stream:{{.args.streamKey}}", value: "{{.args.payload}}")
+}
+
+type Subscription {
+  # Pub/Sub: at-most-once delivery, nothing to replay after a disconnect.
+  alerts(channel: String!): JSON @redis(operation: SUBSCRIBE, channel: "alerts:{{.args.channel}}")
+
+  # Streams: resumable via XREAD, reconnects continue from the last delivered entry id.
+  streamEvents(key: String!): JSON @redis(operation: XREAD, key: "stream:{{.args.key}}")
+}

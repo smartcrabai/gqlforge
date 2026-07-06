@@ -18,6 +18,7 @@ GQLForge uses GraphQL schema directives to declaratively configure data fetching
 | [@expr](@/docs/directives/expr.md)         | Return a static value or a computed expression.                 |
 | [@js](@/docs/directives/js.md)             | Resolve a field using a custom JavaScript function.             |
 | [@postgres](@/docs/directives/postgres.md) | Resolve a field by querying a PostgreSQL table.                 |
+| [@redis](@/docs/directives/redis.md)       | Resolve a field by executing a command against Redis.           |
 | [@s3](@/docs/directives/s3.md)             | Resolve a field using Amazon S3 or S3-compatible storage.       |
 
 ## Schema Transformation Directives

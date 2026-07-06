@@ -12,6 +12,7 @@ use crate::core::http::{RequestContext, execute_http_streaming_request};
 use crate::core::ir::model::{IO, IR};
 use crate::core::ir::{EvalContext, ResolverContext, TypedValue};
 use crate::core::jit::graphql_error::ErrorExtensions;
+use crate::core::redis::RedisStreamSource;
 use crate::core::scalar::Scalar;
 
 /// We set the default value for an `InputValue` by reading it from the
@@ -329,6 +330,49 @@ fn to_subscription_type(def: &ObjectTypeDefinition) -> dynamic::Type {
                                 })?
                                 .map(|r| r.map_err(|e| crate::core::ir::Error::IO(e.to_string())))
                                 .boxed()
+                        }
+                        IO::RedisStream { connection_id, source, payload_type } => {
+                            let listener = req_ctx
+                                .runtime
+                                .redis_listeners
+                                .get(&connection_id)
+                                .ok_or_else(|| {
+                                    async_graphql::Error::new(format!(
+                                        "Redis listener '{connection_id}' not configured"
+                                    ))
+                                })?;
+
+                            match source {
+                                RedisStreamSource::PubSub { channel } => {
+                                    let channel = channel.render(&eval_ctx);
+                                    listener
+                                        .subscribe(&channel, payload_type)
+                                        .await
+                                        .map_err(|e| {
+                                            async_graphql::Error::new(format!(
+                                                "SUBSCRIBE failed: {e}"
+                                            ))
+                                        })?
+                                        .map(|r| {
+                                            r.map_err(|e| crate::core::ir::Error::IO(e.to_string()))
+                                        })
+                                        .boxed()
+                                }
+                                RedisStreamSource::Stream { key, start_id } => {
+                                    let key = key.render(&eval_ctx);
+                                    let start_id = start_id.render(&eval_ctx);
+                                    listener
+                                        .read_stream(&key, &start_id, payload_type)
+                                        .await
+                                        .map_err(|e| {
+                                            async_graphql::Error::new(format!("XREAD failed: {e}"))
+                                        })?
+                                        .map(|r| {
+                                            r.map_err(|e| crate::core::ir::Error::IO(e.to_string()))
+                                        })
+                                        .boxed()
+                                }
+                            }
                         }
                         _ => {
                             return Err(async_graphql::Error::new(

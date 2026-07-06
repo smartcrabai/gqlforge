@@ -154,6 +154,8 @@ pub mod test {
             },
             postgres: HashMap::new(),
             postgres_listeners: HashMap::new(),
+            redis: HashMap::new(),
+            redis_listeners: HashMap::new(),
             s3: HashMap::new(),
         }
     }
@@ -265,7 +267,7 @@ type SensorData {{
 
         tokio::spawn(async move {
             let _temp = temp_file; // prevent deletion until server exits
-            server.start().await.unwrap();
+            Box::pin(server.start()).await.unwrap();
         });
 
         server_up_receiver

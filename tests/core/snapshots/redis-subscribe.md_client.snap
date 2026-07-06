@@ -1,0 +1,19 @@
+---
+source: tests/core/spec.rs
+expression: formatted
+---
+scalar JSON
+
+type Query {
+  dummy: String
+}
+
+type Subscription {
+  alerts(channel: String!): JSON
+  streamEvents(key: String!): JSON
+}
+
+schema {
+  query: Query
+  subscription: Subscription
+}
