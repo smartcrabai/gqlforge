@@ -323,6 +323,8 @@ impl ExecutionSpec {
             worker,
             postgres: HashMap::new(),
             postgres_listeners: HashMap::new(),
+            redis: HashMap::new(),
+            redis_listeners: HashMap::new(),
             s3: HashMap::new(),
         };
 

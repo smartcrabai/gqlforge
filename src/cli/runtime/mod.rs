@@ -10,7 +10,7 @@ use std::sync::Arc;
 pub use http::NativeHttp;
 use inquire::{Confirm, Select};
 
-use crate::core::blueprint::{Blueprint, PostgresConnectionSpec};
+use crate::core::blueprint::{Blueprint, PostgresConnectionSpec, RedisConnectionSpec};
 use crate::core::cache::InMemoryCache;
 use crate::core::runtime::TargetRuntime;
 use crate::core::worker::{Command, Event};
@@ -110,13 +110,44 @@ pub fn init(blueprint: &Blueprint) -> anyhow::Result<TargetRuntime> {
         }
     }
 
-    Ok(build_runtime(blueprint, postgres, postgres_listeners))
+    let mut redis = HashMap::new();
+    let mut redis_listeners = HashMap::new();
+
+    for (id, spec) in &blueprint.redis_connections {
+        match spec {
+            RedisConnectionSpec::Url(url) => {
+                let pool = crate::cli::redis::client::RedisClientPool::new(url)
+                    .map_err(|e| anyhow::anyhow!("Failed to create Redis pool '{id}': {e}"))?;
+                redis.insert(
+                    id.clone(),
+                    Arc::new(pool) as Arc<dyn crate::core::redis::RedisIO>,
+                );
+
+                let listener = crate::cli::redis::listener::RedisListener::new(url)
+                    .map_err(|e| anyhow::anyhow!("Failed to create Redis listener '{id}': {e}"))?;
+                redis_listeners.insert(
+                    id.clone(),
+                    listener as Arc<dyn crate::core::redis::RedisListenerIO>,
+                );
+            }
+        }
+    }
+
+    Ok(build_runtime(
+        blueprint,
+        postgres,
+        postgres_listeners,
+        redis,
+        redis_listeners,
+    ))
 }
 
 fn build_runtime(
     blueprint: &Blueprint,
     postgres: HashMap<String, Arc<dyn crate::core::postgres::PostgresIO>>,
     postgres_listeners: HashMap<String, Arc<dyn crate::core::postgres::PostgresListenerIO>>,
+    redis: HashMap<String, Arc<dyn crate::core::redis::RedisIO>>,
+    redis_listeners: HashMap<String, Arc<dyn crate::core::redis::RedisListenerIO>>,
 ) -> TargetRuntime {
     #[cfg(not(feature = "js"))]
     tracing::warn!("JS capabilities are disabled in this build");
@@ -132,6 +163,8 @@ fn build_runtime(
         worker: init_resolver_worker_io(blueprint.server.script.clone()),
         postgres,
         postgres_listeners,
+        redis,
+        redis_listeners,
         s3: HashMap::new(),
     }
 }

@@ -137,6 +137,10 @@ impl AppContext {
                                     // needed
                                     None
                                 }
+                                IO::RedisStream { .. } => {
+                                    // RedisStream is used in subscriptions, no data loader needed
+                                    None
+                                }
                                 IO::Postgres {
                                     req_template,
                                     group_by,
@@ -151,6 +155,15 @@ impl AppContext {
                                         req_template: req_template.clone(),
                                         group_by: group_by.clone(),
                                         dl_id: None,
+                                        dedupe: *dedupe,
+                                        connection_id: connection_id.clone(),
+                                    })))
+                                }
+                                IO::Redis { req_template, dedupe, connection_id } => {
+                                    // Redis has no data loader (no batching yet); carry the IO
+                                    // through unchanged.
+                                    Some(IR::IO(Box::new(IO::Redis {
+                                        req_template: req_template.clone(),
                                         dedupe: *dedupe,
                                         connection_id: connection_id.clone(),
                                     })))

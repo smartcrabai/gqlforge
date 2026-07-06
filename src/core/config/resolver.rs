@@ -6,7 +6,7 @@ use gqlforge_macros::{CustomResolver, MergeRight};
 use gqlforge_valid::{Valid, Validator};
 use serde::{Deserialize, Serialize};
 
-use super::{Call, EntityResolver, Expr, GraphQL, Grpc, Http, JS, Postgres, S3};
+use super::{Call, EntityResolver, Expr, GraphQL, Grpc, Http, JS, Postgres, Redis, S3};
 use crate::core::directive::DirectiveCodec;
 use crate::core::merge_right::MergeRight;
 
@@ -36,6 +36,7 @@ pub enum Resolver {
     Js(JS),
     Expr(Expr),
     Postgres(Postgres),
+    Redis(Redis),
     S3(S3),
     #[serde(skip)]
     #[resolver(skip_directive)]

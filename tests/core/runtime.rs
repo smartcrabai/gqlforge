@@ -12,6 +12,7 @@ use gqlforge::core::blueprint::Script;
 use gqlforge::core::cache::InMemoryCache;
 use gqlforge::core::config::RuntimeConfig;
 use gqlforge::core::postgres::PostgresIO;
+use gqlforge::core::redis::{RedisIO, RedisListenerIO};
 use gqlforge::core::runtime::TargetRuntime;
 use gqlforge::core::s3::S3IO;
 use gqlforge::core::worker::{Command, Event};
@@ -70,6 +71,8 @@ impl ExecutionMock {
 #[derive(Default)]
 pub struct RuntimeIO {
     pub postgres: Option<HashMap<String, Arc<dyn PostgresIO>>>,
+    pub redis: Option<HashMap<String, Arc<dyn RedisIO>>>,
+    pub redis_listeners: Option<HashMap<String, Arc<dyn RedisListenerIO>>>,
     pub s3: Option<HashMap<String, Arc<dyn S3IO>>>,
 }
 
@@ -103,6 +106,8 @@ pub fn create_runtime(
         },
         postgres: io.postgres.unwrap_or_default(),
         postgres_listeners: HashMap::new(),
+        redis: io.redis.unwrap_or_default(),
+        redis_listeners: io.redis_listeners.unwrap_or_default(),
         s3: io.s3.unwrap_or_default(),
     }
 }

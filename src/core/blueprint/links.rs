@@ -66,6 +66,18 @@ impl TryFrom<Vec<Link>> for Links {
                 Valid::succeed(links)
             }
         })
+        .and_then(|links| {
+            let redis_links: Vec<&Link> = links
+                .iter()
+                .filter(|l| l.type_of == LinkType::Redis)
+                .collect();
+
+            if redis_links.len() > 1 && redis_links.iter().any(|l| l.id.is_none()) {
+                Valid::fail(BlueprintError::RedisMultipleLinksRequireId)
+            } else {
+                Valid::succeed(links)
+            }
+        })
         .trace(Link::trace_name().as_str())
         .trace("schema")
         .map_to(Links)
@@ -82,6 +94,15 @@ mod tests {
         Link {
             src: src.to_string(),
             type_of: LinkType::Postgres,
+            id: id.map(std::string::ToString::to_string),
+            ..Default::default()
+        }
+    }
+
+    fn redis_link(id: Option<&str>, src: &str) -> Link {
+        Link {
+            src: src.to_string(),
+            type_of: LinkType::Redis,
             id: id.map(std::string::ToString::to_string),
             ..Default::default()
         }
@@ -144,5 +165,48 @@ mod tests {
             messages.iter().any(|m| m.contains("Duplicated")),
             "Expected Duplicated error, got: {messages:?}"
         );
+    }
+
+    #[test]
+    fn single_redis_link_without_id_succeeds() {
+        let links = vec![redis_link(None, "redis://localhost:6379")];
+        assert!(Links::try_from(links).is_ok());
+    }
+
+    #[test]
+    fn multiple_redis_links_with_ids_succeeds() {
+        let links = vec![
+            redis_link(Some("main"), "redis://localhost:6379/0"),
+            redis_link(Some("cache"), "redis://localhost:6379/1"),
+        ];
+        assert!(Links::try_from(links).is_ok());
+    }
+
+    #[test]
+    fn multiple_redis_links_missing_id_fails() {
+        let links = vec![
+            redis_link(Some("main"), "redis://localhost:6379/0"),
+            redis_link(None, "redis://localhost:6379/1"),
+        ];
+        let result = Links::try_from(links);
+        assert!(result.is_err());
+        let err = result.unwrap_err();
+        let messages: Vec<String> = err.as_vec().iter().map(|c| c.message.to_string()).collect();
+        assert!(
+            messages
+                .iter()
+                .any(|m| m.contains("Multiple @link(type: Redis)")),
+            "Expected RedisMultipleLinksRequireId error, got: {messages:?}"
+        );
+    }
+
+    #[test]
+    fn multiple_redis_links_all_missing_id_fails() {
+        let links = vec![
+            redis_link(None, "redis://localhost:6379/0"),
+            redis_link(None, "redis://localhost:6379/1"),
+        ];
+        let result = Links::try_from(links);
+        assert!(result.is_err());
     }
 }

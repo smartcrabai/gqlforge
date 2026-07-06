@@ -5,6 +5,7 @@ pub mod generator;
 pub mod javascript;
 pub mod metrics;
 pub mod postgres;
+pub mod redis;
 pub mod runtime;
 pub mod s3;
 pub mod server;

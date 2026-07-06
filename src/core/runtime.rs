@@ -5,6 +5,7 @@ use async_graphql_value::ConstValue;
 
 use super::ir::model::IoId;
 use crate::core::postgres::{PostgresIO, PostgresListenerIO};
+use crate::core::redis::{RedisIO, RedisListenerIO};
 use crate::core::s3::S3IO;
 use crate::core::schema_extension::SchemaExtension;
 use crate::core::worker::{Command, Event};
@@ -41,6 +42,11 @@ pub struct TargetRuntime {
     /// `PostgreSQL` LISTEN/NOTIFY subscribers for `@postgres(operation:
     /// LISTEN)` Subscription fields, keyed by connection id.
     pub postgres_listeners: HashMap<String, Arc<dyn PostgresListenerIO>>,
+    /// Redis connections for `@redis` directives, keyed by connection id.
+    pub redis: HashMap<String, Arc<dyn RedisIO>>,
+    /// Redis Pub/Sub and Stream subscribers for `@redis(operation: SUBSCRIBE
+    /// | XREAD)` Subscription fields, keyed by connection id.
+    pub redis_listeners: HashMap<String, Arc<dyn RedisListenerIO>>,
     /// S3 clients keyed by @link id for `@s3` directives.
     pub s3: HashMap<String, Arc<dyn S3IO>>,
 }
@@ -204,6 +210,8 @@ pub mod test {
             },
             postgres: HashMap::new(),
             postgres_listeners: HashMap::new(),
+            redis: HashMap::new(),
+            redis_listeners: HashMap::new(),
             s3: HashMap::new(),
         }
     }

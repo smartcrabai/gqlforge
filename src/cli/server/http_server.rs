@@ -64,7 +64,9 @@ impl Server {
             .enable_all()
             .build()?;
 
-        let result = runtime.spawn(async { self.start().await }).await?;
+        let result = runtime
+            .spawn(async { Box::pin(self.start()).await })
+            .await?;
         runtime.shutdown_background();
 
         result

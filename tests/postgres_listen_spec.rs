@@ -150,6 +150,8 @@ mod postgres_listen_spec {
             },
             postgres: HashMap::new(),
             postgres_listeners: HashMap::new(),
+            redis: HashMap::new(),
+            redis_listeners: HashMap::new(),
             s3: HashMap::new(),
         }
     }

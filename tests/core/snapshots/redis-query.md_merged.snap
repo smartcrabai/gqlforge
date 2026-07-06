@@ -1,0 +1,23 @@
+---
+source: tests/core/spec.rs
+expression: formatter
+---
+schema
+@server(port: 8000)
+@upstream
+@link(id: "default", src: "redis://localhost:6379", type: Redis)
+@link(src: "schema_0.graphql", type: Config) {
+  query: Query
+  mutation: Mutation
+}
+
+type Mutation {
+  cacheValue(key: String!, value: String!): Boolean
+  @redis(operation: "SET", key: "{{.args.key}}", value: "{{.args.value}}")
+}
+
+type Query {
+  cachedValue(key: String!): String @redis(key: "{{.args.key}}")
+  userProfile(id: ID!): JSON
+  @redis(operation: "HGETALL", key: "user:{{.args.id}}")
+}

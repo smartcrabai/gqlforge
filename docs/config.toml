@@ -49,6 +49,7 @@ items = [
   { path = "directives/expr", title = "@expr" },
   { path = "directives/js", title = "@js" },
   { path = "directives/postgres", title = "@postgres" },
+  { path = "directives/redis", title = "@redis" },
 ]
 
 [[extra.sidebar]]
@@ -80,6 +81,7 @@ items = [
   { path = "environment-variables", title = "Environment Variables" },
   { path = "grpc", title = "gRPC" },
   { path = "postgres", title = "PostgreSQL" },
+  { path = "redis", title = "Redis" },
   { path = "scripting", title = "Scripting" },
   { path = "rest", title = "REST" },
   { path = "apollo-federation-subgraph", title = "Apollo Federation" },

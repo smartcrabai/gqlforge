@@ -698,6 +698,11 @@
           "description": "Points to an Aurora DSQL cluster endpoint. The cluster will be\nintrospected at startup using AWS IAM authentication.\n`src` should be the cluster endpoint (without scheme).\n`meta.region` is required; `meta.admin` defaults to false.",
           "type": "string",
           "const": "AuroraDsql"
+        },
+        {
+          "description": "Points to a Redis connection URL. Used by the `@redis` directive.",
+          "type": "string",
+          "const": "Redis"
         }
       ]
     },

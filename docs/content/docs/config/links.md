@@ -20,20 +20,21 @@ The `@link` directive connects external resources to your GQLForge configuration
 
 ## Link Types
 
-| Type        | Description                                                            |
-| ----------- | ---------------------------------------------------------------------- |
-| `Config`    | Another GQLForge configuration file to merge into the current schema.  |
-| `Protobuf`  | A `.proto` file defining gRPC service interfaces.                      |
-| `Script`    | A JavaScript file providing custom resolver functions.                 |
-| `Cert`      | A TLS certificate file (PEM format).                                   |
-| `Key`       | A TLS private key file (PEM format).                                   |
-| `Operation` | A file containing persisted GraphQL operations.                        |
-| `Htpasswd`  | An htpasswd file for basic authentication.                             |
-| `Jwks`      | A JWKS endpoint or file for JWT validation.                            |
-| `Grpc`      | A gRPC reflection endpoint for service discovery.                      |
-| `Sql`       | A SQL file containing `CREATE TABLE` statements for schema definition. |
-| `Postgres`  | A PostgreSQL connection URL (e.g. `postgres://user:pass@host/db`).     |
-| `S3`        | An S3 or S3-compatible endpoint URL for the `@s3` directive.           |
+| Type        | Description                                                                             |
+| ----------- | --------------------------------------------------------------------------------------- |
+| `Config`    | Another GQLForge configuration file to merge into the current schema.                   |
+| `Protobuf`  | A `.proto` file defining gRPC service interfaces.                                       |
+| `Script`    | A JavaScript file providing custom resolver functions.                                  |
+| `Cert`      | A TLS certificate file (PEM format).                                                    |
+| `Key`       | A TLS private key file (PEM format).                                                    |
+| `Operation` | A file containing persisted GraphQL operations.                                         |
+| `Htpasswd`  | An htpasswd file for basic authentication.                                              |
+| `Jwks`      | A JWKS endpoint or file for JWT validation.                                             |
+| `Grpc`      | A gRPC reflection endpoint for service discovery.                                       |
+| `Sql`       | A SQL file containing `CREATE TABLE` statements for schema definition.                  |
+| `Postgres`  | A PostgreSQL connection URL (e.g. `postgres://user:pass@host/db`).                      |
+| `Redis`     | A Redis connection URL for the `@redis` directive (`redis://`, or `rediss://` for TLS). |
+| `S3`        | An S3 or S3-compatible endpoint URL for the `@s3` directive.                            |
 
 ## Examples
 
@@ -80,6 +81,26 @@ When connecting to multiple databases, each `@link(type: Postgres)` must have a 
 schema
 @link(id: "main", type: Postgres, src: "postgres://localhost:5432/main_db")
 @link(id: "analytics", type: Postgres, src: "postgres://localhost:5432/analytics_db")
+@server(port: 8000) {
+  query: Query
+}
+```
+
+### Linking a Redis server
+
+```graphql
+schema @link(type: Redis, src: "redis://localhost:6379") @server(port: 8000) {
+  query: Query
+  mutation: Mutation
+}
+```
+
+Use `rediss://` instead of `redis://` to connect over TLS. When connecting to multiple Redis servers, give each `@link(type: Redis)` a unique `id` and select between them with the `db` field on `@redis`:
+
+```graphql
+schema
+@link(id: "cache", type: Redis, src: "redis://localhost:6379")
+@link(id: "pubsub", type: Redis, src: "rediss://pubsub.internal:6380")
 @server(port: 8000) {
   query: Query
 }

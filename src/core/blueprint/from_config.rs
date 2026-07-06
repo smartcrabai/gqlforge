@@ -9,8 +9,8 @@ use super::Server;
 use crate::core::Type;
 use crate::core::blueprint::compress::compress;
 use crate::core::blueprint::{
-    Blueprint, BlueprintError, Definition, Links, PostgresConnectionSpec, TryFoldConfig, Upstream,
-    telemetry, to_definitions, to_schema, update_federation,
+    Blueprint, BlueprintError, Definition, Links, PostgresConnectionSpec, RedisConnectionSpec,
+    TryFoldConfig, Upstream, telemetry, to_definitions, to_schema, update_federation,
 };
 use crate::core::config::transformer::Required;
 use crate::core::config::{Arg, Batch, Config, ConfigModule};
@@ -37,6 +37,14 @@ fn link_to_connection_spec(
         _ => unreachable!("caller must filter to Postgres/AuroraDsql only"),
     };
     Ok((id, spec))
+}
+
+/// Maps a single `Redis` link to a `(id, RedisConnectionSpec)` pair.
+fn link_to_redis_connection_spec(
+    link: &crate::core::config::Link,
+) -> (String, RedisConnectionSpec) {
+    let id = link.id.clone().unwrap_or_else(|| "default".to_string());
+    (id, RedisConnectionSpec::Url(link.src.clone()))
 }
 
 pub fn config_blueprint<'a>() -> TryFold<'a, ConfigModule, Blueprint, BlueprintError> {
@@ -86,6 +94,16 @@ pub fn config_blueprint<'a>() -> TryFold<'a, ConfigModule, Blueprint, BlueprintE
         }
     });
 
+    let redis_connections = TryFoldConfig::<Blueprint>::new(|config_module, mut blueprint| {
+        blueprint.redis_connections = config_module
+            .links
+            .iter()
+            .filter(|link| link.type_of == crate::core::config::LinkType::Redis)
+            .map(link_to_redis_connection_spec)
+            .collect();
+        Valid::succeed(blueprint)
+    });
+
     server
         .and(schema)
         .and(definitions)
@@ -93,6 +111,7 @@ pub fn config_blueprint<'a>() -> TryFold<'a, ConfigModule, Blueprint, BlueprintE
         .and(links)
         .and(opentelemetry)
         .and(postgres_connections)
+        .and(redis_connections)
         // set the federation config only after setting other properties to be able
         // to use blueprint inside the handler and to avoid recursion overflow
         .and(update_federation().trace("federation"))
@@ -302,5 +321,25 @@ mod tests {
             panic!("expected error for null meta");
         };
         assert!(e.to_string().contains("meta.region"));
+    }
+
+    #[test]
+    fn redis_link_maps_to_url_spec() {
+        let link = make_link(LinkType::Redis, "redis://localhost:6379", None, None);
+        let (id, spec) = link_to_redis_connection_spec(&link);
+        assert_eq!(id, "default");
+        assert!(matches!(spec, RedisConnectionSpec::Url(u) if u == "redis://localhost:6379"));
+    }
+
+    #[test]
+    fn redis_link_with_explicit_id() {
+        let link = make_link(
+            LinkType::Redis,
+            "redis://localhost:6379",
+            Some("cache"),
+            None,
+        );
+        let (id, _spec) = link_to_redis_connection_spec(&link);
+        assert_eq!(id, "cache");
     }
 }

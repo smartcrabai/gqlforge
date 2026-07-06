@@ -9,10 +9,10 @@ use super::{DynamicRequest, EvalContext, ResolverContextLike};
 use crate::core::config::{GraphQLOperationType, PostgresOperation, S3Operation};
 use crate::core::data_loader::DataLoader;
 use crate::core::graphql::GraphqlDataLoader;
-use crate::core::grpc;
 use crate::core::grpc::data_loader::GrpcDataLoader;
 use crate::core::http::DataLoaderRequest;
 use crate::core::ir::Error;
+use crate::core::{grpc, redis};
 
 pub async fn eval_io<Ctx>(io: &IO, ctx: &mut EvalContext<'_, Ctx>) -> Result<ConstValue, Error>
 where
@@ -116,6 +116,9 @@ where
         IO::PostgresStream { .. } => Err(Error::IO(
             "PostgresStream should be resolved via subscription stream, not eval_io".to_string(),
         )),
+        IO::RedisStream { .. } => Err(Error::IO(
+            "RedisStream should be resolved via subscription stream, not eval_io".to_string(),
+        )),
         IO::Postgres { req_template, dl_id: _, connection_id, .. } => {
             let rendered = req_template
                 .render(ctx)
@@ -144,6 +147,32 @@ where
             } else {
                 Ok(result)
             }
+        }
+        IO::Redis { req_template, connection_id, .. } => {
+            let rendered = req_template
+                .render(ctx)
+                .map_err(|e| Error::IO(e.to_string()))?;
+            let redis = ctx
+                .request_ctx
+                .runtime
+                .redis
+                .get(connection_id)
+                .ok_or_else(|| {
+                    Error::IO(format!("Redis connection '{connection_id}' not configured"))
+                })?;
+            let result = redis
+                .execute(&rendered.command, &rendered.args)
+                .await
+                .map_err(|e| Error::IO(e.to_string()))?;
+            // Correct for RESP2/RESP3 shape differences and wire-level types
+            // that don't match the directive's documented return type
+            // (e.g. EXISTS/SET -> Boolean) before interpreting string
+            // leaves as JSON.
+            let result = redis::normalize_command_result(&req_template.operation, result);
+            Ok(redis::decode_value_leaves(
+                result,
+                &req_template.payload_type,
+            ))
         }
         IO::Js { name } => {
             match ctx
@@ -258,6 +287,61 @@ mod tests {
         assert!(
             err.to_string()
                 .contains("PostgresStream should be resolved via subscription"),
+            "unexpected error: {err}"
+        );
+    }
+
+    #[tokio::test]
+    async fn redis_stream_eval_io_returns_error() {
+        let io = IO::RedisStream {
+            connection_id: "main".to_string(),
+            source: crate::core::redis::RedisStreamSource::PubSub {
+                channel: crate::core::mustache::Mustache::parse("events"),
+            },
+            payload_type: crate::core::config::RedisPayloadType::Json,
+        };
+        let runtime = crate::cli::runtime::init(&Blueprint::default()).unwrap();
+        let req_ctx = RequestContext::new(runtime);
+        let res_ctx = EmptyResolverContext {};
+        let mut eval_ctx = EvalContext::new(&req_ctx, &res_ctx);
+
+        let result = eval_io(&io, &mut eval_ctx).await;
+        assert!(result.is_err());
+        let err = result.unwrap_err();
+        assert!(
+            err.to_string()
+                .contains("RedisStream should be resolved via subscription"),
+            "unexpected error: {err}"
+        );
+    }
+
+    #[tokio::test]
+    async fn redis_connection_not_configured_returns_error() {
+        let io = IO::Redis {
+            req_template: crate::core::redis::request_template::RequestTemplate {
+                operation: crate::core::config::RedisOperation::Get,
+                key: Some(crate::core::mustache::Mustache::parse("user:1")),
+                field: None,
+                value: None,
+                ttl: None,
+                start: None,
+                stop: None,
+                channel: None,
+                payload_type: crate::core::config::RedisPayloadType::Json,
+            },
+            dedupe: false,
+            connection_id: "main".to_string(),
+        };
+        let runtime = crate::cli::runtime::init(&Blueprint::default()).unwrap();
+        let req_ctx = RequestContext::new(runtime);
+        let res_ctx = EmptyResolverContext {};
+        let mut eval_ctx = EvalContext::new(&req_ctx, &res_ctx);
+
+        let result = eval_io(&io, &mut eval_ctx).await;
+        let err = result.unwrap_err();
+        assert!(
+            err.to_string()
+                .contains("Redis connection 'main' not configured"),
             "unexpected error: {err}"
         );
     }

@@ -155,6 +155,8 @@ pub mod test {
             },
             postgres: HashMap::new(),
             postgres_listeners: HashMap::new(),
+            redis: HashMap::new(),
+            redis_listeners: HashMap::new(),
             s3: HashMap::new(),
         }
     }
@@ -176,7 +178,7 @@ mod server_spec {
         let server_up_receiver = server.server_up_receiver();
 
         tokio::spawn(async move {
-            server.start().await.unwrap();
+            Box::pin(server.start()).await.unwrap();
         });
 
         server_up_receiver
@@ -259,7 +261,7 @@ mod server_spec {
         let reader = ConfigReader::init(runtime);
         let config = reader.read_all(configs).await.unwrap();
         let server = Server::new(config);
-        assert!(server.start().await.is_err());
+        assert!(Box::pin(server.start()).await.is_err());
     }
 
     #[tokio::test]

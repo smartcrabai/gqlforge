@@ -4,6 +4,7 @@ use crate::core::jit::model::{Field, OperationPlan, Variables};
 use crate::core::jit::store::{DataPath, Store};
 use crate::core::jit::{Error, PathSegment, Positioned, ValidationError};
 use crate::core::json::{JsonLike, JsonObjectLike};
+use crate::core::scalar::Scalar;
 
 type ValueStore<Value> = Store<Result<Value, Positioned<Error>>>;
 
@@ -82,7 +83,18 @@ where
                     }
                 }
 
-                if node.type_of.is_list() != value.as_array().is_some() {
+                // Only opaque JSON-like scalars are exempt from the shape
+                // guard below -- a `JSON` field backed by a resolver that
+                // happens to return an array (e.g. `LRANGE`) is not a shape
+                // mismatch, it's just what the scalar holds, and
+                // `iter_inner`'s scalar branch returns the value as-is
+                // regardless of shape. All other scalars (built-in
+                // String/Int/Boolean/Float/ID, which fall back to
+                // `Scalar::Empty`, as well as validated custom scalars like
+                // `Date`/`Email`) must still declare their shape correctly,
+                // so keep the parity check for them.
+                let is_opaque_scalar = matches!(node.scalar, Some(Scalar::JSON));
+                if !is_opaque_scalar && node.type_of.is_list() != value.as_array().is_some() {
                     return Self::node_nullable_guard(node, path, None);
                 }
                 self.iter_inner(node, value, data_path, path)
@@ -463,5 +475,158 @@ mod tests {
         let synth = jp.synth();
         let val: serde_json_borrow::Value = synth.synthesize().unwrap();
         insta::assert_snapshot!(serde_json::to_string_pretty(&val).unwrap());
+    }
+
+    /// Regression test for a JIT-layer bug (independent of any particular
+    /// data source): a field declared as a scalar (here `JSON`, a `Named`,
+    /// non-list type) whose resolver returns an array value must not be
+    /// nulled out by the list/array shape-parity guard in `process_node`.
+    /// Scalars are opaque leaves -- `LRANGE` (Redis), or any resolver
+    /// returning a JSON array for a `JSON`-typed field, is exactly this
+    /// shape and must round-trip unchanged.
+    #[test]
+    fn test_scalar_field_with_array_value_is_not_nulled() {
+        const SCHEMA: &str = r#"
+            schema {
+                query: Query
+            }
+            type Query {
+                jobs: JSON @expr(body: "placeholder")
+            }
+        "#;
+
+        let config = Config::from_sdl(SCHEMA).to_result().unwrap();
+        let config = ConfigModule::from(config);
+        let blueprint = Blueprint::try_from(&config).unwrap();
+
+        let doc = async_graphql::parser::parse_query("{ jobs }").unwrap();
+        let builder = Builder::new(&blueprint, &doc);
+        let plan = builder.build(None).unwrap();
+        let plan = plan
+            .try_map(|v| {
+                let serde = v.into_json().unwrap();
+                Deserialize::deserialize(serde)
+            })
+            .unwrap();
+
+        let mut store: super::ValueStore<ConstValue> = Store::new();
+        store.set_data(
+            FieldId::new(0),
+            Ok(ConstValue::List(vec![
+                ConstValue::String("job-1".to_string()),
+                ConstValue::String("job-2".to_string()),
+            ])),
+        );
+
+        let synth = Synth::new(&plan, store, Variables::new());
+        let val: ConstValue = synth.synthesize().unwrap();
+
+        assert_eq!(
+            val,
+            ConstValue::Object(
+                [(
+                    async_graphql::Name::new("jobs"),
+                    ConstValue::List(vec![
+                        ConstValue::String("job-1".to_string()),
+                        ConstValue::String("job-2".to_string())
+                    ])
+                )]
+                .into()
+            )
+        );
+    }
+
+    /// Regression test: unlike opaque scalars such as `JSON`, an ordinary
+    /// non-list scalar field (here `String`, which falls back to
+    /// `Scalar::Empty`, see `builder.rs`) must still respect the
+    /// list/array shape-parity guard. A resolver that returns an array for
+    /// a non-list `String` field is a contract violation and must be
+    /// nulled out rather than passed through as-is.
+    #[test]
+    fn test_non_list_scalar_field_with_array_value_is_nulled() {
+        const SCHEMA: &str = r#"
+            schema {
+                query: Query
+            }
+            type Query {
+                name: String @expr(body: "placeholder")
+            }
+        "#;
+
+        let config = Config::from_sdl(SCHEMA).to_result().unwrap();
+        let config = ConfigModule::from(config);
+        let blueprint = Blueprint::try_from(&config).unwrap();
+
+        let doc = async_graphql::parser::parse_query("{ name }").unwrap();
+        let builder = Builder::new(&blueprint, &doc);
+        let plan = builder.build(None).unwrap();
+        let plan = plan
+            .try_map(|v| {
+                let serde = v.into_json().unwrap();
+                Deserialize::deserialize(serde)
+            })
+            .unwrap();
+
+        let mut store: super::ValueStore<ConstValue> = Store::new();
+        store.set_data(
+            FieldId::new(0),
+            Ok(ConstValue::List(vec![
+                ConstValue::String("unexpected-1".to_string()),
+                ConstValue::String("unexpected-2".to_string()),
+            ])),
+        );
+
+        let synth = Synth::new(&plan, store, Variables::new());
+        let val: ConstValue = synth.synthesize().unwrap();
+
+        assert_eq!(
+            val,
+            ConstValue::Object([(async_graphql::Name::new("name"), ConstValue::Null)].into())
+        );
+    }
+
+    /// Regression test: a list scalar field (here `[String]`, which also
+    /// falls back to `Scalar::Empty`) must still respect the
+    /// list/array shape-parity guard. A resolver that returns a bare
+    /// scalar for a `[String]` field is a contract violation and must be
+    /// nulled out rather than passed through as-is.
+    #[test]
+    fn test_list_scalar_field_with_bare_scalar_value_is_nulled() {
+        const SCHEMA: &str = r#"
+            schema {
+                query: Query
+            }
+            type Query {
+                tags: [String] @expr(body: ["placeholder"])
+            }
+        "#;
+
+        let config = Config::from_sdl(SCHEMA).to_result().unwrap();
+        let config = ConfigModule::from(config);
+        let blueprint = Blueprint::try_from(&config).unwrap();
+
+        let doc = async_graphql::parser::parse_query("{ tags }").unwrap();
+        let builder = Builder::new(&blueprint, &doc);
+        let plan = builder.build(None).unwrap();
+        let plan = plan
+            .try_map(|v| {
+                let serde = v.into_json().unwrap();
+                Deserialize::deserialize(serde)
+            })
+            .unwrap();
+
+        let mut store: super::ValueStore<ConstValue> = Store::new();
+        store.set_data(
+            FieldId::new(0),
+            Ok(ConstValue::String("bare-tag".to_string())),
+        );
+
+        let synth = Synth::new(&plan, store, Variables::new());
+        let val: ConstValue = synth.synthesize().unwrap();
+
+        assert_eq!(
+            val,
+            ConstValue::Object([(async_graphql::Name::new("tags"), ConstValue::Null)].into())
+        );
     }
 }

@@ -115,6 +115,9 @@ pub enum BlueprintError {
     #[error("Multiple @link(type: Postgres) require explicit 'id' on each link")]
     PostgresMultipleLinksRequireId,
 
+    #[error("Multiple @link(type: Redis) require explicit 'id' on each link")]
+    RedisMultipleLinksRequireId,
+
     #[error("no value '{0}' found")]
     NoValueFound(String),
 
