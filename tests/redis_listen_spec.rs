@@ -19,12 +19,11 @@ mod redis_listen_spec {
     use gqlforge::core::runtime::TargetRuntime;
     use gqlforge::core::worker::{Command, Event};
     use gqlforge::core::{EnvIO, FileIO, HttpIO};
+    use gqlforge_valid::Validator;
     use reqwest::Client;
     use reqwest_middleware::{ClientBuilder, ClientWithMiddleware};
     use tokio::io::{AsyncReadExt, AsyncWriteExt};
     use tokio::sync::broadcast;
-
-    use gqlforge_valid::Validator;
 
     // ----------------------------------------------------------------
     // Mock RedisListenerIO (self-contained, mirrors `MockPostgresListener`

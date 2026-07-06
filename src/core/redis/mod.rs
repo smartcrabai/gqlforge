@@ -7,11 +7,10 @@ use futures_util::Stream;
 pub use request_template::RequestTemplate;
 
 use crate::core::config::RedisOperation;
-use crate::core::mustache::Mustache;
-
 /// How to interpret Redis string payloads (GET results, PUBLISH messages,
 /// stream entries).
 pub use crate::core::config::RedisPayloadType;
+use crate::core::mustache::Mustache;
 
 /// Describes where a `@redis` subscription reads its events from.
 #[derive(Clone, Debug)]
@@ -102,16 +101,16 @@ pub fn decode_value_leaves(value: ConstValue, payload_type: &RedisPayloadType) -
 /// conversion (e.g. `redis_value_to_const` in the CLI crate), **before**
 /// [`decode_value_leaves`] interprets string leaves as JSON:
 ///
-/// - `HGETALL`: RESP2 (the default protocol) returns hash contents as a
-///   flat array of alternating field/value strings rather than a map, so
+/// - `HGETALL`: RESP2 (the default protocol) returns hash contents as a flat
+///   array of alternating field/value strings rather than a map, so
 ///   `redis_value_to_const` produces a `ConstValue::List` instead of an
-///   `Object`. This folds well-formed pairs (even length, all-string
-///   elements) into an `Object`. A `Value::Map` (RESP3, or a test mock)
-///   already arrives as `ConstValue::Object` and passes through unchanged.
-/// - `EXISTS`: Redis replies with an integer count; normalized to
-///   `Boolean` (`true` when the count is greater than zero).
-/// - `SET`: Redis replies `+OK` (`ConstValue::String("OK")`) on success, or
-///   a null bulk reply (`ConstValue::Null`) when a condition modifier (e.g.
+///   `Object`. This folds well-formed pairs (even length, all-string elements)
+///   into an `Object`. A `Value::Map` (RESP3, or a test mock) already arrives
+///   as `ConstValue::Object` and passes through unchanged.
+/// - `EXISTS`: Redis replies with an integer count; normalized to `Boolean`
+///   (`true` when the count is greater than zero).
+/// - `SET`: Redis replies `+OK` (`ConstValue::String("OK")`) on success, or a
+///   null bulk reply (`ConstValue::Null`) when a condition modifier (e.g.
 ///   `NX`/`XX`, not currently exposed by `@redis`) prevents the write.
 ///   Normalized to `Boolean` accordingly.
 ///

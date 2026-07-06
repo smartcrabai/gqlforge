@@ -17,8 +17,9 @@ const COMMAND_RESPONSE_TIMEOUT: Duration = Duration::from_secs(30);
 ///
 /// `redis::Client::open` builds a lightweight, unconnected handle, so
 /// construction is synchronous. The actual TCP/TLS connection is established
-/// lazily on the first `execute()` call and shared afterwards; `ConnectionManager`
-/// is cheap to clone and safe to use concurrently from multiple callers.
+/// lazily on the first `execute()` call and shared afterwards;
+/// `ConnectionManager` is cheap to clone and safe to use concurrently from
+/// multiple callers.
 pub struct RedisClientPool {
     client: redis::Client,
     manager: OnceCell<ConnectionManager>,

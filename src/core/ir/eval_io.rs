@@ -9,11 +9,10 @@ use super::{DynamicRequest, EvalContext, ResolverContextLike};
 use crate::core::config::{GraphQLOperationType, PostgresOperation, S3Operation};
 use crate::core::data_loader::DataLoader;
 use crate::core::graphql::GraphqlDataLoader;
-use crate::core::grpc;
 use crate::core::grpc::data_loader::GrpcDataLoader;
 use crate::core::http::DataLoaderRequest;
 use crate::core::ir::Error;
-use crate::core::redis;
+use crate::core::{grpc, redis};
 
 pub async fn eval_io<Ctx>(io: &IO, ctx: &mut EvalContext<'_, Ctx>) -> Result<ConstValue, Error>
 where
