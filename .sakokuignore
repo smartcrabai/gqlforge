@@ -1,0 +1,10 @@
+# Documentation site image assets
+docs/static/**/*.png
+docs/static/**/*.ico
+docs/static/**/*.webp
+
+# README GIF asset
+assets/*.gif
+
+# Binary protobuf fixture
+gqlforge-fixtures/fixtures/grpc/reflection/*.bin
