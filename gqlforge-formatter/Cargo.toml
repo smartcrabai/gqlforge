@@ -2,6 +2,7 @@
 name = "gqlforge-formatter"
 version = "0.1.7"
 edition = "2024"
+publish = false
 
 [dependencies]
 pretty_graphql = "0.2.3"
