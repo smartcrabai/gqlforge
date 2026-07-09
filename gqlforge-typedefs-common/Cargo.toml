@@ -6,7 +6,7 @@ description = "Common type definitions for gqlforge"
 license = "Apache-2.0"
 
 [dependencies]
-async-graphql = { workspace = true }
+gqlrs = { workspace = true }
 schemars = { version = "1.0.0" }
 serde_json = { workspace = true }
 

@@ -29,11 +29,9 @@ impl PathValue for Context {
         &'a self,
         path: &[T],
     ) -> Option<crate::core::path::ValueString<'a>> {
-        self.value.get_path(path).map(|a| {
-            ValueString::Value(Cow::Owned(
-                async_graphql::Value::from_json(a.clone()).unwrap(),
-            ))
-        })
+        self.value
+            .get_path(path)
+            .map(|a| ValueString::Value(Cow::Owned(gqlrs::Value::from_json(a.clone()).unwrap())))
     }
 }
 

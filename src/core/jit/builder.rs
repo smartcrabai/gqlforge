@@ -2,12 +2,12 @@ use std::collections::{HashMap, HashSet};
 use std::ops::Deref;
 use std::sync::Arc;
 
-use async_graphql::Positioned;
-use async_graphql::parser::types::{
+use gqlrs::Positioned;
+use gqlrs::parser::types::{
     Directive, DocumentOperations, ExecutableDocument, FragmentDefinition, OperationDefinition,
     OperationType, Selection, SelectionSet,
 };
-use async_graphql_value::Value;
+use gqlrs_value::Value;
 
 use super::BuildError;
 use super::model::{Arg, ArgId, Directive as JitDirective, Field, FieldId, Variable};
@@ -85,7 +85,7 @@ impl<'a> Builder<'a> {
     }
 
     #[inline]
-    fn include(directives: &[Positioned<async_graphql::parser::types::Directive>]) -> Conditions {
+    fn include(directives: &[Positioned<gqlrs::parser::types::Directive>]) -> Conditions {
         fn get_condition(dir: &Directive) -> Option<Condition> {
             let arg = dir.get_argument("if").map(|pos| &pos.node);
             match arg {
@@ -402,7 +402,7 @@ mod tests {
     fn plan(query: impl AsRef<str>) -> OperationPlan<Value> {
         let config = Config::from_sdl(CONFIG).to_result().unwrap();
         let blueprint = Blueprint::try_from(&config.into()).unwrap();
-        let document = async_graphql::parser::parse_query(query).unwrap();
+        let document = gqlrs::parser::parse_query(query).unwrap();
         Builder::new(&blueprint, &document).build(None).unwrap()
     }
 
@@ -670,7 +670,7 @@ mod tests {
         "#;
         let config = Config::from_sdl(CONFIG).to_result().unwrap();
         let blueprint = Blueprint::try_from(&config.into()).unwrap();
-        let document = async_graphql::parser::parse_query(query).unwrap();
+        let document = gqlrs::parser::parse_query(query).unwrap();
         let error = Builder::new(&blueprint, &document).build(None).unwrap_err();
 
         assert_eq!(error, BuildError::OperationNameRequired);

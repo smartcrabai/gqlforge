@@ -5,7 +5,7 @@ use serde::Serialize;
 
 use super::Positioned;
 use super::graphql_error::GraphQLError;
-use crate::core::async_graphql_hyper::CacheControl;
+use crate::core::gqlrs_hyper::CacheControl;
 use crate::core::jit;
 use crate::core::json::{JsonLike, JsonObjectLike};
 
@@ -65,13 +65,13 @@ where
     Value: JsonLike<'a>,
 {
     #[must_use]
-    pub fn merge_with(mut self, other: &'a async_graphql::Response) -> Self {
-        if let async_graphql::Value::Object(other_obj) = &other.data {
+    pub fn merge_with(mut self, other: &'a gqlrs::Response) -> Self {
+        if let gqlrs::Value::Object(other_obj) = &other.data {
             if let Some(self_obj) = self.data.as_object_mut() {
                 for (k, v) in other_obj {
                     // this function is mostly used for merging the usual response with
-                    // introspection result from async_graphql.
-                    // But async_graphql response in that case
+                    // introspection result from gqlrs.
+                    // But gqlrs response in that case
                     if self_obj.get_key(k.as_str()).is_none() {
                         self_obj.insert_key(k.as_str(), Value::clone_from(v));
                     }
@@ -173,7 +173,7 @@ impl<Body> BatchResponse<Body> {
 #[cfg(test)]
 mod test {
     #![expect(clippy::unwrap_used, reason = "test code")]
-    use async_graphql_value::ConstValue;
+    use gqlrs_value::ConstValue;
 
     use super::Response;
     use crate::core::jit::graphql_error::GraphQLError;
@@ -223,7 +223,7 @@ mod test {
     }
 
     #[test]
-    fn test_conversion_to_async_graphql() {
+    fn test_conversion_to_gqlrs() {
         let error1 = Positioned::new(
             jit::Error::Validation(jit::ValidationError::ValueRequired),
             Pos { line: 1, column: 2 },
@@ -269,7 +269,7 @@ mod test {
         "#;
         let introspection_data =
             ConstValue::from_json(serde_json::from_str(introspection_response).unwrap()).unwrap();
-        let introspection_response = async_graphql::Response::new(introspection_data);
+        let introspection_response = gqlrs::Response::new(introspection_data);
 
         let user_response = r#"
         {
@@ -291,8 +291,8 @@ mod test {
 
     #[test]
     pub fn test_merging_of_errors() {
-        let mut resp1 = async_graphql::Response::new(ConstValue::default());
-        let mut err1 = vec![async_graphql::ServerError::new("Error-1", None)];
+        let mut resp1 = gqlrs::Response::new(ConstValue::default());
+        let mut err1 = vec![gqlrs::ServerError::new("Error-1", None)];
         resp1.errors.append(&mut err1);
 
         let mut resp2 = Response::new(Ok(ConstValue::default()));

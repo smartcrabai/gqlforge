@@ -1353,11 +1353,11 @@
       "locked": false,
       "fontSize": 16,
       "fontFamily": 3,
-      "text": "async_graphql::Schema",
+      "text": "gqlrs::Schema",
       "textAlign": "center",
       "verticalAlign": "middle",
       "containerId": "JjJ6OlBRNI_Sbd0ccqu_P",
-      "originalText": "async_graphql::Schema",
+      "originalText": "gqlrs::Schema",
       "lineHeight": 1.2,
       "baseline": 15
     },

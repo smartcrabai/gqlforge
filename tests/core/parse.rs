@@ -9,7 +9,6 @@ use std::str::FromStr;
 use std::sync::Arc;
 
 use anyhow::anyhow;
-use async_graphql_value::ConstValue;
 use gqlforge::cli::javascript;
 use gqlforge::core::app_context::AppContext;
 use gqlforge::core::blueprint::Blueprint;
@@ -19,6 +18,7 @@ use gqlforge::core::merge_right::MergeRight;
 use gqlforge::core::runtime::TargetRuntime;
 use gqlforge::core::worker::{Command, Event};
 use gqlforge::core::{EnvIO, WorkerIO};
+use gqlrs_value::ConstValue;
 use markdown::ParseOptions;
 use markdown::mdast::Node;
 

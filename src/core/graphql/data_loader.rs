@@ -3,8 +3,8 @@ use std::str::from_utf8;
 use std::sync::Arc;
 use std::time::Duration;
 
-use async_graphql::async_trait;
-use async_graphql::futures_util::future::join_all;
+use gqlrs::async_trait;
+use gqlrs::futures_util::future::join_all;
 
 use crate::core::config::Batch;
 use crate::core::data_loader::{DataLoader, Loader};
@@ -35,13 +35,13 @@ impl GraphqlDataLoader {
 
 #[async_trait::async_trait]
 impl Loader<DataLoaderRequest> for GraphqlDataLoader {
-    type Value = Response<async_graphql::Value>;
+    type Value = Response<gqlrs::Value>;
     type Error = Arc<anyhow::Error>;
 
     async fn load(
         &self,
         keys: &[DataLoaderRequest],
-    ) -> async_graphql::Result<HashMap<DataLoaderRequest, Self::Value>, Self::Error> {
+    ) -> gqlrs::Result<HashMap<DataLoaderRequest, Self::Value>, Self::Error> {
         if self.batch {
             let batched_req = create_batched_request(keys);
             let result = self.runtime.http.execute(batched_req).await?.to_json();
@@ -95,17 +95,15 @@ fn create_batched_request(dataloader_requests: &[DataLoaderRequest]) -> reqwest:
 }
 
 fn extract_responses(
-    result: Result<Response<async_graphql::Value>, anyhow::Error>,
+    result: Result<Response<gqlrs::Value>, anyhow::Error>,
     keys: &[DataLoaderRequest],
-) -> HashMap<DataLoaderRequest, Response<async_graphql::Value>> {
+) -> HashMap<DataLoaderRequest, Response<gqlrs::Value>> {
     let mut hashmap = HashMap::new();
     if let Ok(res) = result
-        && let async_graphql_value::ConstValue::List(values) = res.body
+        && let gqlrs_value::ConstValue::List(values) = res.body
     {
         for (i, request) in keys.iter().enumerate() {
-            let value = values
-                .get(i)
-                .unwrap_or(&async_graphql_value::ConstValue::Null);
+            let value = values.get(i).unwrap_or(&gqlrs_value::ConstValue::Null);
             hashmap.insert(
                 request.clone(),
                 Response {

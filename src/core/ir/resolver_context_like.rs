@@ -1,8 +1,8 @@
 use std::sync::Arc;
 
-use async_graphql::parser::types::{ConstDirective, OperationType};
-use async_graphql::{Name, ServerError, Value};
-use async_graphql_value::ConstValue;
+use gqlrs::parser::types::{ConstDirective, OperationType};
+use gqlrs::{Name, ServerError, Value};
+use gqlrs_value::ConstValue;
 use indexmap::IndexMap;
 
 pub trait ResolverContextLike: Clone {
@@ -38,11 +38,11 @@ impl ResolverContextLike for EmptyResolverContext {
 
 #[derive(Clone)]
 pub struct ResolverContext<'a> {
-    inner: Arc<async_graphql::dynamic::ResolverContext<'a>>,
+    inner: Arc<gqlrs::dynamic::ResolverContext<'a>>,
 }
 
-impl<'a> From<async_graphql::dynamic::ResolverContext<'a>> for ResolverContext<'a> {
-    fn from(value: async_graphql::dynamic::ResolverContext<'a>) -> Self {
+impl<'a> From<gqlrs::dynamic::ResolverContext<'a>> for ResolverContext<'a> {
+    fn from(value: gqlrs::dynamic::ResolverContext<'a>) -> Self {
         ResolverContext { inner: Arc::new(value) }
     }
 }
@@ -77,8 +77,8 @@ pub struct SelectionField {
     selection_set: Vec<SelectionField>,
 }
 
-impl From<async_graphql::SelectionField<'_>> for SelectionField {
-    fn from(value: async_graphql::SelectionField) -> Self {
+impl From<gqlrs::SelectionField<'_>> for SelectionField {
+    fn from(value: gqlrs::SelectionField) -> Self {
         Self::from_async_selection_field(value)
     }
 }
@@ -125,7 +125,7 @@ impl SelectionField {
         }
     }
 
-    fn from_async_selection_field(field: async_graphql::SelectionField) -> SelectionField {
+    fn from_async_selection_field(field: gqlrs::SelectionField) -> SelectionField {
         let name = field.name().to_owned();
         let args = field
             .arguments()

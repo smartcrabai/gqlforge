@@ -3,15 +3,15 @@ use std::future::Future;
 use std::hash::{Hash, Hasher};
 use std::sync::Arc;
 
-use async_graphql::{BatchRequest, Value};
-use async_graphql_value::{ConstValue, Extensions};
 use futures_util::StreamExt;
 use futures_util::stream::FuturesOrdered;
 use gqlforge_hasher::GqlforgeHasher;
+use gqlrs::{BatchRequest, Value};
+use gqlrs_value::{ConstValue, Extensions};
 
 use super::{AnyResponse, BatchResponse, Response};
 use crate::core::app_context::AppContext;
-use crate::core::async_graphql_hyper::OperationId;
+use crate::core::gqlrs_hyper::OperationId;
 use crate::core::http::RequestContext;
 use crate::core::jit::{self, ConstValueExecutor, OPHash, Pos, Positioned};
 
@@ -62,7 +62,7 @@ impl JITExecutor {
     }
 
     #[inline]
-    fn req_hash(request: &async_graphql::Request) -> OPHash {
+    fn req_hash(request: &gqlrs::Request) -> OPHash {
         let mut hasher = GqlforgeHasher::default();
         request.query.hash(&mut hasher);
 
@@ -73,7 +73,7 @@ impl JITExecutor {
 impl JITExecutor {
     pub fn execute(
         &self,
-        request: async_graphql::Request,
+        request: gqlrs::Request,
     ) -> impl Future<Output = AnyResponse<Vec<u8>>> + Send + '_ {
         // TODO: hash considering only the query itself ignoring specified operation and
         // variables that could differ for the same query
@@ -91,7 +91,7 @@ impl JITExecutor {
                 let exec = match ConstValueExecutor::try_new(&jit_request, &self.app_ctx) {
                     Ok(exec) => exec,
                     Err(error) => {
-                        return Response::<async_graphql::Value>::default()
+                        return Response::<gqlrs::Value>::default()
                             .with_errors(vec![Positioned::new(error, Pos::default())])
                             .into();
                     }
@@ -139,15 +139,15 @@ impl JITExecutor {
 }
 
 // TODO: used only for introspection, simplify somehow?
-impl From<jit::Request<Value>> for async_graphql::Request {
+impl From<jit::Request<Value>> for gqlrs::Request {
     fn from(value: jit::Request<Value>) -> Self {
-        let mut request = async_graphql::Request::new(value.query);
+        let mut request = gqlrs::Request::new(value.query);
         request.variables.extend(
             value
                 .variables
                 .into_hashmap()
                 .into_iter()
-                .map(|(k, v)| (async_graphql::Name::new(k), v))
+                .map(|(k, v)| (gqlrs::Name::new(k), v))
                 .collect::<BTreeMap<_, _>>(),
         );
         request.extensions = Extensions(value.extensions);

@@ -1,4 +1,4 @@
-use async_graphql_value::ConstValue;
+use gqlrs_value::ConstValue;
 
 use super::eval_http::{
     EvalHttp, WorkerContext, execute_grpc_request_with_dl, execute_raw_grpc_request,

@@ -1,7 +1,7 @@
-use async_graphql::parser::types::{
+use gqlrs::parser::types::{
     EnumType, EnumValueDefinition, TypeDefinition, TypeKind, TypeSystemDefinition,
 };
-use async_graphql::{Name, Positioned};
+use gqlrs::{Name, Positioned};
 use schemars::Schema;
 use serde_json::Value;
 

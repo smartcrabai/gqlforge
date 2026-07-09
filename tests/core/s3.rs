@@ -1,7 +1,7 @@
 use std::sync::Arc;
 
-use async_graphql_value::ConstValue;
 use gqlforge::core::s3::S3IO;
+use gqlrs_value::ConstValue;
 
 /// A mock implementation of `S3IO` that returns fixed responses.
 #[expect(

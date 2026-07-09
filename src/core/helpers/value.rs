@@ -1,6 +1,6 @@
 use std::hash::{Hash, Hasher};
 
-use async_graphql_value::ConstValue;
+use gqlrs_value::ConstValue;
 
 #[derive(Clone, Eq)]
 pub struct HashableConstValue(pub ConstValue);

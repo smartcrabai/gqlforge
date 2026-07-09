@@ -1,6 +1,6 @@
 pub mod request_template;
 
-use async_graphql_value::ConstValue;
+use gqlrs_value::ConstValue;
 pub use request_template::RequestTemplate;
 
 /// Trait for executing S3 operations.

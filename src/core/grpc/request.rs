@@ -1,8 +1,8 @@
 use std::pin::Pin;
 
 use anyhow::{Result, bail};
-use async_graphql_value::ConstValue;
 use futures_util::{Stream, StreamExt};
+use gqlrs_value::ConstValue;
 use http::{HeaderMap, Method};
 use reqwest::Request;
 use url::Url;
@@ -32,7 +32,7 @@ pub async fn execute_grpc_request(
     runtime: &TargetRuntime,
     operation: &ProtobufOperation,
     request: Request,
-) -> Result<Response<async_graphql::Value>> {
+) -> Result<Response<gqlrs::Value>> {
     let response = runtime.http2_only.execute(request).await?;
 
     let grpc_status = response

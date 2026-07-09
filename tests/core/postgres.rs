@@ -1,7 +1,7 @@
 use std::sync::Arc;
 
-use async_graphql_value::ConstValue;
 use gqlforge::core::postgres::PostgresIO;
+use gqlrs_value::ConstValue;
 
 /// A mock implementation of `PostgresIO` that returns a fixed response.
 pub struct MockPostgresIO {

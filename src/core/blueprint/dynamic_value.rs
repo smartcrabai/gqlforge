@@ -1,4 +1,4 @@
-use async_graphql_value::{ConstValue, Name};
+use gqlrs_value::{ConstValue, Name};
 use indexmap::IndexMap;
 use serde_json::Value;
 

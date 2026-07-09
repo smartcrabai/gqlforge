@@ -1,6 +1,6 @@
 use std::sync::Arc;
 
-use async_graphql::extensions::{Extension, ExtensionFactory};
+use gqlrs::extensions::{Extension, ExtensionFactory};
 
 #[derive(Clone)]
 pub struct SchemaExtension(Arc<dyn ExtensionFactory>);

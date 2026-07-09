@@ -1,5 +1,5 @@
-use async_graphql::Name;
-use async_graphql::parser::types::{TypeDefinition, TypeKind, TypeSystemDefinition};
+use gqlrs::Name;
+use gqlrs::parser::types::{TypeDefinition, TypeKind, TypeSystemDefinition};
 use schemars::Schema;
 
 use crate::common::{get_description, pos};

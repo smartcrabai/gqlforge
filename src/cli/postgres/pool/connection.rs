@@ -1,5 +1,5 @@
-use async_graphql_value::ConstValue;
 use deadpool_postgres::{Config, Pool, Runtime};
+use gqlrs_value::ConstValue;
 
 use super::conversion::rows_to_const_value;
 use super::types::TypedParam;

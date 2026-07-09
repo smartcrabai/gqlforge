@@ -38,29 +38,29 @@ impl PathString for serde_json::Value {
     }
 }
 
-fn convert_value(value: Cow<'_, async_graphql::Value>) -> Option<Cow<'_, str>> {
+fn convert_value(value: Cow<'_, gqlrs::Value>) -> Option<Cow<'_, str>> {
     match value {
-        Cow::Owned(async_graphql::Value::String(s)) => Some(Cow::Owned(s)),
-        Cow::Owned(async_graphql::Value::Number(n)) => Some(Cow::Owned(n.to_string())),
-        Cow::Owned(async_graphql::Value::Boolean(b)) => Some(Cow::Owned(b.to_string())),
-        Cow::Owned(async_graphql::Value::Object(map)) => Some(json!(map).to_string().into()),
-        Cow::Owned(async_graphql::Value::List(list)) => Some(json!(list).to_string().into()),
-        Cow::Borrowed(async_graphql::Value::String(s)) => Some(Cow::Borrowed(s.as_str())),
-        Cow::Borrowed(async_graphql::Value::Number(n)) => Some(Cow::Owned(n.to_string())),
-        Cow::Borrowed(async_graphql::Value::Boolean(b)) => Some(Cow::Owned(b.to_string())),
-        Cow::Borrowed(async_graphql::Value::Object(map)) => Some(json!(map).to_string().into()),
-        Cow::Borrowed(async_graphql::Value::List(list)) => Some(json!(list).to_string().into()),
-        Cow::Borrowed(async_graphql::Value::Enum(n)) => Some(Cow::Borrowed(n)),
+        Cow::Owned(gqlrs::Value::String(s)) => Some(Cow::Owned(s)),
+        Cow::Owned(gqlrs::Value::Number(n)) => Some(Cow::Owned(n.to_string())),
+        Cow::Owned(gqlrs::Value::Boolean(b)) => Some(Cow::Owned(b.to_string())),
+        Cow::Owned(gqlrs::Value::Object(map)) => Some(json!(map).to_string().into()),
+        Cow::Owned(gqlrs::Value::List(list)) => Some(json!(list).to_string().into()),
+        Cow::Borrowed(gqlrs::Value::String(s)) => Some(Cow::Borrowed(s.as_str())),
+        Cow::Borrowed(gqlrs::Value::Number(n)) => Some(Cow::Owned(n.to_string())),
+        Cow::Borrowed(gqlrs::Value::Boolean(b)) => Some(Cow::Owned(b.to_string())),
+        Cow::Borrowed(gqlrs::Value::Object(map)) => Some(json!(map).to_string().into()),
+        Cow::Borrowed(gqlrs::Value::List(list)) => Some(json!(list).to_string().into()),
+        Cow::Borrowed(gqlrs::Value::Enum(n)) => Some(Cow::Borrowed(n)),
         _ => None,
     }
 }
 
 ///
-/// An optimized version of `async_graphql::Value` that handles strings in a
+/// An optimized version of `gqlrs::Value` that handles strings in a
 /// more efficient manner.
 #[derive(Clone, Debug, PartialEq)]
 pub enum ValueString<'a> {
-    Value(Cow<'a, async_graphql::Value>),
+    Value(Cow<'a, gqlrs::Value>),
     String(Cow<'a, str>),
 }
 
@@ -163,7 +163,7 @@ mod tests {
         use std::collections::BTreeMap;
         use std::sync::Arc;
 
-        use async_graphql_value::{ConstValue as Value, Name, Number};
+        use gqlrs_value::{ConstValue as Value, Name, Number};
         use http::header::{HeaderMap, HeaderValue};
         use indexmap::IndexMap;
 
@@ -266,7 +266,7 @@ mod tests {
                 false
             }
 
-            fn add_error(&self, _: async_graphql::ServerError) {}
+            fn add_error(&self, _: gqlrs::ServerError) {}
         }
 
         static REQ_CTX: std::sync::LazyLock<RequestContext> = std::sync::LazyLock::new(|| {
@@ -297,73 +297,70 @@ mod tests {
         fn path_to_value() {
             let mut map = IndexMap::default();
             map.insert(
-                async_graphql_value::Name::new("number"),
-                async_graphql::Value::Number(2.into()),
+                gqlrs_value::Name::new("number"),
+                gqlrs::Value::Number(2.into()),
             );
             map.insert(
-                async_graphql_value::Name::new("str"),
-                async_graphql::Value::String("str-test".into()),
+                gqlrs_value::Name::new("str"),
+                gqlrs::Value::String("str-test".into()),
             );
-            map.insert(
-                async_graphql_value::Name::new("bool"),
-                async_graphql::Value::Boolean(true),
-            );
+            map.insert(gqlrs_value::Name::new("bool"), gqlrs::Value::Boolean(true));
             let mut nested_map = IndexMap::default();
             nested_map.insert(
-                async_graphql_value::Name::new("existing"),
-                async_graphql::Value::String("nested-test".into()),
+                gqlrs_value::Name::new("existing"),
+                gqlrs::Value::String("nested-test".into()),
             );
             map.insert(
-                async_graphql_value::Name::new("nested"),
-                async_graphql::Value::Object(nested_map),
+                gqlrs_value::Name::new("nested"),
+                gqlrs::Value::Object(nested_map),
             );
 
             // value
             assert_eq!(
                 EVAL_CTX.raw_value(&["value", "bool"]),
-                Some(ValueString::Value(Cow::Borrowed(
-                    &async_graphql::Value::Boolean(true)
-                )))
+                Some(ValueString::Value(Cow::Borrowed(&gqlrs::Value::Boolean(
+                    true
+                ))))
             );
             assert_eq!(
                 EVAL_CTX.raw_value(&["value", "number"]),
-                Some(ValueString::Value(Cow::Borrowed(
-                    &async_graphql::Value::Number(2.into())
-                )))
+                Some(ValueString::Value(Cow::Borrowed(&gqlrs::Value::Number(
+                    2.into()
+                ))))
             );
             assert_eq!(
                 EVAL_CTX.raw_value(&["value", "str"]),
-                Some(ValueString::Value(Cow::Borrowed(
-                    &async_graphql::Value::String("str-test".into())
-                )))
+                Some(ValueString::Value(Cow::Borrowed(&gqlrs::Value::String(
+                    "str-test".into()
+                ))))
             );
             assert_eq!(EVAL_CTX.raw_value(&["value", "missing"]), None);
             assert_eq!(EVAL_CTX.raw_value(&["value", "nested", "missing"]), None);
             assert_eq!(
                 EVAL_CTX.raw_value(&["value"]),
-                Some(ValueString::Value(Cow::Borrowed(
-                    &async_graphql::Value::Object(map.clone()),
-                )))
+                Some(ValueString::Value(Cow::Borrowed(&gqlrs::Value::Object(
+                    map.clone()
+                ),)))
             );
 
             // args
             assert_eq!(
                 EVAL_CTX.raw_value(&["args", "root"]),
-                Some(ValueString::Value(Cow::Borrowed(
-                    &async_graphql::Value::String("root-test".into()),
-                )))
+                Some(ValueString::Value(Cow::Borrowed(&gqlrs::Value::String(
+                    "root-test".into()
+                ),)))
             );
 
             let mut expected = IndexMap::new();
             expected.insert(
-                async_graphql_value::Name::new("existing"),
-                async_graphql::Value::String("nested-test".into()),
+                gqlrs_value::Name::new("existing"),
+                gqlrs::Value::String("nested-test".into()),
             );
             assert_eq!(
                 EVAL_CTX.raw_value(&["args", "nested"]),
-                Some(ValueString::Value(Cow::Borrowed(
-                    &async_graphql::Value::Object(expected)
-                )))
+                Some(ValueString::Value(Cow::Borrowed(&gqlrs::Value::Object(
+                    expected
+                ))))
             );
 
             assert_eq!(EVAL_CTX.raw_value(&["args", "missing"]), None);
@@ -372,22 +369,22 @@ mod tests {
             let mut expected = IndexMap::new();
             let mut nested_map = IndexMap::new();
             nested_map.insert(
-                async_graphql_value::Name::new("existing"),
-                async_graphql::Value::String("nested-test".into()),
+                gqlrs_value::Name::new("existing"),
+                gqlrs::Value::String("nested-test".into()),
             );
             expected.insert(
-                async_graphql_value::Name::new("nested"),
-                async_graphql::Value::Object(nested_map),
+                gqlrs_value::Name::new("nested"),
+                gqlrs::Value::Object(nested_map),
             );
             expected.insert(
-                async_graphql_value::Name::new("root"),
-                async_graphql::Value::String("root-test".into()),
+                gqlrs_value::Name::new("root"),
+                gqlrs::Value::String("root-test".into()),
             );
             assert_eq!(
                 EVAL_CTX.raw_value(&["args"]),
-                Some(ValueString::Value(Cow::Borrowed(
-                    &async_graphql::Value::Object(expected)
-                )))
+                Some(ValueString::Value(Cow::Borrowed(&gqlrs::Value::Object(
+                    expected
+                ))))
             );
 
             // headers

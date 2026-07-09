@@ -1,7 +1,7 @@
 use std::collections::HashMap;
 use std::sync::Arc;
 
-use async_graphql_value::ConstValue;
+use gqlrs_value::ConstValue;
 
 use super::ir::model::IoId;
 use crate::core::postgres::{PostgresIO, PostgresListenerIO};
@@ -66,9 +66,9 @@ pub mod test {
     use std::time::Duration;
 
     use anyhow::{Result, anyhow};
-    use async_graphql::Value;
     use bytes::Bytes;
     use gqlforge_http_cache::HttpCacheManager;
+    use gqlrs::Value;
     use http_cache_reqwest::{Cache, CacheMode, HttpCache, HttpCacheOptions};
     use reqwest::Client;
     use reqwest_middleware::{ClientBuilder, ClientWithMiddleware};

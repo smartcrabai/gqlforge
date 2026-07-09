@@ -14,8 +14,8 @@ use tokio_rustls::TlsAcceptor;
 
 use super::server_config::ServerConfig;
 use crate::core::Errata;
-use crate::core::async_graphql_hyper::{GraphQLBatchRequest, GraphQLRequest, GraphQLRequestLike};
 use crate::core::config::PrivateKey;
+use crate::core::gqlrs_hyper::{GraphQLBatchRequest, GraphQLRequest, GraphQLRequestLike};
 use crate::core::http::handle_request;
 use crate::core::http::sse::{SseBody, handle_sse_request};
 

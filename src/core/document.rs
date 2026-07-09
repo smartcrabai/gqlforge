@@ -1,12 +1,12 @@
 use std::borrow::Cow;
 use std::fmt::Display;
 
-use async_graphql::Positioned;
-use async_graphql::parser::types::{
+use gqlrs::Positioned;
+use gqlrs::parser::types::{
     ConstDirective, DirectiveDefinition, SchemaDefinition, ServiceDocument, TypeDefinition,
     TypeKind, TypeSystemDefinition,
 };
-use async_graphql_value::ConstValue;
+use gqlrs_value::ConstValue;
 use unicode_segmentation::UnicodeSegmentation;
 
 use super::jit::Directive as JitDirective;
@@ -242,7 +242,7 @@ fn print_type_def(type_def: &TypeDefinition) -> String {
     }
 }
 
-fn print_enum_value(value: &async_graphql::parser::types::EnumValueDefinition) -> String {
+fn print_enum_value(value: &gqlrs::parser::types::EnumValueDefinition) -> String {
     let directives_str = print_pos_directives(&value.directives);
     let variant_def = if directives_str.is_empty() {
         format!("  {}", value.value)
@@ -261,7 +261,7 @@ fn print_enum_value(value: &async_graphql::parser::types::EnumValueDefinition) -
     }
 }
 
-fn print_field(field: &async_graphql::parser::types::FieldDefinition) -> String {
+fn print_field(field: &gqlrs::parser::types::FieldDefinition) -> String {
     let directives = print_pos_directives(&field.directives);
     let args_str = if field.arguments.is_empty() {
         String::new()
@@ -300,7 +300,7 @@ fn print_default_value(value: Option<&Positioned<ConstValue>>) -> String {
         .unwrap_or_default()
 }
 
-fn print_input_value(field: &async_graphql::parser::types::InputValueDefinition) -> String {
+fn print_input_value(field: &gqlrs::parser::types::InputValueDefinition) -> String {
     let directives_str = print_pos_directives(&field.directives);
     let doc = get_formatted_docs(field.description.as_ref().map(|d| d.node.clone()), 2);
     format!(
@@ -437,7 +437,7 @@ impl<'a> From<&'a ConstDirective> for Directive<'a> {
                 .arguments
                 .iter()
                 .filter_map(|(k, v)| {
-                    if v.node == async_graphql_value::ConstValue::Null {
+                    if v.node == gqlrs_value::ConstValue::Null {
                         None
                     } else {
                         Some(Arg {

@@ -1,5 +1,5 @@
-use async_graphql::parser::types::ServiceDocument;
 use gqlforge::core::config::Config;
+use gqlrs::parser::types::ServiceDocument;
 
 pub fn build_service_document() -> ServiceDocument {
     Config::graphql_schema()
@@ -21,7 +21,7 @@ mod tests {
     struct FooScalar(String);
 
     impl ScalarDefinition for FooScalar {
-        fn scalar_definition() -> async_graphql::parser::types::TypeSystemDefinition {
+        fn scalar_definition() -> gqlrs::parser::types::TypeSystemDefinition {
             let schema = into_schemars::<Self>();
             into_scalar_definition(&schema, "FooScalar")
         }
@@ -37,7 +37,7 @@ mod tests {
     impl DirectiveDefinition for ComplexDirective {
         fn directive_definition(
             generated_types: &mut HashSet<String>,
-        ) -> Vec<async_graphql::parser::types::TypeSystemDefinition> {
+        ) -> Vec<gqlrs::parser::types::TypeSystemDefinition> {
             let root_schema = into_schemars::<Self>();
 
             into_directive_definition(

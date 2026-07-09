@@ -1,8 +1,8 @@
 use std::collections::HashMap;
 
-use async_graphql::Name;
-use async_graphql::parser::types::ConstDirective;
 use gqlforge_valid::{Valid, ValidationError, Validator};
+use gqlrs::Name;
+use gqlrs::parser::types::ConstDirective;
 use serde_json::Value;
 
 use super::BlueprintError;

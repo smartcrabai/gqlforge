@@ -1,11 +1,11 @@
-use async_graphql::Positioned;
-use async_graphql::parser::types::{
+use gqlforge_valid::Validator;
+use gqlrs::Positioned;
+use gqlrs::parser::types::{
     ConstDirective, EnumType, EnumValueDefinition, FieldDefinition, InputObjectType,
     InputValueDefinition, InterfaceType, ObjectType, SchemaDefinition, ServiceDocument,
     TypeDefinition, TypeKind, TypeSystemDefinition, UnionType,
 };
-use async_graphql_value::{ConstValue, Name};
-use gqlforge_valid::Validator;
+use gqlrs_value::{ConstValue, Name};
 
 use super::Config;
 use super::directive::to_const_directive;
@@ -100,7 +100,7 @@ fn config_document(config: &Config) -> ServiceDocument {
                         let type_of = &field.type_of;
                         let directives = field_directives(field);
 
-                        pos(async_graphql::parser::types::InputValueDefinition {
+                        pos(gqlrs::parser::types::InputValueDefinition {
                             description: field.doc.clone().map(pos),
                             name: pos(Name::new(name.clone())),
                             ty: pos(type_of.into()),
@@ -131,7 +131,7 @@ fn config_document(config: &Config) -> ServiceDocument {
                         let args = args_map
                             .iter()
                             .map(|(name, arg)| {
-                                pos(async_graphql::parser::types::InputValueDefinition {
+                                pos(gqlrs::parser::types::InputValueDefinition {
                                     description: arg.doc.clone().map(pos),
                                     name: pos(Name::new(name.clone())),
                                     ty: pos((&arg.type_of).into()),
@@ -145,7 +145,7 @@ fn config_document(config: &Config) -> ServiceDocument {
                             })
                             .collect::<Vec<Positioned<InputValueDefinition>>>();
 
-                        pos(async_graphql::parser::types::FieldDefinition {
+                        pos(gqlrs::parser::types::FieldDefinition {
                             description: field.doc.clone().map(pos),
                             name: pos(Name::new(name.clone())),
                             arguments: args,

@@ -1,8 +1,8 @@
-use async_graphql::parser::types::{
+use gqlrs::parser::types::{
     BaseType, InputObjectType, InputValueDefinition, Type, TypeDefinition, TypeKind,
     TypeSystemDefinition,
 };
-use async_graphql::{Name, Positioned};
+use gqlrs::{Name, Positioned};
 use schemars::Schema;
 use serde_json::{Map, Value};
 

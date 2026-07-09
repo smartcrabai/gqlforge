@@ -2,12 +2,12 @@ use std::collections::{BTreeMap, BTreeSet, HashSet};
 use std::fmt::{self, Display};
 
 use anyhow::{Result, anyhow};
-use async_graphql::parser::types::ServiceDocument;
 use derive_setters::Setters;
 use gqlforge_typedefs_common::ServiceDocumentBuilder;
 use gqlforge_typedefs_common::directive_definition::DirectiveDefinition;
 use gqlforge_typedefs_common::input_definition::InputDefinition;
 use gqlforge_valid::{Valid, Validator};
+use gqlrs::parser::types::ServiceDocument;
 use indexmap::IndexMap;
 use serde::{Deserialize, Serialize};
 use serde_json::Value;
@@ -462,7 +462,7 @@ impl Config {
 
     #[must_use]
     pub fn from_sdl(sdl: &str) -> Valid<Self, String> {
-        let doc = async_graphql::parser::parse_schema(sdl);
+        let doc = gqlrs::parser::parse_schema(sdl);
         match doc {
             Ok(doc) => from_document(&doc),
             Err(e) => Valid::fail(e.to_string()),

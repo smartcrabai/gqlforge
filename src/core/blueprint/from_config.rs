@@ -1,7 +1,7 @@
 use std::collections::{BTreeMap, BTreeSet};
 
-use async_graphql::dynamic::SchemaBuilder;
 use gqlforge_valid::{Valid, ValidationError, Validator};
+use gqlrs::dynamic::SchemaBuilder;
 use indexmap::IndexMap;
 
 use self::telemetry::to_opentelemetry;

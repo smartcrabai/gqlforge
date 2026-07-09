@@ -4,8 +4,8 @@ mod type_field_discriminator;
 use std::collections::BTreeSet;
 
 use anyhow::{Result, bail};
-use async_graphql::Value;
 use gqlforge_valid::{Valid, Validator};
+use gqlrs::Value;
 use keyed_discriminator::KeyedDiscriminator;
 use type_field_discriminator::TypeFieldDiscriminator;
 

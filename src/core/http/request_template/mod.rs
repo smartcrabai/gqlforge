@@ -312,7 +312,7 @@ impl<'a, A: PathValue> Eval<'a> for ValueStringEval<A> {
             .iter()
             .find_map(|segment| match segment {
                 Segment::Literal(text) => Some(ValueString::Value(Cow::Owned(
-                    async_graphql::Value::String(text.to_owned()),
+                    gqlrs::Value::String(text.to_owned()),
                 ))),
                 Segment::Expression(parts) => in_value.raw_value(parts),
             }) // Return the first value that is found

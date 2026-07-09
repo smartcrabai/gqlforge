@@ -4,7 +4,6 @@ mod tests {
     use core::str;
     use std::sync::Arc;
 
-    use async_graphql_value::ConstValue;
     use gqlforge::core::app_context::AppContext;
     use gqlforge::core::blueprint::Blueprint;
     use gqlforge::core::config::{Config, ConfigModule};
@@ -13,6 +12,7 @@ mod tests {
     use gqlforge::core::json::JsonLike;
     use gqlforge::core::rest::EndpointSet;
     use gqlforge_valid::Validator;
+    use gqlrs_value::ConstValue;
 
     struct TestExecutor {
         app_ctx: Arc<AppContext>,

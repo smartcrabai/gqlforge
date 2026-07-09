@@ -1,10 +1,10 @@
 use std::collections::BTreeSet;
 use std::sync::Arc;
 
-use async_graphql::ValidationMode;
-use async_graphql::dynamic::{Schema, SchemaBuilder};
-use async_graphql::extensions::ApolloTracing;
 use derive_setters::Setters;
+use gqlrs::ValidationMode;
+use gqlrs::dynamic::{Schema, SchemaBuilder};
+use gqlrs::extensions::ApolloTracing;
 
 use super::directive::Directive;
 use super::telemetry::Telemetry;
@@ -261,7 +261,7 @@ impl Blueprint {
 
         if server.global_response_timeout > 0 {
             schema = schema
-                .data(async_graphql::Value::from(server.global_response_timeout))
+                .data(gqlrs::Value::from(server.global_response_timeout))
                 .extension(GlobalTimeout);
         }
 

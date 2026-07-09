@@ -2,7 +2,7 @@ use std::borrow::Cow;
 use std::collections::BTreeMap;
 use std::sync::Arc;
 
-use async_graphql::{ServerError, Value};
+use gqlrs::{ServerError, Value};
 use http::header::HeaderMap;
 
 use super::{GraphQLOperationContext, RelatedFields, ResolverContextLike, SelectionField};
@@ -217,7 +217,7 @@ pub fn get_path_value<'a, T: AsRef<str>>(input: &'a Value, path: &[T]) -> Option
 #[cfg(test)]
 mod tests {
     #![expect(clippy::unwrap_used, reason = "test code")]
-    use async_graphql::Value;
+    use gqlrs::Value;
     use serde_json::json;
 
     use crate::core::ir::eval_context::get_path_value;

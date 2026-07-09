@@ -5,7 +5,7 @@ pub mod request_template;
 pub mod schema;
 pub mod sql_parser;
 
-use async_graphql_value::ConstValue;
+use gqlrs_value::ConstValue;
 pub use request_template::RequestTemplate;
 pub(crate) use request_template::quote_ident;
 pub use schema::DatabaseSchema;

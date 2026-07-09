@@ -1,17 +1,17 @@
 use std::collections::HashMap;
 
 use anyhow::Result;
-use async_graphql::ServerError;
 use bytes::Bytes;
+use gqlrs::ServerError;
 use http::{Request, Response};
 use http_body_util::Full;
 use serde::de::DeserializeOwned;
 use url::Url;
 
 use crate::core::app_context::AppContext;
-use crate::core::async_graphql_hyper::{GraphQLRequestLike, GraphQLResponse};
 use crate::core::blueprint::Blueprint;
 use crate::core::config::reader::ConfigReader;
+use crate::core::gqlrs_hyper::{GraphQLRequestLike, GraphQLResponse};
 use crate::core::rest::EndpointSet;
 use crate::core::runtime::TargetRuntime;
 
@@ -31,14 +31,14 @@ pub async fn create_app_ctx<T: DeserializeOwned + GraphQLRequestLike>(
         .and_then(|x| x.get("config").cloned());
 
     let Some(config_url) = config_url else {
-        let mut response = async_graphql::Response::default();
+        let mut response = gqlrs::Response::default();
         let server_error = ServerError::new("No Config URL specified", None);
         response.errors = vec![server_error];
         return Ok(Err(GraphQLResponse::from(response).into_response()?));
     };
 
     if !enable_fs && Url::parse(&config_url).is_err() {
-        let mut response = async_graphql::Response::default();
+        let mut response = gqlrs::Response::default();
         let server_error = ServerError::new("Invalid Config URL specified", None);
         response.errors = vec![server_error];
         return Ok(Err(GraphQLResponse::from(response).into_response()?));
@@ -48,7 +48,7 @@ pub async fn create_app_ctx<T: DeserializeOwned + GraphQLRequestLike>(
     let config = match reader.read(config_url).await {
         Ok(config) => config,
         Err(e) => {
-            let mut response = async_graphql::Response::default();
+            let mut response = gqlrs::Response::default();
             let server_error = ServerError::new(format!("Failed to read config: {e}"), None);
             response.errors = vec![server_error];
             return Ok(Err(GraphQLResponse::from(response).into_response()?));
@@ -58,7 +58,7 @@ pub async fn create_app_ctx<T: DeserializeOwned + GraphQLRequestLike>(
     let blueprint = match Blueprint::try_from(&config) {
         Ok(blueprint) => blueprint,
         Err(e) => {
-            let mut response = async_graphql::Response::default();
+            let mut response = gqlrs::Response::default();
             let server_error = ServerError::new(format!("{e}"), None);
             response.errors = vec![server_error];
             return Ok(Err(GraphQLResponse::from(response).into_response()?));
@@ -82,7 +82,7 @@ mod tests {
     use http_body_util::Full;
     use serde_json::json;
 
-    use crate::core::async_graphql_hyper::GraphQLRequest;
+    use crate::core::gqlrs_hyper::GraphQLRequest;
     use crate::core::http::handle_request;
     use crate::core::http::showcase::create_app_ctx;
 

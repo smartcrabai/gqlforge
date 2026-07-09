@@ -1,6 +1,6 @@
 use std::collections::BTreeMap;
 
-use async_graphql::{Name, Variables};
+use gqlrs::{Name, Variables};
 
 use super::type_map::TypeMap;
 use super::typed_variables::TypedVariable;

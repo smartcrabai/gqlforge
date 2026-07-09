@@ -1,8 +1,8 @@
 use std::pin::Pin;
 
 use anyhow::{Result, bail};
-use async_graphql_value::ConstValue;
 use futures_util::{Stream, StreamExt};
+use gqlrs_value::ConstValue;
 use reqwest::Request;
 
 use super::sse_client::SseEventParser;

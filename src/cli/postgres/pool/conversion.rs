@@ -1,5 +1,5 @@
-use async_graphql::Name;
-use async_graphql_value::ConstValue;
+use gqlrs::Name;
+use gqlrs_value::ConstValue;
 use indexmap::IndexMap;
 
 use super::array::parse_pg_array;

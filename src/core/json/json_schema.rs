@@ -91,28 +91,28 @@ impl JsonSchema {
         }
     }
 
-    // TODO: validate `JsonLike` instead of fixing on `async_graphql::Value`
-    pub fn validate(&self, value: &async_graphql::Value) -> Valid<(), &'static str> {
+    // TODO: validate `JsonLike` instead of fixing on `gqlrs::Value`
+    pub fn validate(&self, value: &gqlrs::Value) -> Valid<(), &'static str> {
         match self {
             JsonSchema::Str => match value {
-                async_graphql::Value::String(_) => Valid::succeed(()),
+                gqlrs::Value::String(_) => Valid::succeed(()),
                 _ => Valid::fail("expected string"),
             },
             JsonSchema::Num => match value {
-                async_graphql::Value::Number(_) => Valid::succeed(()),
+                gqlrs::Value::Number(_) => Valid::succeed(()),
                 _ => Valid::fail("expected number"),
             },
             JsonSchema::Bool => match value {
-                async_graphql::Value::Boolean(_) => Valid::succeed(()),
+                gqlrs::Value::Boolean(_) => Valid::succeed(()),
                 _ => Valid::fail("expected boolean"),
             },
             JsonSchema::Empty => match value {
-                async_graphql::Value::Null => Valid::succeed(()),
-                async_graphql::Value::Object(obj) if obj.is_empty() => Valid::succeed(()),
+                gqlrs::Value::Null => Valid::succeed(()),
+                gqlrs::Value::Object(obj) if obj.is_empty() => Valid::succeed(()),
                 _ => Valid::fail("expected empty"),
             },
             JsonSchema::Arr(schema) => match value {
-                async_graphql::Value::List(list) => {
+                gqlrs::Value::List(list) => {
                     // TODO: add unit tests
                     Valid::from_iter(list.iter().enumerate(), |(i, item)| {
                         schema.validate(item).trace(i.to_string().as_str())
@@ -124,7 +124,7 @@ impl JsonSchema {
             JsonSchema::Obj(fields) => {
                 let field_schema_list: Vec<(&String, &JsonSchema)> = fields.iter().collect();
                 match value {
-                    async_graphql::Value::Object(map) => {
+                    gqlrs::Value::Object(map) => {
                         Valid::from_iter(field_schema_list, |(name, schema)| {
                             if schema.is_required() {
                                 if let Some(field_value) = map.get::<str>(name.as_ref()) {
@@ -144,7 +144,7 @@ impl JsonSchema {
                 }
             }
             JsonSchema::Opt(schema) => match value {
-                async_graphql::Value::Null => Valid::succeed(()),
+                gqlrs::Value::Null => Valid::succeed(()),
                 _ => schema.validate(value),
             },
             JsonSchema::Any | JsonSchema::Enum(_) => Valid::succeed(()),
@@ -308,9 +308,9 @@ mod tests {
     #![expect(clippy::unwrap_used, reason = "test code")]
     use std::collections::{BTreeMap, BTreeSet};
 
-    use async_graphql::Name;
     use gqlforge_fixtures::protobuf;
     use gqlforge_valid::{Valid, Validator};
+    use gqlrs::Name;
     use indexmap::IndexMap;
     use pretty_assertions::assert_eq;
 
@@ -322,7 +322,7 @@ mod tests {
     #[test]
     fn test_validate_string() {
         let schema = JsonSchema::Str;
-        let value = async_graphql::Value::String("hello".to_string());
+        let value = gqlrs::Value::String("hello".to_string());
         let result = schema.validate(&value);
         assert_eq!(result, Valid::succeed(()));
     }
@@ -330,13 +330,10 @@ mod tests {
     #[test]
     fn test_validate_valid_object() {
         let schema = JsonSchema::from([("name", JsonSchema::Str), ("age", JsonSchema::Num)]);
-        let value = async_graphql::Value::Object({
+        let value = gqlrs::Value::Object({
             let mut map = IndexMap::new();
-            map.insert(
-                Name::new("name"),
-                async_graphql::Value::String("hello".to_string()),
-            );
-            map.insert(Name::new("age"), async_graphql::Value::Number(1.into()));
+            map.insert(Name::new("name"), gqlrs::Value::String("hello".to_string()));
+            map.insert(Name::new("age"), gqlrs::Value::Number(1.into()));
             map
         });
         let result = schema.validate(&value);
@@ -346,16 +343,10 @@ mod tests {
     #[test]
     fn test_validate_invalid_object() {
         let schema = JsonSchema::from([("name", JsonSchema::Str), ("age", JsonSchema::Num)]);
-        let value = async_graphql::Value::Object({
+        let value = gqlrs::Value::Object({
             let mut map = IndexMap::new();
-            map.insert(
-                Name::new("name"),
-                async_graphql::Value::String("hello".to_string()),
-            );
-            map.insert(
-                Name::new("age"),
-                async_graphql::Value::String("1".to_string()),
-            );
+            map.insert(Name::new("name"), gqlrs::Value::String("hello".to_string()));
+            map.insert(Name::new("age"), gqlrs::Value::String("1".to_string()));
             map
         });
         let result = schema.validate(&value);
@@ -368,9 +359,9 @@ mod tests {
             ("name", JsonSchema::Str.optional()),
             ("age", JsonSchema::Num),
         ]);
-        let value = async_graphql::Value::Object({
+        let value = gqlrs::Value::Object({
             let mut map = IndexMap::new();
-            map.insert(Name::new("age"), async_graphql::Value::Number(1.into()));
+            map.insert(Name::new("age"), gqlrs::Value::Number(1.into()));
             map
         });
 
@@ -384,13 +375,10 @@ mod tests {
             ("empty1", JsonSchema::Empty.optional()),
             ("empty2", JsonSchema::Empty),
         ]);
-        let value = async_graphql::Value::Object({
+        let value = gqlrs::Value::Object({
             let mut map = IndexMap::new();
-            map.insert(
-                Name::new("empty1"),
-                async_graphql::Value::Object(IndexMap::new()),
-            );
-            map.insert(Name::new("empty2"), async_graphql::Value::Null);
+            map.insert(Name::new("empty1"), gqlrs::Value::Object(IndexMap::new()));
+            map.insert(Name::new("empty2"), gqlrs::Value::Null);
             map
         });
 
@@ -401,7 +389,7 @@ mod tests {
     #[test]
     fn test_empty_invalid() {
         let schema = JsonSchema::Empty;
-        let value = async_graphql::Value::String("test".to_owned());
+        let value = gqlrs::Value::String("test".to_owned());
 
         let result = schema.validate(&value);
         assert_eq!(result, Valid::fail("expected empty"));
@@ -413,16 +401,10 @@ mod tests {
             ("any1", JsonSchema::Any.optional()),
             ("any2", JsonSchema::Any),
         ]);
-        let value = async_graphql::Value::Object({
+        let value = gqlrs::Value::Object({
             let mut map = IndexMap::new();
-            map.insert(
-                Name::new("any1"),
-                async_graphql::Value::Object(IndexMap::new()),
-            );
-            map.insert(
-                Name::new("any2"),
-                async_graphql::Value::String("test".to_owned()),
-            );
+            map.insert(Name::new("any1"), gqlrs::Value::Object(IndexMap::new()));
+            map.insert(Name::new("any2"), gqlrs::Value::String("test".to_owned()));
             map
         });
 

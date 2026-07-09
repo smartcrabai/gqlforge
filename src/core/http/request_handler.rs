@@ -3,8 +3,8 @@ use std::ops::Deref;
 use std::sync::{Arc, PoisonError};
 
 use anyhow::Result;
-use async_graphql::ServerError;
 use bytes::Bytes;
+use gqlrs::ServerError;
 use http::header::{self, CONTENT_TYPE, HeaderValue};
 use http::request::Parts;
 use http::{HeaderMap, Method, Request, Response, StatusCode};
@@ -22,9 +22,9 @@ use super::request_context::RequestContext;
 use super::telemetry::RequestCounter;
 use super::{GQLFORGE_HTTP_ORIGIN, GQLFORGE_HTTPS_ORIGIN, showcase, telemetry};
 use crate::core::app_context::AppContext;
-use crate::core::async_graphql_hyper::{GraphQLRequestLike, GraphQLResponse};
 use crate::core::blueprint::telemetry::TelemetryExporter;
 use crate::core::config::{PrometheusExporter, PrometheusFormat};
+use crate::core::gqlrs_hyper::{GraphQLRequestLike, GraphQLResponse};
 use crate::core::jit::JITExecutor;
 
 pub const API_URL_PREFIX: &str = "/api";
@@ -121,7 +121,7 @@ pub async fn graphql_request<T: DeserializeOwned + GraphQLRequestLike>(
                 String::from_utf8_lossy(&bytes)
             );
 
-            let mut response = async_graphql::Response::default();
+            let mut response = gqlrs::Response::default();
             let server_error = ServerError::new(format!("Unexpected GraphQL Request: {err}"), None);
             response.errors = vec![server_error];
 
@@ -398,9 +398,9 @@ mod test {
     use gqlforge_valid::Validator;
 
     use super::*;
-    use crate::core::async_graphql_hyper::GraphQLRequest;
     use crate::core::blueprint::Blueprint;
     use crate::core::config::{Config, ConfigModule, Routes};
+    use crate::core::gqlrs_hyper::GraphQLRequest;
     use crate::core::rest::EndpointSet;
     use crate::core::runtime::test::init;
 

@@ -114,9 +114,9 @@ impl MergeRight for FileDescriptorProto {
     }
 }
 
-impl MergeRight for async_graphql_value::ConstValue {
+impl MergeRight for gqlrs_value::ConstValue {
     fn merge_right(self, other: Self) -> Self {
-        use async_graphql_value::ConstValue;
+        use gqlrs_value::ConstValue;
         match (self, other) {
             (ConstValue::List(a), ConstValue::List(b)) => ConstValue::List(a.merge_right(b)),
             (ConstValue::List(mut vec), other) => {
@@ -429,7 +429,7 @@ mod tests {
 
     #[test]
     fn test_const_value() {
-        use async_graphql_value::ConstValue;
+        use gqlrs_value::ConstValue;
 
         let a: ConstValue = serde_json::from_value(json!({
                 "a": null,

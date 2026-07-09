@@ -1,7 +1,6 @@
 ---
 source: tests/core/spec.rs
 expression: response
-snapshot_kind: text
 ---
 {
   "status": 200,
@@ -9,11 +8,11 @@ snapshot_kind: text
     "content-type": "application/json"
   },
   "body": {
-    "data": null,
     "errors": [
       {
         "message": "Failed to read config: Validation Error\n•  --> 1:1\n  |\n1 | \"dsjfsjdfjdsfjkdskjfjkds\"\n  | ^---\n  |\n  = expected type_system_definition\n"
       }
-    ]
+    ],
+    "data": null
   }
 }

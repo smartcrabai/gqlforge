@@ -1,8 +1,8 @@
 use std::fmt::Display;
 use std::sync::Arc;
 
-use async_graphql::Value as ConstValue;
 use derive_more::From;
+use gqlrs::Value as ConstValue;
 use thiserror::Error;
 
 use crate::core::jit::graphql_error::{Error as ExtensionError, ErrorExtensions};

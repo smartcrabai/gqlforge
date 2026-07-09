@@ -1,6 +1,6 @@
 use std::fmt::Display;
 
-use async_graphql_value::{ConstValue, Value};
+use gqlrs_value::{ConstValue, Value};
 
 use super::super::{Arg, Field, OperationPlan, ResolveInputError, Variables};
 use crate::core::Type;
@@ -10,8 +10,8 @@ use crate::core::json::{JsonLike, JsonLikeOwned, JsonObjectLike};
 
 /// Trait to represent conversion from some dynamic type (with variables)
 /// to the resolved variant based on the additional provided info.
-/// E.g. conversion from [`async_graphql_value::Value`] ->
-/// [`async_graphql_value::ConstValue`]
+/// E.g. conversion from [`gqlrs_value::Value`] ->
+/// [`gqlrs_value::ConstValue`]
 pub trait InputResolvable {
     type Output;
 

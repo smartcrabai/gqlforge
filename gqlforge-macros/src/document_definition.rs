@@ -58,7 +58,7 @@ pub fn expand_directive_definition(input: TokenStream) -> TokenStream {
 
     let expanded = quote! {
         impl gqlforge_typedefs_common::directive_definition::DirectiveDefinition for #struct_identifier {
-            fn directive_definition(generated_types: &mut std::collections::HashSet<String>) -> Vec<async_graphql::parser::types::TypeSystemDefinition> {
+            fn directive_definition(generated_types: &mut std::collections::HashSet<String>) -> Vec<gqlrs::parser::types::TypeSystemDefinition> {
                 let schemars = gqlforge_typedefs_common::into_schemars::<Self>();
                 let attr = gqlforge_typedefs_common::directive_definition::Attrs {
                     name: stringify!(#struct_identifier),
@@ -80,7 +80,7 @@ pub fn expand_input_definition(input: TokenStream) -> TokenStream {
 
     let expanded = quote! {
         impl gqlforge_typedefs_common::input_definition::InputDefinition for #struct_identifier {
-            fn input_definition() -> async_graphql::parser::types::TypeSystemDefinition {
+            fn input_definition() -> gqlrs::parser::types::TypeSystemDefinition {
                 let schemars = gqlforge_typedefs_common::into_schemars::<Self>();
                 gqlforge_typedefs_common::input_definition::into_input_definition_from_schema(&schemars, stringify!(#struct_identifier))
             }
