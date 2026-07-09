@@ -4,12 +4,16 @@ edition = "2024"
 homepage = "https://gqlforge.pages.dev"
 license = "Apache-2.0"
 name = "gqlforge"
+publish = false
 repository = "https://github.com/smartcrabai/gqlforge"
 version = "0.1.7"
 
 [[bin]]
 name = "gqlforge"
 path = "src/main.rs"
+
+[package.metadata.dist]
+dist = true
 
 [workspace.dependencies]
 anyhow = "1.0.101"
