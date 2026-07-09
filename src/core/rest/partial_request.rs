@@ -1,10 +1,10 @@
-use async_graphql::parser::types::ExecutableDocument;
-use async_graphql::{Name, Variables};
-use async_graphql_value::ConstValue;
+use gqlrs::parser::types::ExecutableDocument;
+use gqlrs::{Name, Variables};
+use gqlrs_value::ConstValue;
 
 use super::path::Path;
 use super::{Request, Result};
-use crate::core::async_graphql_hyper::GraphQLRequest;
+use crate::core::gqlrs_hyper::GraphQLRequest;
 
 /// A partial `GraphQLRequest` that contains a parsed executable GraphQL
 /// document.
@@ -28,7 +28,7 @@ impl PartialRequest<'_> {
             variables.insert(Name::new(key), body);
         }
 
-        let mut req = async_graphql::Request::new("").variables(variables);
+        let mut req = gqlrs::Request::new("").variables(variables);
         req.set_parsed_query(self.doc.clone());
 
         Ok(GraphQLRequest(req))

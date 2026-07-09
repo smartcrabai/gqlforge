@@ -119,7 +119,7 @@ where
                         .cloned()
                         // in case there is no value we still put some dumb empty value anyway
                         // to force execution of the nested fields even when parent object is not
-                        // present. For async_graphql it's done by
+                        // present. For gqlrs it's done by
                         // `fix_dangling_resolvers` fn that basically creates
                         // fake IR that resolves to empty object. The `fix_dangling_resolvers` is
                         // also working here, but eventually it can be

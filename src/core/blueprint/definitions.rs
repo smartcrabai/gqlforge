@@ -1,8 +1,8 @@
 use std::collections::HashSet;
 
-use async_graphql_value::ConstValue;
 use directive::Directive;
 use gqlforge_valid::{Valid, Validator};
+use gqlrs_value::ConstValue;
 use indexmap::IndexMap;
 use interface_resolver::update_interface_resolver;
 use regex::Regex;

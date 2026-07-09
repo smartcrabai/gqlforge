@@ -2,10 +2,10 @@ use std::any::Any;
 use std::hash::{Hash, Hasher};
 
 use anyhow::Result;
-use async_graphql::parser::types::{ExecutableDocument, OperationType};
-use async_graphql::{BatchResponse, Executor, Value};
 use bytes::Bytes;
 use gqlforge_hasher::GqlforgeHasher;
+use gqlrs::parser::types::{ExecutableDocument, OperationType};
+use gqlrs::{BatchResponse, Executor, Value};
 use http::header::{CACHE_CONTROL, CONTENT_TYPE, HeaderMap, HeaderValue};
 use http::{Response, StatusCode};
 use http_body_util::Full;
@@ -59,7 +59,7 @@ pub trait GraphQLRequestLike: Hash + Send {
 }
 
 #[derive(Debug, Deserialize)]
-pub struct GraphQLBatchRequest(pub async_graphql::BatchRequest);
+pub struct GraphQLBatchRequest(pub gqlrs::BatchRequest);
 impl GraphQLBatchRequest {}
 impl Hash for GraphQLBatchRequest {
     //TODO: Fix Hash implementation for BatchRequest, which should ideally batch
@@ -103,7 +103,7 @@ impl GraphQLRequestLike for GraphQLBatchRequest {
 }
 
 #[derive(Debug, Deserialize)]
-pub struct GraphQLRequest(pub async_graphql::Request);
+pub struct GraphQLRequest(pub gqlrs::Request);
 
 impl GraphQLRequest {}
 impl Hash for GraphQLRequest {
@@ -142,21 +142,21 @@ impl GraphQLRequestLike for GraphQLRequest {
 
 // TODO: drop this type since we can use jit::response?
 #[derive(Debug, Serialize)]
-pub struct GraphQLResponse(pub async_graphql::BatchResponse);
-impl From<async_graphql::BatchResponse> for GraphQLResponse {
-    fn from(batch: async_graphql::BatchResponse) -> Self {
+pub struct GraphQLResponse(pub gqlrs::BatchResponse);
+impl From<gqlrs::BatchResponse> for GraphQLResponse {
+    fn from(batch: gqlrs::BatchResponse) -> Self {
         Self(batch)
     }
 }
-impl From<async_graphql::Response> for GraphQLResponse {
-    fn from(res: async_graphql::Response) -> Self {
+impl From<gqlrs::Response> for GraphQLResponse {
+    fn from(res: gqlrs::Response) -> Self {
         Self(res.into())
     }
 }
 
 impl From<GraphQLQuery> for GraphQLRequest {
     fn from(query: GraphQLQuery) -> Self {
-        let mut request = async_graphql::Request::new(query.query);
+        let mut request = gqlrs::Request::new(query.query);
 
         if let Some(operation_name) = query.operation_name {
             request = request.operation_name(operation_name);
@@ -164,7 +164,7 @@ impl From<GraphQLQuery> for GraphQLRequest {
 
         if let Some(variables) = query.variables {
             let value = serde_json::from_str(&variables).unwrap_or_default();
-            let variables = async_graphql::Variables::from_json(value);
+            let variables = gqlrs::Variables::from_json(value);
             request = request.variables(variables);
         }
 
@@ -443,7 +443,7 @@ impl GraphQLArcResponse {
 #[cfg(test)]
 mod tests {
     #![expect(clippy::unwrap_used, reason = "test code")]
-    use async_graphql::{Name, Response, ServerError, Value};
+    use gqlrs::{Name, Response, ServerError, Value};
     use http::StatusCode;
     use http_body_util::BodyExt;
     use indexmap::IndexMap;
@@ -521,24 +521,20 @@ mod tests {
 
         assert_eq!(rest_response.status(), StatusCode::INTERNAL_SERVER_ERROR);
         assert_eq!(rest_response.headers()["content-type"], "application/json");
-        assert_eq!(
-            BodyExt::collect(rest_response.into_body())
-                .await
-                .unwrap()
-                .to_bytes()
-                .to_vec(),
-            json!({
-                "data": null,
-                "errors": errors.iter().map(|error| {
-                    json!({
-                        "message": error,
-                    })
-                }).collect::<Vec<_>>()
-            })
-            .to_string()
-            .as_bytes()
-            .to_vec()
-        );
+        let body = BodyExt::collect(rest_response.into_body())
+            .await
+            .unwrap()
+            .to_bytes();
+        let actual: serde_json::Value = serde_json::from_slice(&body).unwrap();
+        let expected = json!({
+            "data": null,
+            "errors": errors.iter().map(|error| {
+                json!({
+                    "message": error,
+                })
+            }).collect::<Vec<_>>()
+        });
+        assert_eq!(actual, expected);
     }
 
     #[test]

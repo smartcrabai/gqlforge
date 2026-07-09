@@ -1,5 +1,5 @@
-use async_graphql_value::ConstValue;
 use gqlforge_valid::{Valid, Validator};
+use gqlrs_value::ConstValue;
 
 use crate::core::blueprint::{BlueprintError, DynamicValue, to_json_schema};
 use crate::core::config;

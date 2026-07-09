@@ -1,8 +1,8 @@
 use std::sync::Arc;
 
-use async_graphql::dynamic::{self, FieldFuture, FieldValue, SchemaBuilder, TypeRef};
-use async_graphql_value::ConstValue;
 use futures_util::{StreamExt, TryFutureExt};
+use gqlrs::dynamic::{self, FieldFuture, FieldValue, SchemaBuilder, TypeRef};
+use gqlrs_value::ConstValue;
 use tracing::Instrument;
 
 use crate::core::blueprint::{Blueprint, Definition, ObjectTypeDefinition};
@@ -17,7 +17,7 @@ use crate::core::scalar::Scalar;
 
 /// We set the default value for an `InputValue` by reading it from the
 /// blueprint and assigning it to the provided `InputValue` during the
-/// generation of the `async_graphql::Schema`. The `InputValue` represents the
+/// generation of the `gqlrs::Schema`. The `InputValue` represents the
 /// structure of arguments and their types that can be passed to a field. In
 /// other GraphQL implementations, this is commonly referred to as
 /// `InputValueDefinition`.
@@ -40,7 +40,7 @@ fn set_default_value(
     }
 }
 
-fn to_field_value(value: async_graphql::Value) -> FieldValue<'static> {
+fn to_field_value(value: gqlrs::Value) -> FieldValue<'static> {
     match value {
         ConstValue::List(vec) => FieldValue::list(vec.into_iter().map(to_field_value)),
         value => {
@@ -235,9 +235,7 @@ fn to_subscription_type(def: &ObjectTypeDefinition) -> dynamic::Type {
                     let io = match &field.resolver {
                         Some(IR::IO(io)) => io.as_ref().clone(),
                         _ => {
-                            return Err(async_graphql::Error::new(
-                                "Subscription field missing resolver",
-                            ));
+                            return Err(gqlrs::Error::new("Subscription field missing resolver"));
                         }
                     };
 
@@ -253,15 +251,11 @@ fn to_subscription_type(def: &ObjectTypeDefinition) -> dynamic::Type {
                     > = match io {
                         IO::GrpcStream { req_template, hook: _hook } => {
                             let rendered = req_template.render(&eval_ctx).map_err(|e| {
-                                async_graphql::Error::new(format!(
-                                    "Failed to render gRPC request: {e}"
-                                ))
+                                gqlrs::Error::new(format!("Failed to render gRPC request: {e}"))
                             })?;
 
                             let request = rendered.to_request().map_err(|e| {
-                                async_graphql::Error::new(format!(
-                                    "Failed to build gRPC request: {e}"
-                                ))
+                                gqlrs::Error::new(format!("Failed to build gRPC request: {e}"))
                             })?;
 
                             execute_grpc_streaming_request(
@@ -270,15 +264,11 @@ fn to_subscription_type(def: &ObjectTypeDefinition) -> dynamic::Type {
                                 request,
                             )
                             .await
-                            .map_err(|e| {
-                                async_graphql::Error::new(format!("gRPC streaming failed: {e}"))
-                            })?
+                            .map_err(|e| gqlrs::Error::new(format!("gRPC streaming failed: {e}")))?
                         }
                         IO::GraphQLStream { req_template, field_name, stream_url } => {
                             let request = req_template.to_request(&eval_ctx).map_err(|e| {
-                                async_graphql::Error::new(format!(
-                                    "Failed to build GraphQL request: {e}"
-                                ))
+                                gqlrs::Error::new(format!("Failed to build GraphQL request: {e}"))
                             })?;
 
                             execute_graphql_streaming_request(
@@ -289,27 +279,21 @@ fn to_subscription_type(def: &ObjectTypeDefinition) -> dynamic::Type {
                             )
                             .await
                             .map_err(|e| {
-                                async_graphql::Error::new(format!(
-                                    "GraphQL SSE streaming failed: {e}"
-                                ))
+                                gqlrs::Error::new(format!("GraphQL SSE streaming failed: {e}"))
                             })?
                         }
                         IO::HttpStream { req_template, hook: _hook } => {
                             let request = req_template
                                 .to_request(&eval_ctx)
                                 .map_err(|e| {
-                                    async_graphql::Error::new(format!(
-                                        "Failed to build HTTP request: {e}"
-                                    ))
+                                    gqlrs::Error::new(format!("Failed to build HTTP request: {e}"))
                                 })?
                                 .into_request();
 
                             execute_http_streaming_request(&req_ctx.runtime, request)
                                 .await
                                 .map_err(|e| {
-                                    async_graphql::Error::new(format!(
-                                        "HTTP SSE streaming failed: {e}"
-                                    ))
+                                    gqlrs::Error::new(format!("HTTP SSE streaming failed: {e}"))
                                 })?
                         }
                         IO::PostgresStream { connection_id, channel, payload_type } => {
@@ -318,16 +302,14 @@ fn to_subscription_type(def: &ObjectTypeDefinition) -> dynamic::Type {
                                 .postgres_listeners
                                 .get(&connection_id)
                                 .ok_or_else(|| {
-                                async_graphql::Error::new(format!(
+                                gqlrs::Error::new(format!(
                                     "PostgreSQL listener '{connection_id}' not configured"
                                 ))
                             })?;
                             listener
                                 .subscribe(&channel, payload_type)
                                 .await
-                                .map_err(|e| {
-                                    async_graphql::Error::new(format!("LISTEN failed: {e}"))
-                                })?
+                                .map_err(|e| gqlrs::Error::new(format!("LISTEN failed: {e}")))?
                                 .map(|r| r.map_err(|e| crate::core::ir::Error::IO(e.to_string())))
                                 .boxed()
                         }
@@ -337,7 +319,7 @@ fn to_subscription_type(def: &ObjectTypeDefinition) -> dynamic::Type {
                                 .redis_listeners
                                 .get(&connection_id)
                                 .ok_or_else(|| {
-                                    async_graphql::Error::new(format!(
+                                    gqlrs::Error::new(format!(
                                         "Redis listener '{connection_id}' not configured"
                                     ))
                                 })?;
@@ -349,9 +331,7 @@ fn to_subscription_type(def: &ObjectTypeDefinition) -> dynamic::Type {
                                         .subscribe(&channel, payload_type)
                                         .await
                                         .map_err(|e| {
-                                            async_graphql::Error::new(format!(
-                                                "SUBSCRIBE failed: {e}"
-                                            ))
+                                            gqlrs::Error::new(format!("SUBSCRIBE failed: {e}"))
                                         })?
                                         .map(|r| {
                                             r.map_err(|e| crate::core::ir::Error::IO(e.to_string()))
@@ -365,7 +345,7 @@ fn to_subscription_type(def: &ObjectTypeDefinition) -> dynamic::Type {
                                         .read_stream(&key, &start_id, payload_type)
                                         .await
                                         .map_err(|e| {
-                                            async_graphql::Error::new(format!("XREAD failed: {e}"))
+                                            gqlrs::Error::new(format!("XREAD failed: {e}"))
                                         })?
                                         .map(|r| {
                                             r.map_err(|e| crate::core::ir::Error::IO(e.to_string()))
@@ -375,7 +355,7 @@ fn to_subscription_type(def: &ObjectTypeDefinition) -> dynamic::Type {
                             }
                         }
                         _ => {
-                            return Err(async_graphql::Error::new(
+                            return Err(gqlrs::Error::new(
                                 "Subscription field does not have a streaming resolver",
                             ));
                         }
@@ -384,7 +364,7 @@ fn to_subscription_type(def: &ObjectTypeDefinition) -> dynamic::Type {
                     Ok(stream.map(
                         |result: Result<ConstValue, crate::core::ir::Error>| match result {
                             Ok(value) => Ok(FieldValue::from(value)),
-                            Err(e) => Err(async_graphql::Error::new(e.to_string())),
+                            Err(e) => Err(gqlrs::Error::new(e.to_string())),
                         },
                     ))
                 })

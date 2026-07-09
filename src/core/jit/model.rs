@@ -4,9 +4,9 @@ use std::fmt::{Debug, Display, Formatter};
 use std::num::NonZeroU64;
 use std::sync::Arc;
 
-use async_graphql::parser::types::{ConstDirective, OperationType};
-use async_graphql::{Name, Positioned as AsyncPositioned, ServerError};
-use async_graphql_value::ConstValue;
+use gqlrs::parser::types::{ConstDirective, OperationType};
+use gqlrs::{Name, Positioned as AsyncPositioned, ServerError};
+use gqlrs_value::ConstValue;
 use serde::{Deserialize, Serialize};
 
 use super::Error;
@@ -546,15 +546,15 @@ impl std::fmt::Display for Pos {
     }
 }
 
-impl From<async_graphql::Pos> for Pos {
-    fn from(pos: async_graphql::Pos) -> Self {
+impl From<gqlrs::Pos> for Pos {
+    fn from(pos: gqlrs::Pos) -> Self {
         Self { line: pos.line, column: pos.column }
     }
 }
 
-impl From<Pos> for async_graphql::Pos {
+impl From<Pos> for gqlrs::Pos {
     fn from(value: Pos) -> Self {
-        async_graphql::Pos { line: value.line, column: value.column }
+        gqlrs::Pos { line: value.line, column: value.column }
     }
 }
 
@@ -567,11 +567,11 @@ pub enum PathSegment<'a> {
     Index(usize),
 }
 
-impl From<async_graphql::PathSegment> for PathSegment<'static> {
-    fn from(value: async_graphql::PathSegment) -> Self {
+impl From<gqlrs::PathSegment> for PathSegment<'static> {
+    fn from(value: gqlrs::PathSegment) -> Self {
         match value {
-            async_graphql::PathSegment::Field(field) => PathSegment::Field(Cow::Owned(field)),
-            async_graphql::PathSegment::Index(index) => PathSegment::Index(index),
+            gqlrs::PathSegment::Field(field) => PathSegment::Field(Cow::Owned(field)),
+            gqlrs::PathSegment::Index(index) => PathSegment::Index(index),
         }
     }
 }
@@ -618,9 +618,9 @@ impl From<ServerError> for Positioned<Error> {
 #[cfg(test)]
 mod test {
     #![expect(clippy::unwrap_used, reason = "test code")]
-    use async_graphql::Request;
-    use async_graphql::parser::types::ConstDirective;
-    use async_graphql_value::ConstValue;
+    use gqlrs::Request;
+    use gqlrs::parser::types::ConstDirective;
+    use gqlrs_value::ConstValue;
 
     use super::{Directive, OperationPlan};
     use crate::core::blueprint::Blueprint;
@@ -628,7 +628,7 @@ mod test {
     use crate::core::jit;
     use crate::include_config;
 
-    fn plan(query: &str) -> OperationPlan<async_graphql_value::Value> {
+    fn plan(query: &str) -> OperationPlan<gqlrs_value::Value> {
         let config = include_config!("./fixtures/dedupe.graphql").unwrap();
         let module = ConfigModule::from(config);
         let bp = Blueprint::try_from(&module).unwrap();

@@ -1,7 +1,7 @@
 use std::collections::HashMap;
 
-use async_graphql_value::ConstValue;
 use gqlforge_valid::Validator;
+use gqlrs_value::ConstValue;
 use serde::Deserialize;
 
 use super::{Builder, OperationPlan, Result, Variables, transform};
@@ -22,8 +22,8 @@ pub struct Request<V> {
 }
 
 // NOTE: This is hot code and should allocate minimal memory
-impl From<async_graphql::Request> for Request<ConstValue> {
-    fn from(mut value: async_graphql::Request) -> Self {
+impl From<gqlrs::Request> for Request<ConstValue> {
+    fn from(mut value: gqlrs::Request) -> Self {
         let variables = std::mem::take(&mut *value.variables);
 
         Self {
@@ -43,11 +43,8 @@ impl Request<ConstValue> {
     /// # Errors
     ///
     /// Returns an error if the operation fails.
-    pub fn create_plan(
-        &self,
-        blueprint: &Blueprint,
-    ) -> Result<OperationPlan<async_graphql_value::Value>> {
-        let doc = async_graphql::parser::parse_query(&self.query)?;
+    pub fn create_plan(&self, blueprint: &Blueprint) -> Result<OperationPlan<gqlrs_value::Value>> {
+        let doc = gqlrs::parser::parse_query(&self.query)?;
         let builder = Builder::new(blueprint, &doc);
         let plan = builder.build(self.operation_name.as_deref())?;
 

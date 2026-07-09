@@ -89,13 +89,13 @@ impl TryFrom<WorkerResponse> for Response<Bytes> {
     }
 }
 
-impl TryFrom<WorkerResponse> for Response<async_graphql::Value> {
+impl TryFrom<WorkerResponse> for Response<gqlrs::Value> {
     type Error = Error;
 
     fn try_from(res: WorkerResponse) -> Result<Self> {
-        let body: async_graphql::Value = match res.body() {
+        let body: gqlrs::Value = match res.body() {
             Some(body) => serde_json::from_str(&body)?,
-            None => async_graphql::Value::Null,
+            None => gqlrs::Value::Null,
         };
 
         Ok(Response { status: res.0.status, headers: res.0.headers, body })
@@ -115,10 +115,10 @@ impl TryFrom<Response<Bytes>> for WorkerResponse {
     }
 }
 
-impl TryFrom<Response<async_graphql::Value>> for WorkerResponse {
+impl TryFrom<Response<gqlrs::Value>> for WorkerResponse {
     type Error = Error;
 
-    fn try_from(res: Response<async_graphql::Value>) -> Result<Self> {
+    fn try_from(res: Response<gqlrs::Value>) -> Result<Self> {
         let body = serde_json::to_string(&res.body)?;
         Ok(WorkerResponse(Response {
             status: res.status,

@@ -1,8 +1,8 @@
 use std::collections::HashMap;
 
-use async_graphql::Name;
-use async_graphql::parser::types::ConstDirective;
 use gqlforge_valid::{Valid, ValidationError, Validator};
+use gqlrs::Name;
+use gqlrs::parser::types::ConstDirective;
 use indexmap::IndexMap;
 use serde::{Deserialize, Serialize};
 use serde_json::Value;
@@ -46,9 +46,9 @@ pub fn to_directive(const_directive: ConstDirective) -> Valid<Directive, String>
 #[cfg(test)]
 mod tests {
     #![expect(clippy::unwrap_used, reason = "test code")]
-    use async_graphql::parser::types::ConstDirective;
-    use async_graphql_value::Name;
     use gqlforge_valid::Validator;
+    use gqlrs::parser::types::ConstDirective;
+    use gqlrs_value::Name;
     use pretty_assertions::assert_eq;
 
     use super::*;
@@ -65,7 +65,7 @@ mod tests {
         let const_directive: ConstDirective = to_const_directive(&directive).to_result().unwrap();
         let expected_directive: ConstDirective = ConstDirective {
             name: pos(Name::new("test")),
-            arguments: vec![(pos(Name::new("a")), pos(async_graphql::Value::from(1.0)))]
+            arguments: vec![(pos(Name::new("a")), pos(gqlrs::Value::from(1.0)))]
                 .into_iter()
                 .collect(),
         };

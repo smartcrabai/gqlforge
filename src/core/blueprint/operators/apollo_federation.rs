@@ -1,8 +1,8 @@
 use std::collections::HashMap;
 use std::fmt::Write;
 
-use async_graphql::parser::types::ServiceDocument;
 use gqlforge_valid::{Valid, Validator};
+use gqlrs::parser::types::ServiceDocument;
 
 use super::{CompileResolver, compile_resolver};
 use crate::core::Type;
@@ -68,7 +68,7 @@ pub fn compile_service(mut sdl: String) -> Valid<IR, BlueprintError> {
     writeln!(sdl).ok();
 
     // Mark subgraph as Apollo federation v2 compatible according to [docs](https://www.apollographql.com/docs/apollo-server/using-federation/apollo-subgraph-setup/#2-opt-in-to-federation-2)
-    // (borrowed from async_graphql)
+    // (borrowed from gqlrs)
     writeln!(sdl, "extend schema @link(").ok();
     writeln!(sdl, "\turl: \"https://specs.apollo.dev/federation/v2.3\",").ok();
     writeln!(sdl, "\timport: [\"@key\", \"@tag\", \"@shareable\", \"@inaccessible\", \"@override\", \"@external\", \"@provides\", \"@requires\", \"@composeDirective\", \"@interfaceObject\"]").ok();

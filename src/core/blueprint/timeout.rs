@@ -1,9 +1,9 @@
 use std::sync::Arc;
 use std::time::Duration;
 
-use async_graphql::extensions::{Extension, ExtensionContext, ExtensionFactory, NextExecute};
-use async_graphql::{Response, ServerError};
-use async_graphql_value::ConstValue;
+use gqlrs::extensions::{Extension, ExtensionContext, ExtensionFactory, NextExecute};
+use gqlrs::{Response, ServerError};
+use gqlrs_value::ConstValue;
 use tokio::time::timeout;
 
 pub struct GlobalTimeout;
@@ -25,22 +25,20 @@ impl Extension for GlobalTimeoutExtension {
         next: NextExecute<'_>,
     ) -> Response {
         let future = next.run(ctx, operation_name);
-        if let ConstValue::Number(number) = ctx.data_unchecked::<ConstValue>() {
+        if let Ok(ConstValue::Number(number)) = ctx.data::<ConstValue>() {
             let timeout_duration = number.as_u64().unwrap_or(0);
             if timeout_duration > 0 {
                 let result = timeout(Duration::from_millis(timeout_duration), future).await;
                 if let Ok(result) = result {
-                    result
-                } else {
-                    let mut response = Response::new(ConstValue::Null);
-                    response.errors = vec![ServerError::new("Global timeout".to_string(), None)];
-                    response
+                    return result;
                 }
-            } else {
-                future.await
+
+                let mut response = Response::new(ConstValue::Null);
+                response.errors = vec![ServerError::new("Global timeout".to_string(), None)];
+                return response;
             }
-        } else {
-            future.await
         }
+
+        future.await
     }
 }

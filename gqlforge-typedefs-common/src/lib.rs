@@ -1,4 +1,4 @@
-use async_graphql::parser::types::{ServiceDocument, TypeSystemDefinition};
+use gqlrs::parser::types::{ServiceDocument, TypeSystemDefinition};
 use schemars::{JsonSchema, Schema};
 mod common;
 pub mod directive_definition;

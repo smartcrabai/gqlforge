@@ -16,7 +16,7 @@ gqlforge = { path = "../", default-features = false, features = ["cli"]}
 tokio = { version = "1.49.0", features = ["full"] }
 tracing = "0.1.44"
 gqlforge-typedefs-common = { path = "../gqlforge-typedefs-common" }
-async-graphql = { workspace = true }
+gqlrs = { workspace = true }
 strum = "0.28.0"
 
 [lints]

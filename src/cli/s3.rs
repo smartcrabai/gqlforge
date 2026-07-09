@@ -1,7 +1,7 @@
 pub mod client {
     use std::time::Duration;
 
-    use async_graphql_value::ConstValue;
+    use gqlrs_value::ConstValue;
     use indexmap::IndexMap;
 
     use crate::core::s3::S3IO;
@@ -107,26 +107,20 @@ pub mod client {
                 .map(|obj| {
                     let mut map = IndexMap::new();
                     if let Some(key) = obj.key() {
-                        map.insert(
-                            async_graphql::Name::new("key"),
-                            ConstValue::String(key.to_string()),
-                        );
+                        map.insert(gqlrs::Name::new("key"), ConstValue::String(key.to_string()));
                     }
                     if let Some(size) = obj.size() {
-                        map.insert(
-                            async_graphql::Name::new("size"),
-                            ConstValue::Number(size.into()),
-                        );
+                        map.insert(gqlrs::Name::new("size"), ConstValue::Number(size.into()));
                     }
                     if let Some(last_modified) = obj.last_modified() {
                         map.insert(
-                            async_graphql::Name::new("lastModified"),
+                            gqlrs::Name::new("lastModified"),
                             ConstValue::String(last_modified.to_string()),
                         );
                     }
                     if let Some(etag) = obj.e_tag() {
                         map.insert(
-                            async_graphql::Name::new("etag"),
+                            gqlrs::Name::new("etag"),
                             ConstValue::String(etag.to_string()),
                         );
                     }

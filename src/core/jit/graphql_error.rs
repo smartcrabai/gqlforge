@@ -21,11 +21,11 @@ pub struct GraphQLError {
     pub extensions: Option<ErrorExtensionValues>,
 }
 
-impl From<async_graphql::ServerError> for GraphQLError {
-    fn from(value: async_graphql::ServerError) -> Self {
+impl From<gqlrs::ServerError> for GraphQLError {
+    fn from(value: gqlrs::ServerError) -> Self {
         // TODO: remove this once either extension are avail public or we migrate from
-        // async_graphql. we can't copy extensions, bcoz it's private inside the
-        // async_graphql. hack: serialize the value and deserialize it back to
+        // gqlrs. we can't copy extensions, bcoz it's private inside the
+        // gqlrs. hack: serialize the value and deserialize it back to
         // btreemap.
         let extensions = value.extensions.and_then(|ext| {
             serde_json::to_value(ext)
@@ -56,7 +56,7 @@ impl From<Positioned<super::Error>> for GraphQLError {
         let inner_value = value.value;
         let position = value.pos;
 
-        // async_graphql::parser::Error has special conversion to ServerError
+        // gqlrs::parser::Error has special conversion to ServerError
         if let super::Error::ParseError(e) = inner_value {
             return e.into();
         }
@@ -100,8 +100,8 @@ impl From<GraphQLError> for Vec<GraphQLError> {
     }
 }
 
-impl From<async_graphql::parser::Error> for GraphQLError {
-    fn from(e: async_graphql::parser::Error) -> Self {
+impl From<gqlrs::parser::Error> for GraphQLError {
+    fn from(e: gqlrs::parser::Error) -> Self {
         Self {
             message: e.to_string(),
             locations: e.positions().map(std::convert::Into::into).collect(),
@@ -142,11 +142,11 @@ fn error_extensions_is_empty(values: &Option<ErrorExtensionValues>) -> bool {
 /// Extensions to the error.
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, Default)]
 #[serde(transparent)]
-pub struct ErrorExtensionValues(BTreeMap<String, async_graphql::Value>);
+pub struct ErrorExtensionValues(BTreeMap<String, gqlrs::Value>);
 
 impl ErrorExtensionValues {
     /// Set an extension value.
-    pub fn set(&mut self, name: impl AsRef<str>, value: impl Into<async_graphql::Value>) {
+    pub fn set(&mut self, name: impl AsRef<str>, value: impl Into<gqlrs::Value>) {
         self.0.insert(name.as_ref().to_string(), value.into());
     }
 
@@ -154,7 +154,7 @@ impl ErrorExtensionValues {
     pub fn extend<K, V, I>(&mut self, iter: I)
     where
         K: AsRef<str>,
-        V: Into<async_graphql::Value>,
+        V: Into<gqlrs::Value>,
         I: IntoIterator<Item = (K, V)>,
     {
         self.0.extend(
@@ -169,7 +169,7 @@ impl ErrorExtensionValues {
     }
 
     /// Get an extension value.
-    pub fn get(&self, name: impl AsRef<str>) -> Option<&async_graphql::Value> {
+    pub fn get(&self, name: impl AsRef<str>) -> Option<&gqlrs::Value> {
         self.0.get(name.as_ref())
     }
 }
@@ -202,6 +202,20 @@ impl Display for Error {
 impl PartialEq for Error {
     fn eq(&self, other: &Self) -> bool {
         self.message.eq(&other.message) && self.extensions.eq(&other.extensions)
+    }
+}
+
+impl gqlrs::IntoError for Error {
+    fn into_error(self) -> gqlrs::Error {
+        let mut gqlrs_error = gqlrs::Error::new(self.message);
+        if let Some(extensions) = self.extensions {
+            let mut gqlrs_extensions = gqlrs::ErrorExtensionValues::default();
+            for (key, value) in extensions.0 {
+                gqlrs_extensions.set(key, value);
+            }
+            gqlrs_error.extensions = Some(gqlrs_extensions);
+        }
+        gqlrs_error
     }
 }
 
@@ -262,14 +276,14 @@ impl<E: Display> ErrorExtensions for &E {
 #[cfg(test)]
 mod test {
     #![expect(clippy::unwrap_used, reason = "test code")]
-    use async_graphql::{ErrorExtensionValues, ServerError};
+    use gqlrs::{ErrorExtensionValues, ServerError};
 
     #[test]
     fn test_extension_conversion() {
         let mut async_ext = ErrorExtensionValues::default();
-        async_ext.set("k-1", async_graphql::Value::Number(2.into()));
-        async_ext.set("k-2", async_graphql::Value::Null);
-        async_ext.set("k-3", async_graphql::Value::String("test".into()));
+        async_ext.set("k-1", gqlrs::Value::Number(2.into()));
+        async_ext.set("k-2", gqlrs::Value::Null);
+        async_ext.set("k-3", gqlrs::Value::String("test".into()));
 
         let mut async_server_err = ServerError::new("testing-error-message", None);
         async_server_err.extensions = Some(async_ext);

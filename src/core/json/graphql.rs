@@ -1,8 +1,8 @@
 use std::borrow::Cow;
 use std::collections::HashMap;
 
-use async_graphql::Name;
-use async_graphql_value::{ConstValue, Value};
+use gqlrs::Name;
+use gqlrs_value::{ConstValue, Value};
 use indexmap::IndexMap;
 
 use super::{JsonLike, JsonObjectLike, JsonPrimitive, gather_path_matches, group_by_key};
@@ -151,7 +151,7 @@ impl<'json> JsonLike<'json> for ConstValue {
 
     fn get_key(&self, path: &str) -> Option<&Self> {
         match self {
-            ConstValue::Object(map) => map.get(&async_graphql::Name::new(path)),
+            ConstValue::Object(map) => map.get(&gqlrs::Name::new(path)),
             _ => None,
         }
     }
@@ -301,7 +301,7 @@ impl<'json> JsonLike<'json> for Value {
 
     fn get_key(&self, path: &str) -> Option<&Self> {
         match self {
-            Value::Object(map) => map.get(&async_graphql::Name::new(path)),
+            Value::Object(map) => map.get(&gqlrs::Name::new(path)),
             _ => None,
         }
     }

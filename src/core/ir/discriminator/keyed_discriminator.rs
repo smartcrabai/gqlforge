@@ -1,8 +1,8 @@
 use std::collections::BTreeSet;
 
 use anyhow::{Result, bail};
-use async_graphql::Value;
 use gqlforge_valid::Valid;
+use gqlrs::Value;
 
 use super::TypedValue;
 
@@ -103,8 +103,8 @@ impl KeyedDiscriminator {
 #[cfg(test)]
 mod tests {
     #![expect(clippy::unwrap_used, reason = "test code")]
-    use async_graphql::Value;
     use gqlforge_valid::Validator;
+    use gqlrs::Value;
     use serde_json::json;
     use test_log::test;
 

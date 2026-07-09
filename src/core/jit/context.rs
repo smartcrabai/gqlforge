@@ -1,7 +1,7 @@
 use std::sync::{Arc, Mutex, MutexGuard, PoisonError};
 
-use async_graphql::{Name, ServerError};
-use async_graphql_value::ConstValue;
+use gqlrs::{Name, ServerError};
+use gqlrs_value::ConstValue;
 use indexmap::IndexMap;
 
 use super::error::Error;
@@ -116,8 +116,8 @@ impl ResolverContextLike for Context<'_, ConstValue, ConstValue> {
 #[cfg(test)]
 mod test {
     #![expect(clippy::unwrap_used, reason = "test code")]
-    use async_graphql_value::ConstValue;
     use gqlforge_valid::Validator;
+    use gqlrs_value::ConstValue;
 
     use super::{Context, RequestContext};
     use crate::core::blueprint::Blueprint;

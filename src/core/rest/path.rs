@@ -1,4 +1,4 @@
-use async_graphql::{Name, Variables};
+use gqlrs::{Name, Variables};
 
 use super::typed_variables::TypedVariable;
 use super::{Error, Result};

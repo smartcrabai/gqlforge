@@ -1,7 +1,7 @@
 use std::net::AddrParseError;
 
-use async_graphql::dynamic::SchemaError;
 use gqlforge_valid::{Cause, ValidationError};
+use gqlrs::dynamic::SchemaError;
 
 use crate::core::Errata;
 

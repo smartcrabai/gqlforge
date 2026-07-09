@@ -13,7 +13,6 @@ mod redis_execution_spec {
     use std::collections::HashMap;
     use std::sync::{Arc, Mutex};
 
-    use async_graphql_value::ConstValue;
     use gqlforge::core::app_context::AppContext;
     use gqlforge::core::blueprint::Blueprint;
     use gqlforge::core::cache::InMemoryCache;
@@ -25,6 +24,7 @@ mod redis_execution_spec {
     use gqlforge::core::runtime::TargetRuntime;
     use gqlforge::core::{EnvIO, FileIO, HttpIO};
     use gqlforge_valid::Validator;
+    use gqlrs_value::ConstValue;
 
     // ----------------------------------------------------------------
     // Mock RedisIO (self-contained, mirrors `tests/core/postgres.rs`'s
@@ -177,10 +177,7 @@ type Mutation {
     /// Executes a GraphQL request against `app_ctx`, wiring up the
     /// `Arc<RequestContext>` that field resolvers require (mirrors what
     /// `handle_request`/`handle_sse_request` do for real requests).
-    async fn execute(
-        app_ctx: &AppContext,
-        request: async_graphql::Request,
-    ) -> async_graphql::Response {
+    async fn execute(app_ctx: &AppContext, request: gqlrs::Request) -> gqlrs::Response {
         let req_ctx = Arc::new(RequestContext::from(app_ctx));
         app_ctx.execute(request.data(req_ctx)).await
     }
@@ -190,13 +187,13 @@ type Mutation {
     /// server uses for queries and mutations (see
     /// `core::http::request_handler::execute_query`, which drives requests
     /// through `JITExecutor` -> `ConstValueExecutor`). `execute()` above
-    /// instead goes through `async_graphql::dynamic::Schema::execute`, which
+    /// instead goes through `gqlrs::dynamic::Schema::execute`, which
     /// is only used for subscriptions in real serving; tests that must
     /// observe genuine JIT synth behavior (e.g. the scalar/list shape guard
     /// in `core::jit::synth::synth`) need this helper instead.
     async fn execute_jit(app_ctx: &Arc<AppContext>, query: &str) -> serde_json::Value {
         let req_ctx = RequestContext::from(app_ctx.as_ref());
-        let jit_request = JitRequest::<ConstValue>::from(async_graphql::Request::new(query));
+        let jit_request = JitRequest::<ConstValue>::from(gqlrs::Request::new(query));
         let exec = ConstValueExecutor::try_new(&jit_request, app_ctx).unwrap();
         let response = exec.execute(app_ctx, &req_ctx, jit_request).await;
         serde_json::from_slice(&response.body).unwrap()
@@ -217,10 +214,9 @@ type Mutation {
         ));
         let app_ctx = build_app_ctx(mock.clone());
 
-        let request = async_graphql::Request::new("query($id: ID!) { getValue(id: $id) }")
-            .variables(async_graphql::Variables::from_json(
-                serde_json::json!({ "id": "42" }),
-            ));
+        let request = gqlrs::Request::new("query($id: ID!) { getValue(id: $id) }").variables(
+            gqlrs::Variables::from_json(serde_json::json!({ "id": "42" })),
+        );
 
         let response = execute(&app_ctx, request).await;
         assert!(response.errors.is_empty(), "{:?}", response.errors);
@@ -245,11 +241,11 @@ type Mutation {
         let mock = MockRedisIO::new(ConstValue::Object(
             [
                 (
-                    async_graphql::Name::new("name"),
+                    gqlrs::Name::new("name"),
                     ConstValue::String("Bob".to_string()),
                 ),
                 (
-                    async_graphql::Name::new("age"),
+                    gqlrs::Name::new("age"),
                     ConstValue::String("25".to_string()),
                 ),
             ]
@@ -257,7 +253,7 @@ type Mutation {
         ));
         let app_ctx = build_app_ctx(mock.clone());
 
-        let request = async_graphql::Request::new(r#"query { getHash(id: "7") }"#);
+        let request = gqlrs::Request::new(r#"query { getHash(id: "7") }"#);
         let response = execute(&app_ctx, request).await;
         assert!(response.errors.is_empty(), "{:?}", response.errors);
 
@@ -285,8 +281,7 @@ type Mutation {
         let mock = MockRedisIO::new(ConstValue::String("OK".to_string()));
         let app_ctx = build_app_ctx(mock.clone());
 
-        let request =
-            async_graphql::Request::new(r#"mutation { setValue(id: "9", value: "hello") }"#);
+        let request = gqlrs::Request::new(r#"mutation { setValue(id: "9", value: "hello") }"#);
         let response = execute(&app_ctx, request).await;
         assert!(response.errors.is_empty(), "{:?}", response.errors);
 
@@ -310,7 +305,7 @@ type Mutation {
         let mock = MockRedisIO::new(ConstValue::Number(1.into()));
         let app_ctx = build_app_ctx(mock.clone());
 
-        let request = async_graphql::Request::new(r#"query { keyExists(key: "user:1") }"#);
+        let request = gqlrs::Request::new(r#"query { keyExists(key: "user:1") }"#);
         let response = execute(&app_ctx, request).await;
         assert!(response.errors.is_empty(), "{:?}", response.errors);
 
@@ -323,7 +318,7 @@ type Mutation {
         let mock = MockRedisIO::new(ConstValue::Number(0.into()));
         let app_ctx = build_app_ctx(mock.clone());
 
-        let request = async_graphql::Request::new(r#"query { keyExists(key: "missing") }"#);
+        let request = gqlrs::Request::new(r#"query { keyExists(key: "missing") }"#);
         let response = execute(&app_ctx, request).await;
         assert!(response.errors.is_empty(), "{:?}", response.errors);
 
@@ -345,7 +340,7 @@ type Mutation {
         ]));
         let app_ctx = build_app_ctx(mock.clone());
 
-        let request = async_graphql::Request::new(r#"query { getHash(id: "7") }"#);
+        let request = gqlrs::Request::new(r#"query { getHash(id: "7") }"#);
         let response = execute(&app_ctx, request).await;
         assert!(response.errors.is_empty(), "{:?}", response.errors);
 
@@ -398,7 +393,7 @@ type Mutation {
             "HGETALL".to_string(),
             ConstValue::Object(
                 [(
-                    async_graphql::Name::new("role"),
+                    gqlrs::Name::new("role"),
                     ConstValue::String("admin".to_string()),
                 )]
                 .into(),
@@ -407,8 +402,7 @@ type Mutation {
         let mock = MockRedisIO::with_responses(responses, ConstValue::Null);
         let app_ctx = build_app_ctx(mock.clone());
 
-        let request =
-            async_graphql::Request::new(r#"query { getValue(id: "1") getHash(id: "1") }"#);
+        let request = gqlrs::Request::new(r#"query { getValue(id: "1") getHash(id: "1") }"#);
         let response = execute(&app_ctx, request).await;
         assert!(response.errors.is_empty(), "{:?}", response.errors);
 

@@ -1,4 +1,4 @@
-use async_graphql::parser::types::OperationType;
+use gqlrs::parser::types::OperationType;
 use thiserror::Error;
 
 use super::graphql_error::ErrorExtensions;
@@ -31,7 +31,7 @@ pub enum ResolveInputError {
 #[derive(Error, Debug, Clone)]
 pub enum ValidationError {
     // TODO: replace with sane error message. Right now, it's defined as is only for compatibility
-    // with async_graphql error message for this case
+    // with gqlrs error message for this case
     #[error(r#"internal: invalid value for scalar "{type_of}", expected "FieldValue::Value""#)]
     ScalarInvalid { type_of: String },
     #[error(r#"internal: invalid item for enum "{type_of}""#)]
@@ -45,13 +45,13 @@ pub enum Error {
     #[error("Build error: {0}")]
     BuildError(#[from] BuildError),
     #[error("ParseError: {0}")]
-    ParseError(#[from] async_graphql::parser::Error),
+    ParseError(#[from] gqlrs::parser::Error),
     #[error(transparent)]
     IR(Box<crate::core::ir::Error>),
     #[error(transparent)]
     Validation(#[from] ValidationError),
     #[error("{0}")]
-    ServerError(async_graphql::ServerError),
+    ServerError(gqlrs::ServerError),
     #[error("Unexpected error")]
     Unknown,
 }

@@ -1,7 +1,7 @@
 use std::fmt::Formatter;
 
-use async_graphql::Name;
-use async_graphql::parser::types as async_graphql_types;
+use gqlrs::Name;
+use gqlrs::parser::types as gqlrs_types;
 use serde::{Deserialize, Serialize};
 
 use crate::core::is_default;
@@ -123,53 +123,49 @@ impl Type {
     }
 }
 
-impl From<&async_graphql_types::Type> for Type {
-    fn from(value: &async_graphql_types::Type) -> Self {
+impl From<&gqlrs_types::Type> for Type {
+    fn from(value: &gqlrs_types::Type) -> Self {
         let non_null = !value.nullable;
 
         match &value.base {
-            async_graphql_types::BaseType::Named(name) => {
-                Self::Named { name: name.to_string(), non_null }
-            }
-            async_graphql_types::BaseType::List(type_) => {
+            gqlrs_types::BaseType::Named(name) => Self::Named { name: name.to_string(), non_null },
+            gqlrs_types::BaseType::List(type_) => {
                 Self::List { of_type: Box::new(type_.as_ref().into()), non_null }
             }
         }
     }
 }
 
-impl From<&Type> for async_graphql_types::Type {
+impl From<&Type> for gqlrs_types::Type {
     fn from(value: &Type) -> Self {
         let nullable = value.is_nullable();
 
         let base = match value {
-            Type::Named { name, .. } => async_graphql_types::BaseType::Named(Name::new(name)),
-            Type::List { of_type, .. } => async_graphql_types::BaseType::List(Box::new(
-                async_graphql_types::Type::from(&**of_type),
-            )),
+            Type::Named { name, .. } => gqlrs_types::BaseType::Named(Name::new(name)),
+            Type::List { of_type, .. } => {
+                gqlrs_types::BaseType::List(Box::new(gqlrs_types::Type::from(&**of_type)))
+            }
         };
 
-        async_graphql_types::Type { base, nullable }
+        gqlrs_types::Type { base, nullable }
     }
 }
 
-impl From<&Type> for async_graphql::dynamic::TypeRef {
+impl From<&Type> for gqlrs::dynamic::TypeRef {
     fn from(value: &Type) -> Self {
         let nullable = value.is_nullable();
 
         let base = match value {
-            Type::Named { name, .. } => {
-                async_graphql::dynamic::TypeRef::Named(name.to_owned().into())
+            Type::Named { name, .. } => gqlrs::dynamic::TypeRef::Named(name.to_owned().into()),
+            Type::List { of_type, .. } => {
+                gqlrs::dynamic::TypeRef::List(Box::new(gqlrs::dynamic::TypeRef::from(&**of_type)))
             }
-            Type::List { of_type, .. } => async_graphql::dynamic::TypeRef::List(Box::new(
-                async_graphql::dynamic::TypeRef::from(&**of_type),
-            )),
         };
 
         if nullable {
             base
         } else {
-            async_graphql::dynamic::TypeRef::NonNull(Box::new(base))
+            gqlrs::dynamic::TypeRef::NonNull(Box::new(base))
         }
     }
 }

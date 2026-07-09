@@ -1,4 +1,4 @@
-use async_graphql_value::ConstValue;
+use gqlrs_value::ConstValue;
 
 use super::binary_format::{
     format_bytea, format_date, format_inet, format_interval, format_macaddr, format_range,

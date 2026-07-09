@@ -2,8 +2,8 @@ use std::collections::HashMap;
 use std::sync::Arc;
 use std::time::Duration;
 
-use async_graphql::async_trait;
-use async_graphql_value::ConstValue;
+use gqlrs::async_trait;
+use gqlrs_value::ConstValue;
 
 use crate::core::config::Batch;
 use crate::core::config::group_by::GroupBy;

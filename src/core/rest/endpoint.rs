@@ -1,9 +1,9 @@
 use std::collections::BTreeMap;
 
-use async_graphql::parser::types::{Directive, DocumentOperations, ExecutableDocument};
-use async_graphql::{Positioned, Variables};
-use async_graphql_value::{ConstValue, Name};
 use derive_setters::Setters;
+use gqlrs::parser::types::{Directive, DocumentOperations, ExecutableDocument};
+use gqlrs::{Positioned, Variables};
+use gqlrs_value::{ConstValue, Name};
 
 use super::directive::Rest;
 use super::partial_request::PartialRequest;
@@ -11,8 +11,8 @@ use super::path::{Path, Segment};
 use super::query_params::QueryParams;
 use super::type_map::TypeMap;
 use super::{Request, Result};
-use crate::core::async_graphql_hyper::GraphQLRequest;
 use crate::core::directive::DirectiveCodec;
+use crate::core::gqlrs_hyper::GraphQLRequest;
 use crate::core::http::Method;
 use crate::core::rest::typed_variables::{N, UrlParamType};
 
@@ -38,7 +38,7 @@ impl Endpoint {
         &self.path
     }
     pub fn try_new(operations: &str) -> Result<Vec<Self>> {
-        let doc = async_graphql::parser::parse_query(operations)?;
+        let doc = gqlrs::parser::parse_query(operations)?;
         let mut endpoints = Vec::new();
 
         for (_, op) in doc.operations.iter() {
@@ -85,7 +85,7 @@ impl Endpoint {
 
     pub fn into_request(self) -> GraphQLRequest {
         let variables = Self::get_default_variables(&self);
-        let mut req = async_graphql::Request::new("").variables(variables);
+        let mut req = gqlrs::Request::new("").variables(variables);
         req.set_parsed_query(Self::remove_rest_directives(self.doc));
         GraphQLRequest(req)
     }
@@ -100,13 +100,11 @@ impl Endpoint {
                         let default_value = match p.ty() {
                             UrlParamType::String => ConstValue::String(String::new()),
                             UrlParamType::Number(n) => match n {
-                                N::Int => {
-                                    ConstValue::Number(async_graphql_value::Number::from(0u8))
-                                }
+                                N::Int => ConstValue::Number(gqlrs_value::Number::from(0u8)),
                                 N::Float => ConstValue::Number(
-                                    async_graphql_value::Number::from_f64(0.0f64).unwrap_or_else(
-                                        || unreachable!("0.0f64 is always a valid finite number"),
-                                    ),
+                                    gqlrs_value::Number::from_f64(0.0f64).unwrap_or_else(|| {
+                                        unreachable!("0.0f64 is always a valid finite number")
+                                    }),
                                 ),
                             },
                             UrlParamType::Boolean => ConstValue::Boolean(false),
@@ -188,7 +186,7 @@ fn merge_variables(a: &Variables, b: &Variables) -> Variables {
 #[cfg(test)]
 mod tests {
     #![expect(clippy::unwrap_used, reason = "test code")]
-    use async_graphql::parser::types::Directive;
+    use gqlrs::parser::types::Directive;
     use maplit::btreemap;
     use pretty_assertions::assert_eq;
 
@@ -217,7 +215,7 @@ mod tests {
         "#;
 
     fn test_directive() -> Directive {
-        async_graphql::parser::parse_query(TEST_QUERY)
+        gqlrs::parser::parse_query(TEST_QUERY)
             .unwrap()
             .operations
             .iter()
@@ -284,9 +282,9 @@ mod tests {
     mod matches {
         use std::str::FromStr;
 
-        use async_graphql::Variables;
-        use async_graphql_value::{ConstValue, Name};
         use bytes::Bytes;
+        use gqlrs::Variables;
+        use gqlrs_value::{ConstValue, Name};
         use http::{Method, Request, Uri, Version};
         use http_body_util::Full;
         use maplit::btreemap;

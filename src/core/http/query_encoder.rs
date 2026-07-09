@@ -22,10 +22,10 @@ impl QueryEncoder {
             key.to_owned()
         }
     }
-    fn encode_const_value(&self, key: &str, value: &async_graphql::Value) -> String {
+    fn encode_const_value(&self, key: &str, value: &gqlrs::Value) -> String {
         match self {
             QueryEncoder::CommaSeparated => match value {
-                async_graphql::Value::List(list) if !list.is_empty() => {
+                gqlrs::Value::List(list) if !list.is_empty() => {
                     let encoded_values: Vec<String> =
                         list.iter().filter_map(convert_value).collect();
 
@@ -40,7 +40,7 @@ impl QueryEncoder {
                     .unwrap_or(key.to_string()),
             },
             QueryEncoder::RepeatedKey => match value {
-                async_graphql::Value::List(list) if !list.is_empty() => {
+                gqlrs::Value::List(list) if !list.is_empty() => {
                     let encoded_values: Vec<String> = list
                         .iter()
                         .map(|val| self.encode_const_value(key, val))
@@ -59,12 +59,12 @@ impl QueryEncoder {
     }
 }
 
-pub fn convert_value(value: &async_graphql::Value) -> Option<String> {
+pub fn convert_value(value: &gqlrs::Value) -> Option<String> {
     match value {
-        async_graphql::Value::String(s) => Some(s.clone()),
-        async_graphql::Value::Number(n) => Some(n.to_string()),
-        async_graphql::Value::Boolean(b) => Some(b.to_string()),
-        async_graphql::Value::Enum(e) => Some(e.to_string()),
+        gqlrs::Value::String(s) => Some(s.clone()),
+        gqlrs::Value::Number(n) => Some(n.to_string()),
+        gqlrs::Value::Boolean(b) => Some(b.to_string()),
+        gqlrs::Value::Enum(e) => Some(e.to_string()),
         _ => None,
     }
 }
@@ -73,7 +73,7 @@ pub fn convert_value(value: &async_graphql::Value) -> Option<String> {
 mod tests {
     use std::borrow::Cow;
 
-    use async_graphql::Value;
+    use gqlrs::Value;
 
     use super::*;
 

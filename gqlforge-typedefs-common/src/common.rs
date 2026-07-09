@@ -1,4 +1,4 @@
-use async_graphql::{Pos, Positioned};
+use gqlrs::{Pos, Positioned};
 use serde_json::{Map, Value};
 
 pub fn get_description(schema: &Map<String, Value>) -> Option<&str> {

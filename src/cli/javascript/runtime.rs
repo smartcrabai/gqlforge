@@ -2,7 +2,7 @@ use std::cell::{OnceCell, RefCell};
 use std::fmt::{Debug, Formatter};
 use std::thread;
 
-use async_graphql_value::ConstValue;
+use gqlrs_value::ConstValue;
 use rquickjs::{Context, Ctx, FromJs, Function, IntoJs, Value};
 
 use crate::core::worker::{Command, Event};

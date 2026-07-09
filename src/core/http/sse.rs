@@ -26,7 +26,7 @@ pub async fn handle_sse_request(
     app_ctx: Arc<AppContext>,
 ) -> anyhow::Result<Response<SseBody>> {
     let body_bytes = req.into_body().collect().await?.to_bytes();
-    let graphql_req: async_graphql::Request = serde_json::from_slice(&body_bytes)
+    let graphql_req: gqlrs::Request = serde_json::from_slice(&body_bytes)
         .map_err(|e| anyhow::anyhow!("Failed to parse GraphQL request: {e}"))?;
 
     let req_ctx = Arc::new(RequestContext::from(app_ctx.as_ref()));

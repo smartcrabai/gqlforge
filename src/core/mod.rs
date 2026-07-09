@@ -2,7 +2,6 @@
 #![allow(clippy::mutable_key_type)]
 
 pub mod app_context;
-pub mod async_graphql_hyper;
 mod auth;
 pub mod blueprint;
 pub mod cache;
@@ -15,6 +14,7 @@ pub mod endpoint;
 mod errata;
 pub mod error;
 pub mod generator;
+pub mod gqlrs_hyper;
 pub mod graphql;
 pub mod grpc;
 pub mod has_headers;
@@ -51,11 +51,11 @@ use std::borrow::Cow;
 use std::hash::Hash;
 use std::num::NonZeroU64;
 
-use async_graphql::{Pos, Positioned};
-use async_graphql_value::ConstValue;
 pub use errata::Errata;
 pub use error::{Error, Result};
 pub use gqlforge_macros as macros;
+use gqlrs::{Pos, Positioned};
+use gqlrs_value::ConstValue;
 use http::Response;
 use ir::model::IoId;
 pub use mustache::Mustache;

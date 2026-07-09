@@ -3,10 +3,10 @@ use std::sync::Arc;
 use std::time::Duration;
 
 use anyhow::anyhow;
-use async_graphql_value::ConstValue;
 use dashmap::DashMap;
 use dashmap::mapref::entry::Entry;
 use futures_util::stream;
+use gqlrs_value::ConstValue;
 use tokio::sync::broadcast;
 use tokio_postgres::AsyncMessage;
 use tracing::{debug, error, info, trace, warn};

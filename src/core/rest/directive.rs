@@ -1,8 +1,8 @@
 use std::collections::BTreeMap;
 
-use async_graphql::parser::types::Directive;
-use async_graphql_value::Value;
 use derive_setters::Setters;
+use gqlrs::parser::types::Directive;
+use gqlrs_value::Value;
 use serde::{Deserialize, Serialize};
 
 use super::{Error, Result};
@@ -90,7 +90,7 @@ mod tests {
     #![expect(clippy::unwrap_used, reason = "test code")]
     use std::collections::HashMap;
 
-    use async_graphql::parser::types::Directive;
+    use gqlrs::parser::types::Directive;
 
     use super::*;
 
@@ -99,7 +99,7 @@ mod tests {
         std::sync::LazyLock::new(|| RestQueryParam::new("/foo/$a", "$v"));
 
     fn query_to_directive(query: &str) -> Directive {
-        async_graphql::parser::parse_query(query)
+        gqlrs::parser::parse_query(query)
             .unwrap()
             .operations
             .iter()

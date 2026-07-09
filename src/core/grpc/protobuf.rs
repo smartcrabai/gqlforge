@@ -1,7 +1,7 @@
 use std::fmt::Debug;
 
 use anyhow::{Context, Result, anyhow, bail};
-use async_graphql::Value;
+use gqlrs::Value;
 use prost::Message;
 use prost::bytes::BufMut;
 use prost_reflect::prost_types::FileDescriptorSet;
@@ -116,7 +116,7 @@ impl ProtobufMessage {
 
         let json = serde_json::to_value(message)?;
 
-        Ok(async_graphql::Value::from_json(json)?)
+        Ok(gqlrs::Value::from_json(json)?)
     }
 }
 

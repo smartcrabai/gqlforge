@@ -1,11 +1,11 @@
 use std::sync::Arc;
 
-use async_graphql::dynamic::Schema;
 use gqlforge_valid::{Cause, Valid, Validator};
+use gqlrs::dynamic::Schema;
 
 use super::Error;
-use crate::core::async_graphql_hyper::{GraphQLRequest, GraphQLRequestLike};
 use crate::core::blueprint::{Blueprint, SchemaModifiers};
+use crate::core::gqlrs_hyper::{GraphQLRequest, GraphQLRequestLike};
 use crate::core::http::RequestContext;
 
 #[derive(Debug)]

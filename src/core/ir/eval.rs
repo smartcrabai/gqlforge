@@ -1,8 +1,8 @@
 use std::collections::HashMap;
 use std::future::Future;
 
-use async_graphql_value::ConstValue;
 use futures_util::future::join_all;
+use gqlrs_value::ConstValue;
 use indexmap::IndexMap;
 
 use super::eval_io::eval_io;
@@ -25,13 +25,10 @@ impl IR {
             match self {
                 IR::ContextPath(path) => Ok(ctx
                     .path_value(path)
-                    .map_or(async_graphql::Value::Null, std::borrow::Cow::into_owned)),
+                    .map_or(gqlrs::Value::Null, std::borrow::Cow::into_owned)),
                 IR::Path(input, path) => {
                     let inp = input.eval(ctx).await?;
-                    Ok(inp
-                        .get_path(path)
-                        .unwrap_or(&async_graphql::Value::Null)
-                        .clone())
+                    Ok(inp.get_path(path).unwrap_or(&gqlrs::Value::Null).clone())
                 }
                 IR::Dynamic(value) => Ok(value.render_value(ctx)),
                 IR::Protect(auth, access_expr, expr) => {

@@ -2,7 +2,7 @@ use cache_control::CacheControl;
 
 use super::Response;
 
-pub fn cache_policy(res: &Response<async_graphql::Value>) -> Option<CacheControl> {
+pub fn cache_policy(res: &Response<gqlrs::Value>) -> Option<CacheControl> {
     let header = res.headers.get(http::header::CACHE_CONTROL)?;
     let value = header.to_str().ok()?;
 
@@ -19,7 +19,7 @@ mod tests {
 
     use crate::core::http::Response;
 
-    pub fn max_age(res: &Response<async_graphql::Value>) -> Option<Duration> {
+    pub fn max_age(res: &Response<gqlrs::Value>) -> Option<Duration> {
         match super::cache_policy(res) {
             Some(value) => value.max_age,
             None => None,
@@ -27,7 +27,7 @@ mod tests {
     }
 
     /// Returns the minimum TTL of the given responses.
-    pub fn min_ttl<'a>(res_vec: impl Iterator<Item = &'a Response<async_graphql::Value>>) -> i32 {
+    pub fn min_ttl<'a>(res_vec: impl Iterator<Item = &'a Response<gqlrs::Value>>) -> i32 {
         let mut min = -1;
 
         for res in res_vec {
@@ -41,7 +41,7 @@ mod tests {
         min
     }
 
-    pub fn cache_visibility(res: &Response<async_graphql::Value>) -> String {
+    pub fn cache_visibility(res: &Response<gqlrs::Value>) -> String {
         let cachability = super::cache_policy(res).and_then(|value| value.cachability);
 
         match cachability {

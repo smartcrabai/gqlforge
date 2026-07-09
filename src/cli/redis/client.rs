@@ -1,6 +1,6 @@
 use std::time::Duration;
 
-use async_graphql_value::ConstValue;
+use gqlrs_value::ConstValue;
 use redis::aio::{ConnectionManager, ConnectionManagerConfig};
 use tokio::sync::OnceCell;
 
@@ -112,7 +112,7 @@ pub(crate) fn redis_value_to_const(value: redis::Value) -> anyhow::Result<ConstV
         Value::Map(pairs) => {
             let mut map = indexmap::IndexMap::with_capacity(pairs.len());
             for (k, v) in pairs {
-                let key = async_graphql::Name::new(redis_value_to_key(&k));
+                let key = gqlrs::Name::new(redis_value_to_key(&k));
                 map.insert(key, redis_value_to_const(v)?);
             }
             ConstValue::Object(map)

@@ -1,10 +1,10 @@
 use std::num::{ParseFloatError, ParseIntError};
 use std::str::ParseBoolError;
 
-use async_graphql::parser::types::{Directive, Type};
-use async_graphql::{Name, ServerError};
 use derive_more::{Debug, From};
 use gqlforge_valid::ValidationError;
+use gqlrs::parser::types::{Directive, Type};
+use gqlrs::{Name, ServerError};
 use serde_json;
 
 #[derive(From, thiserror::Error, Debug)]
@@ -42,7 +42,7 @@ pub enum Error {
     Validation(ValidationError<std::string::String>),
 
     #[error("Async Graphql Parser Error: {}", _0)]
-    ParseGraphQL(async_graphql::parser::Error),
+    ParseGraphQL(gqlrs::parser::Error),
 
     #[error("Hyper HTTP Invalid URI Error: {}", _0)]
     HyperHttpInvalidUri(http::uri::InvalidUri),

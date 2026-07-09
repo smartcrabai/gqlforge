@@ -12,7 +12,6 @@ pub mod test {
     use std::time::Duration;
 
     use anyhow::{Result, anyhow};
-    use async_graphql::Value;
     use bytes::Bytes;
     use gqlforge::cli::javascript::init_worker_io;
     use gqlforge::core::blueprint::{Script, Upstream};
@@ -21,6 +20,7 @@ pub mod test {
     use gqlforge::core::runtime::TargetRuntime;
     use gqlforge::core::worker::{Command, Event};
     use gqlforge::core::{EnvIO, FileIO, HttpIO};
+    use gqlrs::Value;
     use reqwest::Client;
     use reqwest_middleware::{ClientBuilder, ClientWithMiddleware};
     use tokio::io::{AsyncReadExt, AsyncWriteExt};

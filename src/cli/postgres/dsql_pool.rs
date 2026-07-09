@@ -1,5 +1,5 @@
-use async_graphql_value::ConstValue;
 use deadpool::managed::{Manager, Metrics, Pool, RecycleError, RecycleResult};
+use gqlrs_value::ConstValue;
 
 use super::pool::{TypedParam, rows_to_const_value};
 use crate::core::postgres::PostgresIO;

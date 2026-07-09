@@ -6,8 +6,6 @@ mod postgres_listen_spec {
     use std::time::Duration;
 
     use anyhow::anyhow;
-    use async_graphql::Value;
-    use async_graphql_value::ConstValue;
     use futures_util::{StreamExt, stream};
     use gqlforge::cli::javascript::init_worker_io;
     use gqlforge::core::blueprint::{Blueprint, Script, Upstream};
@@ -19,6 +17,8 @@ mod postgres_listen_spec {
     use gqlforge::core::runtime::TargetRuntime;
     use gqlforge::core::worker::{Command, Event};
     use gqlforge::core::{EnvIO, FileIO, HttpIO};
+    use gqlrs::Value;
+    use gqlrs_value::ConstValue;
     use reqwest::Client;
     use reqwest_middleware::{ClientBuilder, ClientWithMiddleware};
     use tokio::io::{AsyncReadExt, AsyncWriteExt};
@@ -357,9 +357,9 @@ type Subscription {
         // Send an event
         let event = ConstValue::Object(
             [
-                (async_graphql::Name::new("id"), ConstValue::Number(1.into())),
+                (gqlrs::Name::new("id"), ConstValue::Number(1.into())),
                 (
-                    async_graphql::Name::new("name"),
+                    gqlrs::Name::new("name"),
                     ConstValue::String("Alice".to_string()),
                 ),
             ]

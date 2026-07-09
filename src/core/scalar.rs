@@ -3,8 +3,20 @@ use std::fmt::Debug;
 use std::sync::LazyLock;
 
 use gqlforge_macros::Doc;
+use regex::Regex;
 use schemars::Schema;
 use strum::IntoEnumIterator;
+
+/// HTML5 spec compliant email address regex.
+/// See: <https://html.spec.whatwg.org/multipage/input.html#valid-e-mail-address>
+#[expect(
+    clippy::unwrap_used,
+    reason = "static regex pattern is validated at compile time"
+)]
+static EMAIL_REGEX: LazyLock<Regex> = LazyLock::new(|| {
+    Regex::new(r"^[a-zA-Z0-9.!#$%&'*+/=?^_`{|}~-]+@[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?(?:\.[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?)+$")
+        .unwrap()
+});
 
 use crate::core::json::JsonLike;
 
@@ -116,9 +128,7 @@ impl Scalar {
     pub fn validate<'a, Value: JsonLike<'a>>(&self, value: &'a Value) -> bool {
         match self {
             Scalar::JSON | Scalar::Empty => true,
-            Scalar::Email => eval_str(value, |s| {
-                async_graphql::validators::email(&s.to_string()).is_ok()
-            }),
+            Scalar::Email => eval_str(value, |s| EMAIL_REGEX.is_match(s)),
             Scalar::PhoneNumber => eval_str(value, |s| phonenumber::parse(None, s).is_ok()),
             Scalar::Date => eval_str(value, |s| chrono::DateTime::parse_from_rfc3339(s).is_ok()),
             Scalar::DateTime => {
@@ -150,7 +160,7 @@ impl Scalar {
         self.to_string()
     }
     #[must_use]
-    pub fn scalar_definition(&self) -> async_graphql::parser::types::TypeSystemDefinition {
+    pub fn scalar_definition(&self) -> gqlrs::parser::types::TypeSystemDefinition {
         let schemars = self.schema();
         gqlforge_typedefs_common::scalar_definition::into_scalar_definition(&schemars, &self.name())
     }
@@ -180,7 +190,7 @@ impl Scalar {
 #[cfg(test)]
 mod test {
     #![expect(clippy::unwrap_used, reason = "test code")]
-    use async_graphql_value::ConstValue;
+    use gqlrs_value::ConstValue;
     use schemars::Schema;
 
     use crate::core::scalar::{CUSTOM_SCALARS, Scalar};
@@ -194,7 +204,7 @@ mod test {
             let value = $instance;
 
             $(
-                assert!(value.validate::<async_graphql_value::ConstValue>(&$value));
+                assert!(value.validate::<gqlrs_value::ConstValue>(&$value));
             )+
         }
     };
@@ -209,7 +219,7 @@ mod test {
             let value = $instance;
 
             $(
-                assert!(!value.validate::<async_graphql_value::ConstValue>(&$value));
+                assert!(!value.validate::<gqlrs_value::ConstValue>(&$value));
             )+
         }
     };

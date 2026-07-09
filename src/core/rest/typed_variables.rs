@@ -1,5 +1,5 @@
-use async_graphql::parser::types::{BaseType, Type};
-use async_graphql_value::ConstValue;
+use gqlrs::parser::types::{BaseType, Type};
+use gqlrs_value::ConstValue;
 
 use super::{Error, Result};
 

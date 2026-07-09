@@ -91,9 +91,9 @@ impl<'a, Value: Deserialize<'a> + Clone + 'a + JsonLike<'a> + std::fmt::Debug> J
         clippy::unwrap_used,
         reason = "test fixture - panics are acceptable in test helpers"
     )]
-    fn plan(query: &str, variables: &Variables<async_graphql::Value>) -> OperationPlan<Value> {
+    fn plan(query: &str, variables: &Variables<gqlrs::Value>) -> OperationPlan<Value> {
         let config = ConfigModule::from(Config::from_sdl(Self::CONFIG).to_result().unwrap());
-        let doc = async_graphql::parser::parse_query(query).unwrap();
+        let doc = gqlrs::parser::parse_query(query).unwrap();
         let builder = Builder::new(&Blueprint::try_from(&config).unwrap(), &doc);
 
         let plan = builder.build(None).unwrap();
@@ -116,7 +116,7 @@ impl<'a, Value: Deserialize<'a> + Clone + 'a + JsonLike<'a> + std::fmt::Debug> J
         clippy::unwrap_used,
         reason = "test fixture - panics are acceptable in test helpers"
     )]
-    pub fn init(query: &str, variables: Option<Variables<async_graphql::Value>>) -> Self {
+    pub fn init(query: &str, variables: Option<Variables<gqlrs::Value>>) -> Self {
         let vars = variables.unwrap_or_default();
 
         let test_data = TestData::init();

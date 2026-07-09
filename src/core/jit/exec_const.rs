@@ -1,8 +1,8 @@
 use std::sync::Arc;
 
-use async_graphql_value::{ConstValue, Value};
 use futures_util::future::join_all;
 use gqlforge_valid::Validator;
+use gqlrs_value::{ConstValue, Value};
 
 use super::context::Context;
 use super::exec::{Executor, IRExecutor};
@@ -17,7 +17,7 @@ use crate::core::jit::synth::Synth;
 use crate::core::jit::transform::InputResolver;
 use crate::core::json::{JsonLike, JsonLikeList};
 
-/// A specialized executor that executes with `async_graphql::Value`
+/// A specialized executor that executes with `gqlrs::Value`
 pub struct ConstValueExecutor {
     pub plan: OperationPlan<Value>,
 }
@@ -103,7 +103,7 @@ impl ConstValueExecutor {
         let resp: Response<serde_json_borrow::Value> = exe.execute(&synth);
 
         if is_introspection_query {
-            let async_req = async_graphql::Request::from(request).only_introspection();
+            let async_req = gqlrs::Request::from(request).only_introspection();
             let async_resp = app_ctx.execute(async_req).await;
 
             resp.merge_with(&async_resp).into()

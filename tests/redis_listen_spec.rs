@@ -5,7 +5,6 @@ mod redis_listen_spec {
     use std::sync::Arc;
     use std::time::Duration;
 
-    use async_graphql_value::ConstValue;
     use futures_util::StreamExt;
     use gqlforge::cli::javascript::init_worker_io;
     use gqlforge::core::app_context::AppContext;
@@ -20,6 +19,7 @@ mod redis_listen_spec {
     use gqlforge::core::worker::{Command, Event};
     use gqlforge::core::{EnvIO, FileIO, HttpIO};
     use gqlforge_valid::Validator;
+    use gqlrs_value::ConstValue;
     use reqwest::Client;
     use reqwest_middleware::{ClientBuilder, ClientWithMiddleware};
     use tokio::io::{AsyncReadExt, AsyncWriteExt};
@@ -234,9 +234,7 @@ mod redis_listen_spec {
                 None => None,
             },
             worker: match script {
-                Some(script) => Some(
-                    init_worker_io::<async_graphql::Value, async_graphql::Value>(script.clone()),
-                ),
+                Some(script) => Some(init_worker_io::<gqlrs::Value, gqlrs::Value>(script.clone())),
                 None => None,
             },
             postgres: HashMap::new(),
@@ -424,7 +422,7 @@ type Query {
 
         let event = ConstValue::Object(
             [(
-                async_graphql::Name::new("message"),
+                gqlrs::Name::new("message"),
                 ConstValue::String("fire".to_string()),
             )]
             .into(),
@@ -445,14 +443,14 @@ type Query {
         let entry_one = ConstValue::Object(
             [
                 (
-                    async_graphql::Name::new("id"),
+                    gqlrs::Name::new("id"),
                     ConstValue::String("1-0".to_string()),
                 ),
                 (
-                    async_graphql::Name::new("values"),
+                    gqlrs::Name::new("values"),
                     ConstValue::Object(
                         [(
-                            async_graphql::Name::new("name"),
+                            gqlrs::Name::new("name"),
                             ConstValue::String("Alice".to_string()),
                         )]
                         .into(),
@@ -464,14 +462,14 @@ type Query {
         let entry_two = ConstValue::Object(
             [
                 (
-                    async_graphql::Name::new("id"),
+                    gqlrs::Name::new("id"),
                     ConstValue::String("2-0".to_string()),
                 ),
                 (
-                    async_graphql::Name::new("values"),
+                    gqlrs::Name::new("values"),
                     ConstValue::Object(
                         [(
-                            async_graphql::Name::new("name"),
+                            gqlrs::Name::new("name"),
                             ConstValue::String("Bob".to_string()),
                         )]
                         .into(),
@@ -536,7 +534,7 @@ type Subscription {
         let app_ctx = Arc::new(AppContext::new(blueprint, runtime, EndpointSet::default()));
 
         let req_ctx = Arc::new(RequestContext::from(app_ctx.as_ref()));
-        let request = async_graphql::Request::new("subscription { alerts }").data(req_ctx);
+        let request = gqlrs::Request::new("subscription { alerts }").data(req_ctx);
 
         let mut stream = app_ctx.schema.execute_stream(request);
 
@@ -545,7 +543,7 @@ type Subscription {
             tokio::time::sleep(Duration::from_millis(100)).await;
             let event = ConstValue::Object(
                 [(
-                    async_graphql::Name::new("level"),
+                    gqlrs::Name::new("level"),
                     ConstValue::String("critical".to_string()),
                 )]
                 .into(),
@@ -621,14 +619,14 @@ type Subscription {
         let entry = ConstValue::Object(
             [
                 (
-                    async_graphql::Name::new("id"),
+                    gqlrs::Name::new("id"),
                     ConstValue::String("1-0".to_string()),
                 ),
                 (
-                    async_graphql::Name::new("values"),
+                    gqlrs::Name::new("values"),
                     ConstValue::Object(
                         [(
-                            async_graphql::Name::new("message"),
+                            gqlrs::Name::new("message"),
                             ConstValue::String("fire".to_string()),
                         )]
                         .into(),
@@ -650,7 +648,7 @@ type Subscription {
         let app_ctx = Arc::new(AppContext::new(blueprint, runtime, EndpointSet::default()));
 
         let req_ctx = Arc::new(RequestContext::from(app_ctx.as_ref()));
-        let request = async_graphql::Request::new("subscription { streamEvents }").data(req_ctx);
+        let request = gqlrs::Request::new("subscription { streamEvents }").data(req_ctx);
 
         let mut stream = app_ctx.schema.execute_stream(request);
 

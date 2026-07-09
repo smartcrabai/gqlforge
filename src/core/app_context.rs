@@ -1,13 +1,13 @@
 use std::sync::Arc;
 
-use async_graphql::dynamic::{self, DynamicRequest};
-use async_graphql_value::ConstValue;
 use dashmap::DashMap;
+use gqlrs::dynamic::{self, DynamicRequest};
+use gqlrs_value::ConstValue;
 
 use super::jit::AnyResponse;
-use crate::core::async_graphql_hyper::OperationId;
 use crate::core::blueprint::{Blueprint, Definition, SchemaModifiers};
 use crate::core::data_loader::{DataLoader, DedupeResult};
+use crate::core::gqlrs_hyper::OperationId;
 use crate::core::graphql::GraphqlDataLoader;
 use crate::core::grpc;
 use crate::core::grpc::data_loader::GrpcDataLoader;
@@ -28,7 +28,7 @@ pub struct AppContext {
     pub endpoints: EndpointSet<Checked>,
     pub dedupe_handler: Arc<DedupeResult<IoId, ConstValue, Error>>,
     pub dedupe_operation_handler: DedupeResult<OperationId, AnyResponse<Vec<u8>>, Error>,
-    pub operation_plans: DashMap<OPHash, OperationPlan<async_graphql_value::Value>>,
+    pub operation_plans: DashMap<OPHash, OperationPlan<gqlrs_value::Value>>,
     pub const_execution_cache: DashMap<OPHash, AnyResponse<Vec<u8>>>,
 }
 
@@ -202,7 +202,7 @@ impl AppContext {
         }
     }
 
-    pub async fn execute(&self, request: impl Into<DynamicRequest>) -> async_graphql::Response {
+    pub async fn execute(&self, request: impl Into<DynamicRequest>) -> gqlrs::Response {
         self.schema.execute(request).await
     }
 }

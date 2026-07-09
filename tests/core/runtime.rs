@@ -5,7 +5,6 @@ use std::path::{Path, PathBuf};
 use std::sync::Arc;
 use std::sync::atomic::{AtomicUsize, Ordering};
 
-use async_graphql::Value;
 use derive_setters::Setters;
 use gqlforge::cli::javascript::init_worker_io;
 use gqlforge::core::blueprint::Script;
@@ -16,6 +15,7 @@ use gqlforge::core::redis::{RedisIO, RedisListenerIO};
 use gqlforge::core::runtime::TargetRuntime;
 use gqlforge::core::s3::S3IO;
 use gqlforge::core::worker::{Command, Event};
+use gqlrs::Value;
 
 use super::env::Env;
 use super::file::TestFileIO;

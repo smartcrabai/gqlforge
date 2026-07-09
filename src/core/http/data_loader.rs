@@ -2,10 +2,10 @@ use std::collections::HashMap;
 use std::sync::Arc;
 use std::time::Duration;
 
-use async_graphql::async_trait;
-use async_graphql::futures_util::future::join_all;
-use async_graphql_value::ConstValue;
 use gqlforge_valid::Validator;
+use gqlrs::async_trait;
+use gqlrs::futures_util::future::join_all;
+use gqlrs_value::ConstValue;
 
 use super::transformations::{BodyBatching, QueryBatching};
 use crate::core::Transform;
@@ -57,13 +57,13 @@ impl HttpDataLoader {
 
 #[async_trait::async_trait]
 impl Loader<DataLoaderRequest> for HttpDataLoader {
-    type Value = Response<async_graphql::Value>;
+    type Value = Response<gqlrs::Value>;
     type Error = Arc<anyhow::Error>;
 
     async fn load(
         &self,
         keys: &[DataLoaderRequest],
-    ) -> async_graphql::Result<HashMap<DataLoaderRequest, Self::Value>, Self::Error> {
+    ) -> gqlrs::Result<HashMap<DataLoaderRequest, Self::Value>, Self::Error> {
         if let Some(group_by) = &self.group_by {
             let query_name = group_by.key();
             let mut dl_requests = keys.to_vec();

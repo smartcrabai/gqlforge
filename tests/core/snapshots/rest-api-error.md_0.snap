@@ -8,9 +8,6 @@ expression: response
     "content-type": "application/json"
   },
   "body": {
-    "data": {
-      "user": null
-    },
     "errors": [
       {
         "message": "internal: non-null types require a return value",
@@ -24,20 +21,8 @@ expression: response
           "user",
           "id"
         ]
-      },
-      {
-        "message": "internal: non-null types require a return value",
-        "locations": [
-          {
-            "line": 4,
-            "column": 5
-          }
-        ],
-        "path": [
-          "user",
-          "name"
-        ]
       }
-    ]
+    ],
+    "data": null
   }
 }

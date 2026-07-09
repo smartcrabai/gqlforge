@@ -1,6 +1,6 @@
-use async_graphql::parser::types::ConstDirective;
-use async_graphql::{Name, Positioned};
 use gqlforge_valid::{Valid, ValidationError, Validator};
+use gqlrs::parser::types::ConstDirective;
+use gqlrs::{Name, Positioned};
 use serde::{Deserialize, Serialize};
 use serde_json::{Map, Value};
 use serde_path_to_error::deserialize;

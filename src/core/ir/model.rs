@@ -2,7 +2,7 @@ use std::collections::HashMap;
 use std::fmt::Debug;
 use std::num::NonZeroU64;
 
-use async_graphql::Value;
+use gqlrs::Value;
 use strum_macros::Display;
 
 use super::access_expr::AccessExpr;

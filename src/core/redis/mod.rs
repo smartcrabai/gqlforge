@@ -2,8 +2,8 @@ pub mod request_template;
 
 use std::pin::Pin;
 
-use async_graphql_value::ConstValue;
 use futures_util::Stream;
+use gqlrs_value::ConstValue;
 pub use request_template::RequestTemplate;
 
 use crate::core::config::RedisOperation;
@@ -143,7 +143,7 @@ fn normalize_hgetall(value: ConstValue) -> ConstValue {
                 let ConstValue::String(field) = field else {
                     unreachable!("guarded by the match arm's all-string check above")
                 };
-                map.insert(async_graphql::Name::new(field), val);
+                map.insert(gqlrs::Name::new(field), val);
             }
             ConstValue::Object(map)
         }
@@ -218,7 +218,7 @@ mod tests {
     fn decode_value_leaves_recurses_into_object() {
         let mut map = indexmap::IndexMap::new();
         map.insert(
-            async_graphql::Name::new("field"),
+            gqlrs::Name::new("field"),
             ConstValue::String("42".to_string()),
         );
         let decoded = decode_value_leaves(ConstValue::Object(map), &RedisPayloadType::Json);
@@ -264,7 +264,7 @@ mod tests {
     fn normalize_hgetall_passes_through_resp3_object() {
         let mut map = indexmap::IndexMap::new();
         map.insert(
-            async_graphql::Name::new("name"),
+            gqlrs::Name::new("name"),
             ConstValue::String("Alice".to_string()),
         );
         let value = ConstValue::Object(map.clone());

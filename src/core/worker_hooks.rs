@@ -61,11 +61,9 @@ impl WorkerHooks {
     /// Returns an error if the operation fails.
     pub async fn on_response(
         &self,
-        worker: &Arc<
-            dyn WorkerIO<async_graphql_value::ConstValue, async_graphql_value::ConstValue>,
-        >,
-        response: Response<async_graphql::Value>,
-    ) -> Result<Response<async_graphql::Value>, Error> {
+        worker: &Arc<dyn WorkerIO<gqlrs_value::ConstValue, gqlrs_value::ConstValue>>,
+        response: Response<gqlrs::Value>,
+    ) -> Result<Response<gqlrs::Value>, Error> {
         if let Some(on_response) = self.on_response.as_ref() {
             match worker.call(on_response, response.body.clone()).await? {
                 Some(js_response) => Ok(response.body(js_response)),

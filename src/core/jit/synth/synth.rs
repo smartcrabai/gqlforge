@@ -162,7 +162,7 @@ where
             }
         } else if let Some(scalar) = node.scalar.as_ref() {
             // TODO: add validation for input type as well. But input types are not checked
-            // by async_graphql anyway so it should be done after replacing
+            // by gqlrs anyway so it should be done after replacing
             // default engine with JIT
             if scalar.validate(value) {
                 Ok(Output::clone_from(value))
@@ -252,8 +252,8 @@ where
 #[cfg(test)]
 mod tests {
     #![expect(clippy::unwrap_used, reason = "test code")]
-    use async_graphql_value::ConstValue;
     use gqlforge_valid::Validator;
+    use gqlrs_value::ConstValue;
     use serde::{Deserialize, Serialize};
 
     use super::ValueStore;
@@ -344,7 +344,7 @@ mod tests {
             .map(|(id, data)| (id, data.into_value()))
             .collect::<Vec<_>>();
 
-        let doc = async_graphql::parser::parse_query(query).unwrap();
+        let doc = gqlrs::parser::parse_query(query).unwrap();
         let config = Config::from_sdl(CONFIG).to_result().unwrap();
         let config = ConfigModule::from(config);
 
@@ -353,8 +353,8 @@ mod tests {
         let plan = plan
             .try_map(|v| {
                 // Earlier we hard OperationPlan<ConstValue> which has impl Deserialize
-                // but now InputResolver takes OperationPlan<async_graphql_value::Value>
-                // and returns OperationPlan<async_graphql_value::Value>.
+                // but now InputResolver takes OperationPlan<gqlrs_value::Value>
+                // and returns OperationPlan<gqlrs_value::Value>.
                 // So we need to map Plan to some other value before being able to deserialize
                 // it.
                 let serde = v.into_json().unwrap();
@@ -443,10 +443,9 @@ mod tests {
 
     #[test]
     fn test_json_placeholder() {
-        let jp: JP<async_graphql::Value> =
-            JP::init("{ posts { id title userId user { id name } } }", None);
+        let jp: JP<gqlrs::Value> = JP::init("{ posts { id title userId user { id name } } }", None);
         let synth = jp.synth();
-        let val: async_graphql::Value = synth.synthesize().unwrap();
+        let val: gqlrs::Value = synth.synthesize().unwrap();
         insta::assert_snapshot!(serde_json::to_string_pretty(&val).unwrap());
     }
 
@@ -499,7 +498,7 @@ mod tests {
         let config = ConfigModule::from(config);
         let blueprint = Blueprint::try_from(&config).unwrap();
 
-        let doc = async_graphql::parser::parse_query("{ jobs }").unwrap();
+        let doc = gqlrs::parser::parse_query("{ jobs }").unwrap();
         let builder = Builder::new(&blueprint, &doc);
         let plan = builder.build(None).unwrap();
         let plan = plan
@@ -525,7 +524,7 @@ mod tests {
             val,
             ConstValue::Object(
                 [(
-                    async_graphql::Name::new("jobs"),
+                    gqlrs::Name::new("jobs"),
                     ConstValue::List(vec![
                         ConstValue::String("job-1".to_string()),
                         ConstValue::String("job-2".to_string())
@@ -557,7 +556,7 @@ mod tests {
         let config = ConfigModule::from(config);
         let blueprint = Blueprint::try_from(&config).unwrap();
 
-        let doc = async_graphql::parser::parse_query("{ name }").unwrap();
+        let doc = gqlrs::parser::parse_query("{ name }").unwrap();
         let builder = Builder::new(&blueprint, &doc);
         let plan = builder.build(None).unwrap();
         let plan = plan
@@ -581,7 +580,7 @@ mod tests {
 
         assert_eq!(
             val,
-            ConstValue::Object([(async_graphql::Name::new("name"), ConstValue::Null)].into())
+            ConstValue::Object([(gqlrs::Name::new("name"), ConstValue::Null)].into())
         );
     }
 
@@ -605,7 +604,7 @@ mod tests {
         let config = ConfigModule::from(config);
         let blueprint = Blueprint::try_from(&config).unwrap();
 
-        let doc = async_graphql::parser::parse_query("{ tags }").unwrap();
+        let doc = gqlrs::parser::parse_query("{ tags }").unwrap();
         let builder = Builder::new(&blueprint, &doc);
         let plan = builder.build(None).unwrap();
         let plan = plan
@@ -626,7 +625,7 @@ mod tests {
 
         assert_eq!(
             val,
-            ConstValue::Object([(async_graphql::Name::new("tags"), ConstValue::Null)].into())
+            ConstValue::Object([(gqlrs::Name::new("tags"), ConstValue::Null)].into())
         );
     }
 }

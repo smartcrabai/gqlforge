@@ -216,7 +216,7 @@ mod tests {
     #![expect(clippy::unwrap_used, reason = "test code")]
     use std::collections::HashSet;
 
-    use async_graphql::Value;
+    use gqlrs::Value;
     use http::header::HeaderMap;
     use pretty_assertions::assert_eq;
     use serde_json::json;

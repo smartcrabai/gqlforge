@@ -3,10 +3,10 @@ use std::sync::Arc;
 use std::time::Duration;
 
 use anyhow::anyhow;
-use async_graphql_value::ConstValue;
 use dashmap::DashMap;
 use dashmap::mapref::entry::Entry;
 use futures_util::{Stream, StreamExt, stream};
+use gqlrs_value::ConstValue;
 use redis::aio::PubSubSink;
 use redis::streams::StreamId;
 use tokio::sync::broadcast;
@@ -519,20 +519,14 @@ fn entry_to_const_value(
     for (field, value) in &entry.map {
         let const_value = redis_value_to_const(value.clone())?;
         fields.insert(
-            async_graphql::Name::new(field),
+            gqlrs::Name::new(field),
             decode_value_leaves(const_value, payload_type),
         );
     }
 
     let mut object = indexmap::IndexMap::with_capacity(2);
-    object.insert(
-        async_graphql::Name::new("id"),
-        ConstValue::String(entry.id.clone()),
-    );
-    object.insert(
-        async_graphql::Name::new("values"),
-        ConstValue::Object(fields),
-    );
+    object.insert(gqlrs::Name::new("id"), ConstValue::String(entry.id.clone()));
+    object.insert(gqlrs::Name::new("values"), ConstValue::Object(fields));
     Ok(ConstValue::Object(object))
 }
 

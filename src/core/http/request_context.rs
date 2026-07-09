@@ -2,9 +2,9 @@ use std::num::NonZeroU64;
 use std::str::FromStr;
 use std::sync::{Arc, Mutex, PoisonError};
 
-use async_graphql_value::ConstValue;
 use cache_control::{Cachability, CacheControl};
 use derive_setters::Setters;
+use gqlrs_value::ConstValue;
 use http::header::{HeaderMap, HeaderName, HeaderValue};
 
 use crate::core::app_context::AppContext;

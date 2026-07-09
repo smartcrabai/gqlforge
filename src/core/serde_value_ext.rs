@@ -1,6 +1,6 @@
 use std::borrow::Cow;
 
-use async_graphql::{Name, Value as GraphQLValue};
+use gqlrs::{Name, Value as GraphQLValue};
 use indexmap::IndexMap;
 
 use crate::core::blueprint::DynamicValue;
@@ -10,7 +10,7 @@ pub trait ValueExt {
     fn render_value(&self, ctx: &impl PathString) -> GraphQLValue;
 }
 
-impl ValueExt for DynamicValue<async_graphql::Value> {
+impl ValueExt for DynamicValue<gqlrs::Value> {
     fn render_value<'a>(&self, ctx: &'a impl PathString) -> GraphQLValue {
         match self {
             DynamicValue::Value(value) => value.to_owned(),
@@ -58,7 +58,7 @@ mod tests {
         let value = DynamicValue::try_from(&value).unwrap();
         let ctx = json!({"foo": {"bar": "baz"}});
         let result = value.render_value(&ctx);
-        let expected = async_graphql::Value::from_json(json!({"a": {"bar": "baz"}})).unwrap();
+        let expected = gqlrs::Value::from_json(json!({"a": {"bar": "baz"}})).unwrap();
         assert_eq!(result, expected);
     }
 
@@ -68,7 +68,7 @@ mod tests {
         let value = DynamicValue::try_from(&value).unwrap();
         let ctx = json!({"foo": {"bar": {"baz": 1}}});
         let result = value.render_value(&ctx);
-        let expected = async_graphql::Value::from_json(json!({"a": 1})).unwrap();
+        let expected = gqlrs::Value::from_json(json!({"a": 1})).unwrap();
         assert_eq!(result, expected);
     }
 
@@ -78,7 +78,7 @@ mod tests {
         let value = DynamicValue::try_from(&value).unwrap();
         let ctx = json!({"foo": {"bar": {"baz": "foo"}}});
         let result = value.render_value(&ctx);
-        let expected = async_graphql::Value::from_json(json!({"a": "foo"})).unwrap();
+        let expected = gqlrs::Value::from_json(json!({"a": "foo"})).unwrap();
         assert_eq!(result, expected);
     }
 
@@ -88,7 +88,7 @@ mod tests {
         let value = DynamicValue::try_from(&value).unwrap();
         let ctx = json!({"foo": {"bar": {"baz": null}}});
         let result = value.render_value(&ctx);
-        let expected = async_graphql::Value::from_json(json!(null)).unwrap();
+        let expected = gqlrs::Value::from_json(json!(null)).unwrap();
         assert_eq!(result, expected);
     }
 
@@ -98,7 +98,7 @@ mod tests {
         let value = DynamicValue::try_from(&value).unwrap();
         let ctx = json!({"foo": {"bar": {"baz": true}}});
         let result = value.render_value(&ctx);
-        let expected = async_graphql::Value::from_json(json!({"a": true})).unwrap();
+        let expected = gqlrs::Value::from_json(json!({"a": true})).unwrap();
         assert_eq!(result, expected);
     }
 
@@ -108,7 +108,7 @@ mod tests {
         let value = DynamicValue::try_from(&value).unwrap();
         let ctx = json!({"foo": {"bar": {"baz": 1.1}}});
         let result = value.render_value(&ctx);
-        let expected = async_graphql::Value::from_json(json!({"a": 1.1})).unwrap();
+        let expected = gqlrs::Value::from_json(json!({"a": 1.1})).unwrap();
         assert_eq!(result, expected);
     }
 
@@ -118,7 +118,7 @@ mod tests {
         let value = DynamicValue::try_from(&value).unwrap();
         let ctx = json!({"foo": {"bar": {"baz": [1,2,3]}}});
         let result = value.render_value(&ctx);
-        let expected = async_graphql::Value::from_json(json!({"a": [1, 2, 3]})).unwrap();
+        let expected = gqlrs::Value::from_json(json!({"a": [1, 2, 3]})).unwrap();
         assert_eq!(result, expected);
     }
 
@@ -128,7 +128,7 @@ mod tests {
         let value = DynamicValue::try_from(&value).unwrap();
         let ctx = json!({"foo": {"bar": {"baz": 1, "qux": 2}}});
         let result = value.render_value(&ctx);
-        let expected = async_graphql::Value::from_json(json!({"a": [1, 2]})).unwrap();
+        let expected = gqlrs::Value::from_json(json!({"a": [1, 2]})).unwrap();
         assert_eq!(result, expected);
     }
 
@@ -138,7 +138,7 @@ mod tests {
         let value = DynamicValue::try_from(&value).unwrap();
         let ctx = json!({"foo": "bar"});
         let result = value.render_value(&ctx);
-        let expected = async_graphql::Value::String("bar".to_owned());
+        let expected = gqlrs::Value::String("bar".to_owned());
         assert_eq!(result, expected);
     }
 
@@ -148,7 +148,7 @@ mod tests {
         let value = DynamicValue::try_from(&value).unwrap();
         let ctx = json!({"foo": {"bar": {"baz": 1, "qux": 2}}});
         let result = value.render_value(&ctx);
-        let expected = async_graphql::Value::from_json(json!([{"a": 1}, {"a":2}])).unwrap();
+        let expected = gqlrs::Value::from_json(json!([{"a": 1}, {"a":2}])).unwrap();
         assert_eq!(result, expected);
     }
 
@@ -159,8 +159,7 @@ mod tests {
         let ctx = json!({"foo": {"bar": {"baz": 1, "qux": 2}}});
         let result = value.render_value(&ctx);
         let expected =
-            async_graphql::Value::from_json(json!([{"a": [{"aa": 1}]}, {"a":[{"aa": 2}]}]))
-                .unwrap();
+            gqlrs::Value::from_json(json!([{"a": [{"aa": 1}]}, {"a":[{"aa": 2}]}])).unwrap();
         assert_eq!(result, expected);
     }
 }

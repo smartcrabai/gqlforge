@@ -1,7 +1,7 @@
 use anyhow::Result;
-use async_graphql_value::{ConstValue, Name};
 use bytes::Bytes;
 use derive_setters::Setters;
+use gqlrs_value::{ConstValue, Name};
 use http_body_util::Full;
 use indexmap::IndexMap;
 use prost::Message;
@@ -130,12 +130,9 @@ impl Response<Bytes> {
     /// # Errors
     ///
     /// Returns an error if the operation fails.
-    pub fn to_grpc_value(
-        self,
-        operation: &ProtobufOperation,
-    ) -> Result<Response<async_graphql::Value>> {
+    pub fn to_grpc_value(self, operation: &ProtobufOperation) -> Result<Response<gqlrs::Value>> {
         let mut resp = Response::default();
-        let body = operation.convert_output::<async_graphql::Value>(&self.body)?;
+        let body = operation.convert_output::<gqlrs::Value>(&self.body)?;
         resp.body = body;
         resp.status = self.status;
         resp.headers = self.headers;
@@ -147,7 +144,7 @@ impl Response<Bytes> {
             return Error::IO("Error while parsing upstream headers".to_owned()).into();
         };
 
-        let mut obj: IndexMap<Name, async_graphql::Value> = IndexMap::new();
+        let mut obj: IndexMap<Name, gqlrs::Value> = IndexMap::new();
         let mut status_details = Vec::new();
         if !grpc_status.details().is_empty() {
             if let Ok(status) = GrpcStatus::decode(grpc_status.details()) {
@@ -189,7 +186,7 @@ impl Response<Bytes> {
 
         // TODO: because of this conversion to anyhow::Error
         // we lose additional details that could be added
-        // through async_graphql::ErrorExtensions
+        // through gqlrs::ErrorExtensions
         anyhow::Error::new(error)
     }
 

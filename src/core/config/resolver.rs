@@ -1,9 +1,9 @@
 use std::ops::Deref;
 
-use async_graphql::Positioned;
-use async_graphql::parser::types::ConstDirective;
 use gqlforge_macros::{CustomResolver, MergeRight};
 use gqlforge_valid::{Valid, Validator};
+use gqlrs::Positioned;
+use gqlrs::parser::types::ConstDirective;
 use serde::{Deserialize, Serialize};
 
 use super::{Call, EntityResolver, Expr, GraphQL, Grpc, Http, JS, Postgres, Redis, S3};

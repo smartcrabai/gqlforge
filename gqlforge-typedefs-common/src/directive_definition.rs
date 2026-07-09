@@ -1,8 +1,8 @@
 use std::collections::HashSet;
 use std::hash::BuildHasher;
 
-use async_graphql::Name;
-use async_graphql::parser::types::{DirectiveLocation, TypeSystemDefinition};
+use gqlrs::Name;
+use gqlrs::parser::types::{DirectiveLocation, TypeSystemDefinition};
 use schemars::Schema;
 use serde_json::Value;
 
@@ -88,7 +88,7 @@ pub fn into_directive_definition<S: BuildHasher>(
     };
 
     let directive_definition =
-        TypeSystemDefinition::Directive(pos(async_graphql::parser::types::DirectiveDefinition {
+        TypeSystemDefinition::Directive(pos(gqlrs::parser::types::DirectiveDefinition {
             description: description.map(|inner| pos(inner.to_owned())),
             name: pos(Name::new(name)),
             arguments: into_input_value_definition(root_obj),

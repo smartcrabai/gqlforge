@@ -1,11 +1,11 @@
-use async_graphql::parser::types::{
+use gqlforge_valid::Validator;
+use gqlrs::parser::types::{
     ConstDirective, EnumType, EnumValueDefinition, FieldDefinition, InputObjectType,
     InputValueDefinition, InterfaceType, ObjectType, SchemaDefinition, ServiceDocument,
     TypeDefinition, TypeKind, TypeSystemDefinition, UnionType,
 };
-use async_graphql::{Name, Positioned};
-use async_graphql_value::ConstValue;
-use gqlforge_valid::Validator;
+use gqlrs::{Name, Positioned};
+use gqlrs_value::ConstValue;
 
 use super::blueprint;
 use super::directive::{Directive, to_const_directive};
