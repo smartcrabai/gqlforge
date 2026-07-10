@@ -154,7 +154,7 @@ after-pr:
 
       markers (<<<<<<<), then run `git add <files>` / `git commit`.
 
-      There is no need to push — the next step handles that.
+      There is no need to push - the next step handles that.
 
 "
   push-after-sync:
