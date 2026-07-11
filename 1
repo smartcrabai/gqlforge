@@ -1,0 +1,46 @@
++ [[ --mode=check == \-\-\m\o\d\e\=* ]]
++ MODE=check
++ case $MODE in
++ run_check_non_ascii
++ local result
+++ LC_ALL=C
+++ grep -rn '--include=*.rs' '--include=*.toml' '--include=*.yml' '--include=*.yaml' '--include=*.graphql' '--include=*.json' --exclude-dir=target --exclude-dir=.git '[^[:print:][:space:]]' .
++ result='./cruise.yaml:157:      There is no need to push — the next step handles that.'
++ '[' -n './cruise.yaml:157:      There is no need to push — the next step handles that.' ']'
++ echo 'Error: Non-ASCII characters found in source files:'
++ echo './cruise.yaml:157:      There is no need to push — the next step handles that.'
++ return 1
++ NON_ASCII_EXIT_CODE=1
++ run_autogen_schema check
++ MODE=check
++ cargo run -p gqlforge-typedefs check
+./lint.sh: line 36: cargo: command not found
++ return 127
++ AUTOGEN_SCHEMA_EXIT_CODE=127
++ run_dprint check
++ MODE=check
++ '[' check == check ']'
++ dprint check
+./lint.sh: line 27: dprint: command not found
++ return 127
++ DPRINT_EXIT_CODE=127
++ pushd .nightly
++ run_cargo_fmt check
++ MODE=check
++ '[' check == check ']'
++ cargo fmt --all -- --check
+./lint.sh: line 6: cargo: command not found
++ return 127
++ FMT_EXIT_CODE=127
++ run_cargo_clippy check
++ MODE=check
++ CMD='cargo clippy --all --all-targets --all-features'
++ '[' check == fix ']'
++ CMD='cargo clippy --all --all-targets --all-features -- -D warnings'
++ cargo clippy --all --all-targets --all-features -- -D warnings
+./lint.sh: line 20: cargo: command not found
++ return 127
++ CLIPPY_EXIT_CODE=127
++ popd
++ '[' 127 -ne 0 ']'
++ exit 1
