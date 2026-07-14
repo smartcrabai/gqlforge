@@ -77,7 +77,7 @@ diff and one lens, not the others' output.
 
 Reviewers to spawn:
 
-- **Eight generic reviewers**, one per dimension, each looking at the *same*
+- **Eight generic reviewers**, one per dimension, each looking at the _same_
   full diff from a different angle. Dimensions 1-3 mirror companion skills
   that may be installed in this environment (`code-review`, `ai-antipattern`,
   `security-review`); instruct that reviewer to load the same-named skill if

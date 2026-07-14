@@ -24,6 +24,7 @@ posting comments.
 ## Phase 1 — Fetch the PR
 
 Determine the PR number:
+
 - Use the number given in the skill arguments or the user's message if present.
 - Otherwise, run `gh pr view --json number,title` to detect the PR associated
   with the current branch.
@@ -31,6 +32,7 @@ Determine the PR number:
   which PR to review rather than guessing.
 
 Fetch metadata and diff:
+
 - `gh pr view <number> --json title,body,author,baseRefName,headRefName,files,additions,deletions`
   — the title/body capture the PR's stated intent, which reviewers need in
   order to judge whether the diff actually does what it claims, not just
@@ -70,6 +72,7 @@ them serially would work but wastes wall-clock time for no benefit, since the
 reviews are independent of each other.
 
 Spawn:
+
 - **Eight generic reviewers**, one per dimension below, each looking at the
   whole diff unless noted otherwise. Dimensions 1-3 mirror the `code-review`,
   `ai-antipattern`, and `security-review` skills that may already exist in
@@ -162,6 +165,7 @@ Spawn:
   manageable while still giving each perspective dedicated attention.
 
 Each subagent's prompt must include:
+
 - The PR number and the exact command to fetch the diff itself
   (`gh pr diff <number>`) — subagents start with no context, so they need to
   pull the diff themselves rather than relying on a paraphrase.
@@ -186,6 +190,7 @@ detail: <why it is a problem and a concrete failure scenario>
 ```
 
 Instruct every subagent to:
+
 - Report only findings it is confident about and can back with a concrete
   failure scenario — not stylistic nitpicks or speculative "might be an
   issue" hedges. A review report loses credibility fast if it's padded with
@@ -201,6 +206,7 @@ Instruct every subagent to:
 Two findings are duplicates when they point at the same root cause at the
 same location (same file, overlapping line ranges) — even if the wording
 differs or they came from different perspectives. When merging duplicates:
+
 - Keep the highest severity reported and the clearest explanation.
 - List every perspective that flagged it. Convergence across independent
   perspectives is itself a signal worth surfacing — if both the security

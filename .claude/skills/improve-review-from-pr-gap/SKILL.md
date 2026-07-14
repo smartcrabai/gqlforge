@@ -105,7 +105,7 @@ questions, not one):
    section.
 3. **What generalized, reusable check would have caught it?** Phrase it as a
    perspective that applies to future, unrelated diffs sharing the same
-   *shape* of problem — not as a description of this specific incident. E.g.
+   _shape_ of problem — not as a description of this specific incident. E.g.
    generalize "PR #123 forgot to handle the `cancelled` status in the
    invoice state machine" into "when a diff adds or branches on an enum/union
    value, verify every switch/match over that type is updated" — not "check
@@ -144,18 +144,25 @@ origin: gap analysis of PR #<original> vs PR #<fix>
 # <Title>
 
 ## When to apply
+
 <which file types, code patterns, or change types this applies to — used by review skills to decide relevance>
 
 ## What to check
+
 - <concrete, checkable items — imperative>
 
 ## Background
+
 <what the original PR missed and how the fix PR revealed it, 2-4 sentences>
 
 ## Examples
+
 ### Bad
+
 <minimal snippet distilled from the original PR's miss>
+
 ### Good
+
 <corrected version distilled from the fix PR>
 ```
 

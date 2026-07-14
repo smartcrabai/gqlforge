@@ -114,18 +114,25 @@ origin: session <YYYY-MM-DD>
 # <Title>
 
 ## When to apply
+
 <which file types, code patterns, or change types this applies to — used by review skills to decide relevance>
 
 ## What to check
+
 - <concrete, checkable items — imperative>
 
 ## Background
+
 <the incident/lesson that motivated this perspective, 2-4 sentences>
 
 ## Examples
+
 ### Bad
+
 <minimal illustrative snippet, optional>
+
 ### Good
+
 <corrected version, optional>
 ```
 
