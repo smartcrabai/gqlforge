@@ -1,12 +1,13 @@
 ---
 description: 'Use this whenever the user asks to review a pull request by number (e.g. ''review PR #123'', ''PR 45を見て'', ''review this PR''), to evaluate a PR''s diff against generic review criteria (code-review, ai-antipattern, security, edge cases, backward compatibility, functional impact, test sufficiency/coverage) and the project''s custom review perspectives stored in ./.review/*.md, running each perspective as a parallel subagent, deduplicating overlapping findings, and producing one consolidated report; this skill only reports findings and never edits code or posts PR comments unless the user separately asks for that.'
 metadata:
-    github-path: skills/review-pr
-    github-ref: refs/heads/main
-    github-repo: https://github.com/smartcrabai/agent-skills
-    github-tree-sha: 726a0002ebf2ba1f1a564660afef53a0791e2668
+  github-path: skills/review-pr
+  github-ref: refs/heads/main
+  github-repo: https://github.com/smartcrabai/agent-skills
+  github-tree-sha: 726a0002ebf2ba1f1a564660afef53a0791e2668
 name: review-pr
 ---
+
 # Review PR
 
 Review a GitHub Pull Request from multiple angles at once: eight generic
@@ -23,6 +24,7 @@ posting comments.
 ## Phase 1 — Fetch the PR
 
 Determine the PR number:
+
 - Use the number given in the skill arguments or the user's message if present.
 - Otherwise, run `gh pr view --json number,title` to detect the PR associated
   with the current branch.
@@ -30,6 +32,7 @@ Determine the PR number:
   which PR to review rather than guessing.
 
 Fetch metadata and diff:
+
 - `gh pr view <number> --json title,body,author,baseRefName,headRefName,files,additions,deletions`
   — the title/body capture the PR's stated intent, which reviewers need in
   order to judge whether the diff actually does what it claims, not just
@@ -69,6 +72,7 @@ them serially would work but wastes wall-clock time for no benefit, since the
 reviews are independent of each other.
 
 Spawn:
+
 - **Eight generic reviewers**, one per dimension below, each looking at the
   whole diff unless noted otherwise. Dimensions 1-3 mirror the `code-review`,
   `ai-antipattern`, and `security-review` skills that may already exist in
@@ -161,6 +165,7 @@ Spawn:
   manageable while still giving each perspective dedicated attention.
 
 Each subagent's prompt must include:
+
 - The PR number and the exact command to fetch the diff itself
   (`gh pr diff <number>`) — subagents start with no context, so they need to
   pull the diff themselves rather than relying on a paraphrase.
@@ -185,6 +190,7 @@ detail: <why it is a problem and a concrete failure scenario>
 ```
 
 Instruct every subagent to:
+
 - Report only findings it is confident about and can back with a concrete
   failure scenario — not stylistic nitpicks or speculative "might be an
   issue" hedges. A review report loses credibility fast if it's padded with
@@ -200,6 +206,7 @@ Instruct every subagent to:
 Two findings are duplicates when they point at the same root cause at the
 same location (same file, overlapping line ranges) — even if the wording
 differs or they came from different perspectives. When merging duplicates:
+
 - Keep the highest severity reported and the clearest explanation.
 - List every perspective that flagged it. Convergence across independent
   perspectives is itself a signal worth surfacing — if both the security

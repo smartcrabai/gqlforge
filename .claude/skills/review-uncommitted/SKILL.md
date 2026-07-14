@@ -1,12 +1,13 @@
 ---
 description: Use this whenever the user asks to review uncommitted/local/working-tree changes, check the current diff before committing, or evaluate pending changes against the project's custom review perspectives in ./.review/; it gathers staged, unstaged, and untracked changes, runs generic and project-specific reviewers in parallel subagents, deduplicates their findings, and returns one consolidated report without modifying any code.
 metadata:
-    github-path: skills/review-uncommitted
-    github-ref: refs/heads/main
-    github-repo: https://github.com/smartcrabai/agent-skills
-    github-tree-sha: d82b57e9bd6ae02c7e4d31932b783517cf64ec8b
+  github-path: skills/review-uncommitted
+  github-ref: refs/heads/main
+  github-repo: https://github.com/smartcrabai/agent-skills
+  github-tree-sha: d82b57e9bd6ae02c7e4d31932b783517cf64ec8b
 name: review-uncommitted
 ---
+
 # Review Uncommitted Changes
 
 Review everything in the working tree that has not yet been committed — staged
@@ -76,7 +77,7 @@ diff and one lens, not the others' output.
 
 Reviewers to spawn:
 
-- **Eight generic reviewers**, one per dimension, each looking at the *same*
+- **Eight generic reviewers**, one per dimension, each looking at the _same_
   full diff from a different angle. Dimensions 1-3 mirror companion skills
   that may be installed in this environment (`code-review`, `ai-antipattern`,
   `security-review`); instruct that reviewer to load the same-named skill if

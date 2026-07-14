@@ -1,12 +1,13 @@
 ---
 description: 'Use this when the user says a merged PR turned out to have an oversight/missed case that needed a follow-up fix PR, and wants to extract the review perspectives that would have caught it — e.g. ''PR #123 had a miss, analyze the gap'', ''対応漏れがあったPR 123から観点を抽出して''; it compares the original PR and its fix PR, determines which gaps were actually catchable at review time, and writes or strengthens perspective files under ./.review/ for the companion skills review-uncommitted and review-pr to apply going forward.'
 metadata:
-    github-path: skills/improve-review-from-pr-gap
-    github-ref: refs/heads/main
-    github-repo: https://github.com/smartcrabai/agent-skills
-    github-tree-sha: 28ebc98804b94a42a6c6ffe441eafec04b1ed357
+  github-path: skills/improve-review-from-pr-gap
+  github-ref: refs/heads/main
+  github-repo: https://github.com/smartcrabai/agent-skills
+  github-tree-sha: 28ebc98804b94a42a6c6ffe441eafec04b1ed357
 name: improve-review-from-pr-gap
 ---
+
 # Improve Review from PR Gap
 
 When a bug slips through review and needs a follow-up fix, the fix PR is
@@ -104,7 +105,7 @@ questions, not one):
    section.
 3. **What generalized, reusable check would have caught it?** Phrase it as a
    perspective that applies to future, unrelated diffs sharing the same
-   *shape* of problem — not as a description of this specific incident. E.g.
+   _shape_ of problem — not as a description of this specific incident. E.g.
    generalize "PR #123 forgot to handle the `cancelled` status in the
    invoice state machine" into "when a diff adds or branches on an enum/union
    value, verify every switch/match over that type is updated" — not "check
@@ -143,18 +144,25 @@ origin: gap analysis of PR #<original> vs PR #<fix>
 # <Title>
 
 ## When to apply
+
 <which file types, code patterns, or change types this applies to — used by review skills to decide relevance>
 
 ## What to check
+
 - <concrete, checkable items — imperative>
 
 ## Background
+
 <what the original PR missed and how the fix PR revealed it, 2-4 sentences>
 
 ## Examples
+
 ### Bad
+
 <minimal snippet distilled from the original PR's miss>
+
 ### Good
+
 <corrected version distilled from the fix PR>
 ```
 
