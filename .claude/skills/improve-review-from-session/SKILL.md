@@ -1,12 +1,13 @@
 ---
 description: Use this when the user asks to capture lessons from this session as review perspectives, save review viewpoints, turn this session's mistakes/feedback into review checklist items, or add to ./.review/; it mines the current conversation for corrections, caught bugs, and non-obvious constraints, generalizes them into reusable checks, deduplicates against existing perspectives, and writes or updates one Markdown file per perspective under ./.review/ for the companion review-uncommitted and review-pr skills to consume automatically.
 metadata:
-    github-path: skills/improve-review-from-session
-    github-ref: refs/heads/main
-    github-repo: https://github.com/smartcrabai/agent-skills
-    github-tree-sha: 5fdba0a928f27c16c586ee9b5462abc30fca5c98
+  github-path: skills/improve-review-from-session
+  github-ref: refs/heads/main
+  github-repo: https://github.com/smartcrabai/agent-skills
+  github-tree-sha: 5fdba0a928f27c16c586ee9b5462abc30fca5c98
 name: improve-review-from-session
 ---
+
 # Improve Review from Session
 
 Turn what just went wrong (or almost went wrong) in this session into a
