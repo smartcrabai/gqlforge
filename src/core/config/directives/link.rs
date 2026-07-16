@@ -55,12 +55,20 @@ pub enum LinkType {
     Grpc,
 
     /// Points to a SQL migration file. Used to build a database schema for
-    /// the `@postgres` directive offline (without a live database connection).
+    /// the `@postgres` and `@greptimedb` directives offline (without a live
+    /// database connection).
     Sql,
 
     /// Points to a `PostgreSQL` connection string. The database will be
     /// introspected at startup to build a schema for the `@postgres` directive.
     Postgres,
+
+    /// Points to a `GreptimeDB` connection string using its
+    /// `PostgreSQL`-compatible protocol. The database is introspected at
+    /// startup to build a schema for the `@greptimedb` directive.
+    #[serde(rename = "GreptimeDB")]
+    #[strum(to_string = "GreptimeDB")]
+    GreptimeDb,
 
     /// Points to an S3 or S3-compatible endpoint. The endpoint URL and
     /// region/credentials metadata are used by the `@s3` directive.
@@ -105,6 +113,27 @@ mod tests {
         let link: Link = serde_json::from_str(json)?;
         assert_eq!(link.type_of, LinkType::AuroraDsql);
         assert_eq!(link.src, "cluster.dsql.us-east-1.on.aws");
+        Ok(())
+    }
+
+    #[test]
+    fn greptimedb_link_type_uses_its_public_name() -> serde_json::Result<()> {
+        let link = Link {
+            type_of: LinkType::GreptimeDb,
+            src: "postgresql://greptime@localhost:4003/public".to_string(),
+            ..Default::default()
+        };
+
+        assert_eq!(LinkType::GreptimeDb.to_string(), "GreptimeDB");
+        assert_eq!(serde_json::to_value(&link)?["type"], "GreptimeDB");
+        assert_eq!(
+            serde_json::from_value::<Link>(serde_json::json!({
+                "src": "postgresql://greptime@localhost:4003/public",
+                "type": "GreptimeDB"
+            }))?
+            .type_of,
+            LinkType::GreptimeDb
+        );
         Ok(())
     }
 

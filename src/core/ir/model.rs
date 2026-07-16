@@ -277,7 +277,9 @@ impl<'a, Ctx: ResolverContextLike + Sync> CacheKey<EvalContext<'a, Ctx>> for IO 
             | IO::RedisStream { .. }
             | IO::Js { .. } => None,
             IO::GraphQL { req_template, .. } => req_template.cache_key(ctx),
-            IO::Postgres { req_template, .. } => req_template.cache_key(ctx),
+            IO::Postgres { req_template, connection_id, .. } => {
+                req_template.cache_key_with_connection(ctx, connection_id)
+            }
             IO::Redis { req_template, connection_id, .. } => {
                 req_template.cache_key_with_connection(ctx, connection_id)
             }

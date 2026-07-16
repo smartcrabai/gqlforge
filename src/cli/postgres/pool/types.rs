@@ -35,7 +35,7 @@ impl<'a> postgres_types::FromSql<'a> for EnumText {
 
 /// Wrapper that converts a string parameter to the type `PostgreSQL` expects.
 #[derive(Debug)]
-pub(crate) struct TypedParam(pub(crate) String);
+pub(crate) struct TypedParam(pub(crate) Option<String>);
 
 impl postgres_types::ToSql for TypedParam {
     fn to_sql(
@@ -45,9 +45,13 @@ impl postgres_types::ToSql for TypedParam {
     ) -> Result<postgres_types::IsNull, Box<dyn std::error::Error + Sync + Send>> {
         use postgres_types::Type;
 
+        let Some(value) = self.0.as_deref() else {
+            return Ok(postgres_types::IsNull::Yes);
+        };
+
         match *ty {
             Type::BOOL => {
-                let b = match self.0.to_lowercase().as_str() {
+                let b = match value.to_lowercase().as_str() {
                     "true" | "t" | "1" | "yes" => true,
                     "false" | "f" | "0" | "no" => false,
                     other => {
@@ -57,50 +61,50 @@ impl postgres_types::ToSql for TypedParam {
                 b.to_sql(&Type::BOOL, out)
             }
             Type::INT2 => {
-                let v: i16 = self.0.parse()?;
+                let v: i16 = value.parse()?;
                 v.to_sql(&Type::INT2, out)
             }
             Type::INT4 => {
-                let v: i32 = self.0.parse()?;
+                let v: i32 = value.parse()?;
                 v.to_sql(&Type::INT4, out)
             }
             Type::INT8 => {
-                let v: i64 = self.0.parse()?;
+                let v: i64 = value.parse()?;
                 v.to_sql(&Type::INT8, out)
             }
             Type::FLOAT4 => {
-                let v: f32 = self.0.parse()?;
+                let v: f32 = value.parse()?;
                 v.to_sql(&Type::FLOAT4, out)
             }
             Type::FLOAT8 => {
-                let v: f64 = self.0.parse()?;
+                let v: f64 = value.parse()?;
                 v.to_sql(&Type::FLOAT8, out)
             }
             Type::TIMESTAMP => {
-                let dt = parse_naive_datetime(&self.0)?;
+                let dt = parse_naive_datetime(value)?;
                 dt.to_sql(&Type::TIMESTAMP, out)
             }
             Type::TIMESTAMPTZ => {
-                let dt = chrono::DateTime::parse_from_rfc3339(&self.0)
+                let dt = chrono::DateTime::parse_from_rfc3339(value)
                     .map(|d| d.with_timezone(&chrono::Utc))?;
                 dt.to_sql(&Type::TIMESTAMPTZ, out)
             }
             Type::DATE => {
-                let d = chrono::NaiveDate::parse_from_str(&self.0, "%Y-%m-%d")?;
+                let d = chrono::NaiveDate::parse_from_str(value, "%Y-%m-%d")?;
                 d.to_sql(&Type::DATE, out)
             }
             Type::TIME => {
-                let t = parse_naive_time(&self.0)?;
+                let t = parse_naive_time(value)?;
                 t.to_sql(&Type::TIME, out)
             }
             Type::UUID => {
-                let bytes = parse_uuid_to_bytes(&self.0)?;
+                let bytes = parse_uuid_to_bytes(value)?;
                 out.extend_from_slice(&bytes);
                 Ok(postgres_types::IsNull::No)
             }
             _ => {
                 // TEXT, VARCHAR, enum, and everything else: send as raw UTF-8.
-                out.extend_from_slice(self.0.as_bytes());
+                out.extend_from_slice(value.as_bytes());
                 Ok(postgres_types::IsNull::No)
             }
         }
@@ -143,7 +147,7 @@ mod tests {
         use bytes::BytesMut;
         use postgres_types::ToSql;
 
-        let param = TypedParam(value.to_string());
+        let param = TypedParam(Some(value.to_string()));
         let mut buf = BytesMut::new();
         param.to_sql(ty, &mut buf)?;
         Ok(buf.to_vec())
@@ -292,5 +296,21 @@ mod tests {
     #[test]
     fn test_typed_param_uuid_invalid() {
         assert!(typed_param_to_bytes("invalid-uuid", &postgres_types::Type::UUID).is_err());
+    }
+
+    #[test]
+    fn typed_param_null_encodes_sql_null() {
+        use bytes::BytesMut;
+        use postgres_types::ToSql;
+
+        let param = TypedParam(None);
+        let mut buffer = BytesMut::new();
+        assert!(matches!(
+            param
+                .to_sql(&postgres_types::Type::TEXT, &mut buffer)
+                .unwrap(),
+            postgres_types::IsNull::Yes
+        ));
+        assert!(buffer.is_empty());
     }
 }

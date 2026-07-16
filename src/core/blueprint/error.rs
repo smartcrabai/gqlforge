@@ -112,8 +112,8 @@ pub enum BlueprintError {
     #[error("Only one key link is allowed")]
     OnlyOneKeyLinkAllowed,
 
-    #[error("Multiple @link(type: Postgres) require explicit 'id' on each link")]
-    PostgresMultipleLinksRequireId,
+    #[error("PostgreSQL-compatible connection id '{0}' is used more than once")]
+    PostgresConnectionIdCollision(String),
 
     #[error("Multiple @link(type: Redis) require explicit 'id' on each link")]
     RedisMultipleLinksRequireId,

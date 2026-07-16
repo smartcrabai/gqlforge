@@ -89,12 +89,13 @@ impl PgType {
         }
     }
 
-    /// The corresponding GraphQL scalar name.
+    /// The corresponding GraphQL scalar name. `Numeric` uses `String` to
+    /// preserve its exact decoded precision.
     #[must_use]
     pub fn graphql_scalar(&self) -> &str {
         match self {
             PgType::SmallInt | PgType::Integer => "Int",
-            PgType::Real | PgType::DoublePrecision | PgType::Numeric => "Float",
+            PgType::Real | PgType::DoublePrecision => "Float",
             PgType::Boolean => "Boolean",
             PgType::Uuid => "ID",
             PgType::Json | PgType::Jsonb | PgType::Array(_) => "JSON",
@@ -199,15 +200,20 @@ impl DatabaseSchema {
         self
     }
 
-    /// Look up a table by name (tries both `schema.name` and `public.name`).
+    /// Look up a table by a qualified name, `public` fallback, or an
+    /// unambiguous table name in another schema.
     #[must_use]
     pub fn find_table(&self, name: &str) -> Option<&Table> {
         self.tables.get(name).or_else(|| {
             if name.contains('.') {
-                None
-            } else {
-                self.tables.get(&format!("public.{name}"))
+                return None;
             }
+
+            self.tables.get(&format!("public.{name}")).or_else(|| {
+                let mut matches = self.tables.values().filter(|table| table.name == name);
+                let table = matches.next()?;
+                matches.next().is_none().then_some(table)
+            })
         })
     }
 }
@@ -286,6 +292,7 @@ mod tests {
         assert_eq!(PgType::Text.graphql_scalar(), "String");
         assert_eq!(PgType::Uuid.graphql_scalar(), "ID");
         assert_eq!(PgType::Jsonb.graphql_scalar(), "JSON");
+        assert_eq!(PgType::Numeric.graphql_scalar(), "String");
     }
 
     #[test]
@@ -304,6 +311,33 @@ mod tests {
         assert!(schema.find_table("public.users").is_some());
         assert!(schema.find_table("users").is_some());
         assert!(schema.find_table("nonexistent").is_none());
+    }
+
+    #[test]
+    fn database_schema_finds_unambiguous_non_public_table() {
+        let mut schema = DatabaseSchema::new();
+        schema.add_table(Table {
+            schema: "metrics".into(),
+            name: "events".into(),
+            columns: vec![],
+            primary_key: None,
+            foreign_keys: vec![],
+            unique_constraints: vec![],
+            is_view: false,
+        });
+
+        assert!(schema.find_table("events").is_some());
+
+        schema.add_table(Table {
+            schema: "archive".into(),
+            name: "events".into(),
+            columns: vec![],
+            primary_key: None,
+            foreign_keys: vec![],
+            unique_constraints: vec![],
+            is_view: false,
+        });
+        assert!(schema.find_table("events").is_none());
     }
 
     #[test]

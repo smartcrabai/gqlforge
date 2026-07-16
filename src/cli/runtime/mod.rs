@@ -94,6 +94,14 @@ pub fn init(blueprint: &Blueprint) -> anyhow::Result<TargetRuntime> {
                         as Arc<dyn crate::core::postgres::PostgresListenerIO>,
                 );
             }
+            PostgresConnectionSpec::GreptimeDbUrl(url) => {
+                let pool = crate::cli::postgres::pool::PostgresPool::new(url)
+                    .map_err(|e| anyhow::anyhow!("Failed to create GreptimeDB pool '{id}': {e}"))?;
+                postgres.insert(
+                    id.clone(),
+                    Arc::new(pool) as Arc<dyn crate::core::postgres::PostgresIO>,
+                );
+            }
             PostgresConnectionSpec::AuroraDsql { endpoint, region, admin } => {
                 let pool =
                     crate::cli::postgres::dsql_pool::AuroraDsqlPool::new(endpoint, region, *admin)

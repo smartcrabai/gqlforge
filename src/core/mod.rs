@@ -16,6 +16,7 @@ pub mod error;
 pub mod generator;
 pub mod gqlrs_hyper;
 pub mod graphql;
+pub mod greptimedb;
 pub mod grpc;
 pub mod has_headers;
 pub mod helpers;

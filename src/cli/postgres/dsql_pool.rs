@@ -86,19 +86,37 @@ impl AuroraDsqlPool {
 
 #[async_trait::async_trait]
 impl PostgresIO for AuroraDsqlPool {
-    async fn execute(&self, query: &str, params: &[String]) -> anyhow::Result<ConstValue> {
+    async fn execute(&self, query: &str, params: &[Option<String>]) -> anyhow::Result<ConstValue> {
         let client = self
             .inner
             .get()
             .await
             .map_err(|e| anyhow::anyhow!("DSQL pool error: {e}"))?;
-        let typed_params: Vec<TypedParam> = params.iter().map(|p| TypedParam(p.clone())).collect();
+        let typed_params: Vec<TypedParam> = params.iter().cloned().map(TypedParam).collect();
         let param_refs: Vec<&(dyn tokio_postgres::types::ToSql + Sync)> = typed_params
             .iter()
             .map(|p| p as &(dyn tokio_postgres::types::ToSql + Sync))
             .collect();
         let rows = client.query(query, &param_refs).await?;
         rows_to_const_value(&rows)
+    }
+
+    async fn execute_affected(
+        &self,
+        query: &str,
+        params: &[Option<String>],
+    ) -> anyhow::Result<u64> {
+        let client = self
+            .inner
+            .get()
+            .await
+            .map_err(|error| anyhow::anyhow!("DSQL pool error: {error}"))?;
+        let typed_params: Vec<TypedParam> = params.iter().cloned().map(TypedParam).collect();
+        let param_refs: Vec<&(dyn tokio_postgres::types::ToSql + Sync)> = typed_params
+            .iter()
+            .map(|param| param as &(dyn tokio_postgres::types::ToSql + Sync))
+            .collect();
+        Ok(client.execute(query, &param_refs).await?)
     }
 }
 

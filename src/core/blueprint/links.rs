@@ -55,13 +55,22 @@ impl TryFrom<Vec<Link>> for Links {
             }
         })
         .and_then(|links| {
-            let pg_links: Vec<&Link> = links
+            let mut connection_ids = std::collections::HashSet::new();
+            let collision = links
                 .iter()
-                .filter(|l| l.type_of == LinkType::Postgres)
-                .collect();
+                .filter(|link| {
+                    matches!(
+                        link.type_of,
+                        LinkType::Postgres | LinkType::GreptimeDb | LinkType::AuroraDsql
+                    )
+                })
+                .find_map(|link| {
+                    let id = link.id.as_deref().unwrap_or("default");
+                    (!connection_ids.insert(id)).then(|| id.to_string())
+                });
 
-            if pg_links.len() > 1 && pg_links.iter().any(|l| l.id.is_none()) {
-                Valid::fail(BlueprintError::PostgresMultipleLinksRequireId)
+            if let Some(id) = collision {
+                Valid::fail(BlueprintError::PostgresConnectionIdCollision(id))
             } else {
                 Valid::succeed(links)
             }
@@ -90,13 +99,17 @@ mod tests {
     #![expect(clippy::unwrap_used, reason = "test code")]
     use super::*;
 
-    fn pg_link(id: Option<&str>, src: &str) -> Link {
+    fn database_link(type_of: LinkType, id: Option<&str>, src: &str) -> Link {
         Link {
             src: src.to_string(),
-            type_of: LinkType::Postgres,
+            type_of,
             id: id.map(std::string::ToString::to_string),
             ..Default::default()
         }
+    }
+
+    fn pg_link(id: Option<&str>, src: &str) -> Link {
+        database_link(LinkType::Postgres, id, src)
     }
 
     fn redis_link(id: Option<&str>, src: &str) -> Link {
@@ -124,21 +137,13 @@ mod tests {
     }
 
     #[test]
-    fn multiple_postgres_links_missing_id_fails() {
+    fn named_and_unnamed_postgres_links_succeed() {
         let links = vec![
             pg_link(Some("main"), "postgres://localhost/main"),
             pg_link(None, "postgres://localhost/analytics"),
         ];
-        let result = Links::try_from(links);
-        assert!(result.is_err());
-        let err = result.unwrap_err();
-        let messages: Vec<String> = err.as_vec().iter().map(|c| c.message.to_string()).collect();
-        assert!(
-            messages
-                .iter()
-                .any(|m| m.contains("Multiple @link(type: Postgres)")),
-            "Expected PostgresMultipleLinksRequireId error, got: {messages:?}"
-        );
+
+        assert!(Links::try_from(links).is_ok());
     }
 
     #[test]
@@ -165,6 +170,40 @@ mod tests {
             messages.iter().any(|m| m.contains("Duplicated")),
             "Expected Duplicated error, got: {messages:?}"
         );
+    }
+
+    #[test]
+    fn postgres_and_named_greptimedb_links_succeed() {
+        let links = vec![
+            pg_link(None, "postgres://localhost/app"),
+            database_link(
+                LinkType::GreptimeDb,
+                Some("metrics"),
+                "postgres://localhost:4003/public",
+            ),
+        ];
+
+        assert!(Links::try_from(links).is_ok());
+    }
+
+    #[test]
+    fn unnamed_greptimedb_and_aurora_dsql_links_fail() {
+        let links = vec![
+            database_link(
+                LinkType::GreptimeDb,
+                None,
+                "postgres://localhost:4003/public",
+            ),
+            database_link(LinkType::AuroraDsql, None, "cluster.dsql.us-east-1.on.aws"),
+        ];
+
+        let error = Links::try_from(links).unwrap_err();
+        assert!(error.as_vec().iter().any(|cause| {
+            cause
+                .message
+                .to_string()
+                .contains("connection id 'default'")
+        }));
     }
 
     #[test]

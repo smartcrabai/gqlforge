@@ -155,6 +155,12 @@ impl ConfigReader {
                     let id = link.id.clone().or_else(|| Some("default".to_string()));
                     extensions.add_database_schema(id, db_schema);
                 }
+                LinkType::GreptimeDb => {
+                    let db_schema =
+                        crate::core::greptimedb::introspector::introspect(&link.src).await?;
+                    let id = link.id.clone().or_else(|| Some("default".to_string()));
+                    extensions.add_database_schema(id, db_schema);
+                }
                 LinkType::S3 => {
                     // Extract region and forcePathStyle from link meta.
                     let meta = link.meta.as_ref();

@@ -47,7 +47,17 @@ pub(crate) fn make_tls_connect() -> anyhow::Result<tokio_postgres_rustls::MakeRu
 pub trait PostgresIO: Send + Sync + 'static {
     /// Execute a parameterised SQL query and return the result rows as a
     /// `ConstValue` (typically a JSON array of objects).
-    async fn execute(&self, query: &str, params: &[String]) -> anyhow::Result<ConstValue>;
+    async fn execute(&self, query: &str, params: &[Option<String>]) -> anyhow::Result<ConstValue>;
+
+    /// Execute a data-modification statement and return its affected row count.
+    async fn execute_affected(
+        &self,
+        query: &str,
+        params: &[Option<String>],
+    ) -> anyhow::Result<u64> {
+        let _ = (query, params);
+        anyhow::bail!("affected-row execution is not implemented for this PostgreSQL connection")
+    }
 }
 
 /// Trait for subscribing to `PostgreSQL` LISTEN/NOTIFY channels.

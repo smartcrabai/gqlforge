@@ -12,6 +12,7 @@ use crate::core::graphql::GraphqlDataLoader;
 use crate::core::grpc::data_loader::GrpcDataLoader;
 use crate::core::http::DataLoaderRequest;
 use crate::core::ir::Error;
+use crate::core::postgres::request_template::ResultMode;
 use crate::core::{grpc, redis};
 
 pub async fn eval_io<Ctx>(io: &IO, ctx: &mut EvalContext<'_, Ctx>) -> Result<ConstValue, Error>
@@ -133,10 +134,14 @@ where
                         "PostgreSQL connection '{connection_id}' not configured"
                     ))
                 })?;
-            let result = pg
-                .execute(&rendered.sql, &rendered.params)
-                .await
-                .map_err(|e| Error::IO(e.to_string()))?;
+            let result = match req_template.result_mode {
+                ResultMode::Rows => pg.execute(&rendered.sql, &rendered.params).await,
+                ResultMode::AffectedRows => pg
+                    .execute_affected(&rendered.sql, &rendered.params)
+                    .await
+                    .map(|count| ConstValue::Number(count.into())),
+            }
+            .map_err(|e| Error::IO(e.to_string()))?;
             // SELECT_ONE: returns the first element of the list (Null if empty)
             if req_template.operation == PostgresOperation::SelectOne {
                 if let ConstValue::List(vec) = result {
@@ -263,6 +268,135 @@ where
 #[cfg(test)]
 mod tests {
     #![expect(clippy::unwrap_used, reason = "test code")]
+    use std::sync::{Arc, Mutex};
+
+    use crate::core::postgres::PostgresIO;
+
+    enum AffectedRowsResult {
+        Count(u64),
+        Error,
+    }
+
+    struct AffectedRowsPostgres {
+        result: AffectedRowsResult,
+        requests: Mutex<Vec<(String, Vec<Option<String>>)>>,
+    }
+
+    impl AffectedRowsPostgres {
+        fn new(result: AffectedRowsResult) -> Self {
+            Self { result, requests: Mutex::new(vec![]) }
+        }
+    }
+
+    #[async_trait::async_trait]
+    impl PostgresIO for AffectedRowsPostgres {
+        async fn execute(
+            &self,
+            _query: &str,
+            _params: &[Option<String>],
+        ) -> anyhow::Result<ConstValue> {
+            unreachable!("affected-row mode must not request rows")
+        }
+
+        async fn execute_affected(
+            &self,
+            query: &str,
+            params: &[Option<String>],
+        ) -> anyhow::Result<u64> {
+            self.requests
+                .lock()
+                .unwrap_or_else(std::sync::PoisonError::into_inner)
+                .push((query.to_string(), params.to_vec()));
+            match self.result {
+                AffectedRowsResult::Count(count) => Ok(count),
+                AffectedRowsResult::Error => anyhow::bail!("database unavailable"),
+            }
+        }
+    }
+
+    fn affected_rows_io() -> IO {
+        IO::Postgres {
+            req_template: crate::core::postgres::RequestTemplate {
+                table: "metrics".to_string(),
+                operation: PostgresOperation::Insert,
+                filter: None,
+                input: Some(crate::core::mustache::Mustache::parse(
+                    r#"{"host":"api-1"}"#,
+                )),
+                limit: None,
+                offset: None,
+                order_by: None,
+                columns: vec!["host".to_string()],
+                result_mode: ResultMode::AffectedRows,
+            },
+            group_by: None,
+            dl_id: None,
+            dedupe: false,
+            connection_id: "metrics".to_string(),
+        }
+    }
+
+    #[tokio::test]
+    async fn postgres_affected_row_mode_returns_a_number() {
+        let io = affected_rows_io();
+        let mut runtime = crate::cli::runtime::init(&Blueprint::default()).unwrap();
+        let postgres = Arc::new(AffectedRowsPostgres::new(AffectedRowsResult::Count(1)));
+        runtime
+            .postgres
+            .insert("metrics".to_string(), postgres.clone());
+        let req_ctx = RequestContext::new(runtime);
+        let res_ctx = EmptyResolverContext {};
+        let mut eval_ctx = EvalContext::new(&req_ctx, &res_ctx);
+
+        let result = eval_io(&io, &mut eval_ctx).await.unwrap();
+
+        assert_eq!(result, ConstValue::Number(1.into()));
+        assert_eq!(
+            postgres
+                .requests
+                .lock()
+                .unwrap_or_else(std::sync::PoisonError::into_inner)
+                .as_slice(),
+            [(
+                "INSERT INTO \"metrics\" (\"host\") VALUES ($1)".to_string(),
+                vec![Some("api-1".to_string())],
+            )]
+        );
+    }
+
+    #[tokio::test]
+    async fn postgres_affected_row_mode_preserves_zero() {
+        let mut runtime = crate::cli::runtime::init(&Blueprint::default()).unwrap();
+        runtime.postgres.insert(
+            "metrics".to_string(),
+            Arc::new(AffectedRowsPostgres::new(AffectedRowsResult::Count(0))),
+        );
+        let req_ctx = RequestContext::new(runtime);
+        let res_ctx = EmptyResolverContext {};
+        let mut eval_ctx = EvalContext::new(&req_ctx, &res_ctx);
+
+        assert_eq!(
+            eval_io(&affected_rows_io(), &mut eval_ctx).await.unwrap(),
+            ConstValue::Number(0.into())
+        );
+    }
+
+    #[tokio::test]
+    async fn postgres_affected_row_mode_propagates_errors() {
+        let mut runtime = crate::cli::runtime::init(&Blueprint::default()).unwrap();
+        runtime.postgres.insert(
+            "metrics".to_string(),
+            Arc::new(AffectedRowsPostgres::new(AffectedRowsResult::Error)),
+        );
+        let req_ctx = RequestContext::new(runtime);
+        let res_ctx = EmptyResolverContext {};
+        let mut eval_ctx = EvalContext::new(&req_ctx, &res_ctx);
+
+        let error = eval_io(&affected_rows_io(), &mut eval_ctx)
+            .await
+            .unwrap_err();
+        assert!(error.to_string().contains("database unavailable"));
+    }
     use super::*;
     use crate::core::blueprint::Blueprint;
     use crate::core::config::PostgresPayloadType;
