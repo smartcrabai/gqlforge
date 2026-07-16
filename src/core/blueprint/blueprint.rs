@@ -33,12 +33,15 @@ pub struct Blueprint {
     pub redis_connections: Vec<(String, RedisConnectionSpec)>,
 }
 
-/// Describes how to connect to a PostgreSQL-compatible database.
+/// Describes how to connect to a `PostgreSQL`-compatible database.
 #[derive(Clone, Debug)]
 pub enum PostgresConnectionSpec {
     /// Standard `PostgreSQL` connection URL (e.g.
     /// `postgresql://user:pass@host/db`).
     Url(String),
+    /// `GreptimeDB` URL using its `PostgreSQL`-compatible protocol (typically
+    /// port 4003).
+    GreptimeDbUrl(String),
     /// Aurora DSQL connection using AWS IAM authentication.
     AuroraDsql {
         /// Cluster endpoint hostname (no scheme).

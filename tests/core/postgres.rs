@@ -17,7 +17,11 @@ impl MockPostgresIO {
 
 #[async_trait::async_trait]
 impl PostgresIO for MockPostgresIO {
-    async fn execute(&self, _query: &str, _params: &[String]) -> anyhow::Result<ConstValue> {
+    async fn execute(
+        &self,
+        _query: &str,
+        _params: &[Option<String>],
+    ) -> anyhow::Result<ConstValue> {
         Ok(self.response.clone())
     }
 }

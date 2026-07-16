@@ -18,7 +18,7 @@ use crate::core::ir::model::{IO, IR};
 use crate::core::json::JsonSchema;
 use crate::core::try_fold::TryFold;
 
-/// Maps a single `Postgres` or `AuroraDsql` link to a `(id,
+/// Maps a PostgreSQL-compatible database link to a `(id,
 /// PostgresConnectionSpec)` pair.
 fn link_to_connection_spec(
     link: &crate::core::config::Link,
@@ -26,15 +26,18 @@ fn link_to_connection_spec(
     let id = link.id.clone().unwrap_or_else(|| "default".to_string());
     let spec = match link.type_of {
         crate::core::config::LinkType::Postgres => PostgresConnectionSpec::Url(link.src.clone()),
+        crate::core::config::LinkType::GreptimeDb => {
+            PostgresConnectionSpec::GreptimeDbUrl(link.src.clone())
+        }
         crate::core::config::LinkType::AuroraDsql => {
             let region = link
                 .dsql_region()
-                .ok_or_else(|| anyhow::anyhow!("AuroraDsql link requires meta.region"))?
+                .ok_or_else(|| anyhow::anyhow!("@link(type: AuroraDsql) requires meta.region"))?
                 .to_string();
             let admin = link.dsql_admin();
             PostgresConnectionSpec::AuroraDsql { endpoint: link.src.clone(), region, admin }
         }
-        _ => unreachable!("caller must filter to Postgres/AuroraDsql only"),
+        _ => unreachable!("caller must filter to PostgreSQL-compatible database links"),
     };
     Ok((id, spec))
 }
@@ -80,8 +83,12 @@ pub fn config_blueprint<'a>() -> TryFold<'a, ConfigModule, Blueprint, BlueprintE
             .links
             .iter()
             .filter(|link| {
-                link.type_of == crate::core::config::LinkType::Postgres
-                    || link.type_of == crate::core::config::LinkType::AuroraDsql
+                matches!(
+                    link.type_of,
+                    crate::core::config::LinkType::Postgres
+                        | crate::core::config::LinkType::GreptimeDb
+                        | crate::core::config::LinkType::AuroraDsql
+                )
             })
             .map(link_to_connection_spec)
             .collect();

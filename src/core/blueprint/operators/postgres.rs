@@ -2,63 +2,264 @@ use gqlforge_valid::{Valid, Validator};
 
 use crate::core::blueprint::BlueprintError;
 use crate::core::config::group_by::GroupBy;
-use crate::core::config::{ConfigModule, GraphQLOperationType, Postgres, PostgresOperation};
+use crate::core::config::{
+    ConfigModule, GraphQLOperationType, Greptimedb, LinkType, Postgres, PostgresOperation,
+    PostgresPayloadType,
+};
 use crate::core::ir::model::{IO, IR};
 use crate::core::mustache::Mustache;
-use crate::core::postgres::request_template::RequestTemplate;
+use crate::core::postgres::request_template::{RequestTemplate, ResultMode};
 
-#[derive(Clone, Copy)]
-pub struct CompilePostgres<'a> {
+pub trait DatabaseDirective {
+    fn db(&self) -> Option<&str>;
+    fn table(&self) -> &str;
+    fn operation(&self) -> PostgresOperation;
+    fn filter(&self) -> Option<&serde_json::Value>;
+    fn input(&self) -> Option<&str>;
+    fn batch_key(&self) -> &[String];
+    fn dedupe(&self) -> Option<bool>;
+    fn limit(&self) -> Option<&str>;
+    fn offset(&self) -> Option<&str>;
+    fn order_by(&self) -> Option<&str>;
+    fn directive_name(&self) -> &'static str;
+    fn result_mode(&self) -> ResultMode;
+    fn matches_connection(&self, link_type: &LinkType) -> bool;
+    fn listen_config(&self) -> Option<(&str, &PostgresPayloadType)>;
+}
+
+impl DatabaseDirective for Postgres {
+    fn db(&self) -> Option<&str> {
+        self.db.as_deref()
+    }
+
+    fn table(&self) -> &str {
+        &self.table
+    }
+
+    fn operation(&self) -> PostgresOperation {
+        self.operation.clone()
+    }
+
+    fn filter(&self) -> Option<&serde_json::Value> {
+        self.filter.as_ref()
+    }
+
+    fn input(&self) -> Option<&str> {
+        self.input.as_deref()
+    }
+
+    fn batch_key(&self) -> &[String] {
+        &self.batch_key
+    }
+
+    fn dedupe(&self) -> Option<bool> {
+        self.dedupe
+    }
+
+    fn limit(&self) -> Option<&str> {
+        self.limit.as_deref()
+    }
+
+    fn offset(&self) -> Option<&str> {
+        self.offset.as_deref()
+    }
+
+    fn order_by(&self) -> Option<&str> {
+        self.order_by.as_deref()
+    }
+
+    fn directive_name(&self) -> &'static str {
+        "@postgres"
+    }
+
+    fn result_mode(&self) -> ResultMode {
+        ResultMode::Rows
+    }
+
+    fn matches_connection(&self, link_type: &LinkType) -> bool {
+        matches!(link_type, LinkType::Postgres | LinkType::AuroraDsql)
+    }
+
+    fn listen_config(&self) -> Option<(&str, &PostgresPayloadType)> {
+        self.channel
+            .as_deref()
+            .map(|channel| (channel, &self.payload_type))
+    }
+}
+
+impl DatabaseDirective for Greptimedb {
+    fn db(&self) -> Option<&str> {
+        self.db.as_deref()
+    }
+
+    fn table(&self) -> &str {
+        &self.table
+    }
+
+    fn operation(&self) -> PostgresOperation {
+        self.operation.clone().into()
+    }
+
+    fn filter(&self) -> Option<&serde_json::Value> {
+        self.filter.as_ref()
+    }
+
+    fn input(&self) -> Option<&str> {
+        self.input.as_deref()
+    }
+
+    fn batch_key(&self) -> &[String] {
+        &[]
+    }
+
+    fn dedupe(&self) -> Option<bool> {
+        self.dedupe
+    }
+
+    fn limit(&self) -> Option<&str> {
+        self.limit.as_deref()
+    }
+
+    fn offset(&self) -> Option<&str> {
+        self.offset.as_deref()
+    }
+
+    fn order_by(&self) -> Option<&str> {
+        self.order_by.as_deref()
+    }
+
+    fn directive_name(&self) -> &'static str {
+        "@greptimedb"
+    }
+
+    fn result_mode(&self) -> ResultMode {
+        match self.operation {
+            crate::core::config::GreptimedbOperation::Insert
+            | crate::core::config::GreptimedbOperation::Delete => ResultMode::AffectedRows,
+            crate::core::config::GreptimedbOperation::Select
+            | crate::core::config::GreptimedbOperation::SelectOne => ResultMode::Rows,
+        }
+    }
+
+    fn matches_connection(&self, link_type: &LinkType) -> bool {
+        matches!(link_type, LinkType::GreptimeDb)
+    }
+
+    fn listen_config(&self) -> Option<(&str, &PostgresPayloadType)> {
+        None
+    }
+}
+
+pub struct CompilePostgres<'a, D: DatabaseDirective> {
     pub config_module: &'a ConfigModule,
-    pub postgres: &'a Postgres,
+    pub postgres: &'a D,
     pub operation_type: &'a GraphQLOperationType,
+}
+impl<D: DatabaseDirective> Copy for CompilePostgres<'_, D> {}
+
+impl<D: DatabaseDirective> Clone for CompilePostgres<'_, D> {
+    fn clone(&self) -> Self {
+        *self
+    }
 }
 
 #[must_use]
 #[expect(clippy::too_many_lines)]
-pub fn compile_postgres(inputs: CompilePostgres) -> Valid<IR, BlueprintError> {
+pub fn compile_postgres<D: DatabaseDirective>(
+    inputs: CompilePostgres<D>,
+) -> Valid<IR, BlueprintError> {
     let pg = inputs.postgres;
     let operation_type = inputs.operation_type;
-    let dedupe = pg.dedupe.unwrap_or_default();
+    let dedupe = pg.dedupe().unwrap_or_default();
     let schemas = &inputs.config_module.extensions().database_schemas;
 
-    // Resolve the connection id.
-    let connection_id = match &pg.db {
-        Some(id) => id.clone(),
-        None => {
-            if schemas.len() == 1 {
-                schemas[0]
-                    .id
-                    .clone()
-                    .unwrap_or_else(|| "default".to_string())
-            } else if schemas.is_empty() {
-                "default".to_string()
-            } else {
-                return Valid::fail(BlueprintError::Cause(
-                    "@postgres requires 'db' when multiple Postgres connections are defined"
-                        .to_string(),
-                ));
+    // Resolve the connection id. When database links are configured, the
+    // directive may only select a connection of its own database kind.
+    let matching_links: Vec<_> = inputs
+        .config_module
+        .links
+        .iter()
+        .filter(|link| pg.matches_connection(&link.type_of))
+        .collect();
+    let has_database_links = inputs.config_module.links.iter().any(|link| {
+        matches!(
+            link.type_of,
+            LinkType::Postgres | LinkType::GreptimeDb | LinkType::AuroraDsql
+        )
+    });
+    let connection_id = match pg.db() {
+        Some(id) => match inputs.config_module.links.iter().find(|link| {
+            link.id.as_deref().unwrap_or("default") == id
+                && matches!(
+                    link.type_of,
+                    LinkType::Postgres | LinkType::GreptimeDb | LinkType::AuroraDsql
+                )
+        }) {
+            Some(link) if !pg.matches_connection(&link.type_of) => {
+                return Valid::fail(BlueprintError::Cause(format!(
+                    "{} cannot use @link(type: {}) with db: '{id}'",
+                    pg.directive_name(),
+                    link.type_of
+                )));
             }
+            None if has_database_links => {
+                return Valid::fail(BlueprintError::Cause(format!(
+                    "{} references unknown database connection '{id}'",
+                    pg.directive_name()
+                )));
+            }
+            Some(_) | None => id.to_string(),
+        },
+        None if matching_links.len() == 1 => matching_links[0]
+            .id
+            .clone()
+            .unwrap_or_else(|| "default".to_string()),
+        None if matching_links.len() > 1 => {
+            return Valid::fail(BlueprintError::Cause(format!(
+                "{} requires 'db' when multiple matching connections are defined",
+                pg.directive_name()
+            )));
+        }
+        None if has_database_links => {
+            return Valid::fail(BlueprintError::Cause(format!(
+                "{} requires a matching database link",
+                pg.directive_name()
+            )));
+        }
+        None if schemas.len() == 1 => schemas[0]
+            .id
+            .clone()
+            .unwrap_or_else(|| "default".to_string()),
+        None if schemas.is_empty() => "default".to_string(),
+        None => {
+            return Valid::fail(BlueprintError::Cause(format!(
+                "{} requires 'db' when multiple database schemas are defined",
+                pg.directive_name()
+            )));
         }
     };
 
-    // LISTEN handling -- only allowed on Subscription fields
-    if pg.operation == PostgresOperation::Listen {
+    // LISTEN handling -- only PostgreSQL supports subscriptions.
+    if matches!(pg.operation(), PostgresOperation::Listen) {
+        let Some((channel, payload_type)) = pg.listen_config() else {
+            return Valid::fail(BlueprintError::Cause(format!(
+                "{}(operation: LISTEN) requires a non-empty 'channel'",
+                pg.directive_name()
+            )));
+        };
         let is_subscription = matches!(operation_type, GraphQLOperationType::Subscription);
         if !is_subscription {
-            return Valid::fail(BlueprintError::Cause(
-                "@postgres(operation: LISTEN) is only allowed on Subscription fields".to_string(),
-            ));
+            return Valid::fail(BlueprintError::Cause(format!(
+                "{}(operation: LISTEN) is only allowed on Subscription fields",
+                pg.directive_name()
+            )));
         }
-        let channel = match pg.channel.as_deref() {
-            Some(c) if !c.is_empty() => c.to_string(),
-            _ => {
-                return Valid::fail(BlueprintError::Cause(
-                    "@postgres(operation: LISTEN) requires a non-empty 'channel'".to_string(),
-                ));
-            }
-        };
-        // Validate channel name
+        if channel.is_empty() {
+            return Valid::fail(BlueprintError::Cause(format!(
+                "{}(operation: LISTEN) requires a non-empty 'channel'",
+                pg.directive_name()
+            )));
+        }
         if !channel.chars().all(|c| c.is_alphanumeric() || c == '_') {
             return Valid::fail(BlueprintError::Cause(format!(
                 "Invalid channel name '{channel}': only alphanumeric and underscore allowed"
@@ -67,97 +268,87 @@ pub fn compile_postgres(inputs: CompilePostgres) -> Valid<IR, BlueprintError> {
 
         return Valid::succeed(IR::IO(Box::new(IO::PostgresStream {
             connection_id,
-            channel,
-            payload_type: pg.payload_type.clone(),
+            channel: channel.to_string(),
+            payload_type: payload_type.clone(),
         })));
     }
 
-    // Non-Listen operations on Subscription fields are not allowed
     if matches!(operation_type, GraphQLOperationType::Subscription) {
-        return Valid::fail(BlueprintError::Cause(
-            "@postgres on Subscription requires operation: LISTEN".to_string(),
-        ));
+        return Valid::fail(BlueprintError::Cause(format!(
+            "{} on Subscription requires operation: LISTEN",
+            pg.directive_name()
+        )));
     }
 
-    // Validate that the table exists in the database schema (if available).
     let db_schema = inputs
         .config_module
         .extensions()
         .find_database_schema(Some(&connection_id));
+    let resolved_table = db_schema.and_then(|schema| schema.find_table(pg.table()));
 
-    let table_valid = if let Some(schema) = db_schema {
-        if let Some(table) = schema.find_table(&pg.table) {
-            if table.is_view
-                && matches!(
-                    pg.operation,
-                    PostgresOperation::Insert
-                        | PostgresOperation::Update
-                        | PostgresOperation::Delete
-                )
-            {
-                Valid::fail(BlueprintError::Cause(format!(
-                    "Cannot perform {} on view '{}'. \
-                     Standard views do not support write operations; \
-                     use a base table or define INSTEAD OF triggers on the view.",
-                    pg.operation, pg.table
-                )))
-            } else {
-                Valid::succeed(())
-            }
-        } else {
+    let table_valid = if let Some(table) = resolved_table {
+        if table.is_view
+            && matches!(
+                pg.operation(),
+                PostgresOperation::Insert | PostgresOperation::Update | PostgresOperation::Delete
+            )
+        {
             Valid::fail(BlueprintError::Cause(format!(
-                "Table '{}' not found in database schema",
-                pg.table
+                "Cannot perform {} on view '{}'. Standard views do not support write operations; use a base table.",
+                pg.operation(),
+                pg.table()
             )))
+        } else {
+            Valid::succeed(())
         }
+    } else if db_schema.is_some() {
+        Valid::fail(BlueprintError::Cause(format!(
+            "Table '{}' not found in database schema",
+            pg.table()
+        )))
     } else {
-        // If no database schema is loaded, skip validation (it will be
-        // validated at runtime).
         Valid::succeed(())
     };
 
     table_valid.map(|()| {
-        let filter = pg.filter.as_ref().map(|v| Mustache::parse(&v.to_string()));
-        let input = pg.input.as_ref().map(|v| Mustache::parse(v));
-        let limit = pg.limit.as_ref().map(|v| Mustache::parse(v));
-        let offset = pg.offset.as_ref().map(|v| Mustache::parse(v));
-        let order_by = pg.order_by.as_ref().map(|v| Mustache::parse(v));
-
-        // Determine columns from database schema if available.
-        let columns = db_schema
-            .and_then(|s| s.find_table(&pg.table))
-            .map(|t| t.columns.iter().map(|c| c.name.clone()).collect())
+        let filter = pg.filter().cloned();
+        let input = pg.input().map(Mustache::parse);
+        let limit = pg.limit().map(Mustache::parse);
+        let offset = pg.offset().map(Mustache::parse);
+        let order_by = pg.order_by().map(Mustache::parse);
+        let columns = resolved_table
+            .map(|table| {
+                table
+                    .columns
+                    .iter()
+                    .map(|column| column.name.clone())
+                    .collect()
+            })
             .unwrap_or_default();
 
         let req_template = RequestTemplate {
-            table: pg.table.clone(),
-            operation: pg.operation.clone(),
+            table: resolved_table.map_or_else(
+                || pg.table().to_string(),
+                crate::core::postgres::schema::Table::qualified_name,
+            ),
+            operation: pg.operation(),
             filter,
             input,
             limit,
             offset,
             order_by,
             columns,
+            result_mode: pg.result_mode(),
         };
 
-        let io = if pg.batch_key.is_empty() {
-            IO::Postgres {
-                req_template,
-                group_by: None,
-                dl_id: None,
-                dedupe,
-                connection_id,
-            }
-        } else {
-            IO::Postgres {
-                req_template,
-                group_by: Some(GroupBy::new(pg.batch_key.clone(), None)),
-                dl_id: None,
-                dedupe,
-                connection_id,
-            }
+        let io = IO::Postgres {
+            req_template,
+            group_by: (!pg.batch_key().is_empty())
+                .then(|| GroupBy::new(pg.batch_key().to_vec(), None)),
+            dl_id: None,
+            dedupe,
+            connection_id,
         };
-
         IR::IO(Box::new(io))
     })
 }
@@ -168,7 +359,7 @@ mod tests {
     use gqlforge_valid::Validator;
 
     use super::*;
-    use crate::core::config::{Config, Content, Extensions};
+    use crate::core::config::{Config, Content, Extensions, GreptimedbOperation};
     use crate::core::postgres::PostgresPayloadType;
     use crate::core::postgres::schema::{Column, DatabaseSchema, PgType, Table};
 
@@ -236,6 +427,221 @@ mod tests {
             operation_type: &GraphQLOperationType::Query,
         });
         assert!(result.to_result().is_ok());
+    }
+
+    #[test]
+    fn unqualified_table_uses_its_resolved_schema() {
+        let mut schema = DatabaseSchema::new();
+        let mut table = make_table("events");
+        table.schema = "metrics".to_string();
+        schema.add_table(table);
+        let cm = make_config_module(vec![Content {
+            id: Some("main".to_string()),
+            content: schema,
+        }]);
+        let pg = Postgres {
+            db: Some("main".to_string()),
+            table: "events".to_string(),
+            ..Default::default()
+        };
+
+        let ir = compile_postgres(CompilePostgres {
+            config_module: &cm,
+            postgres: &pg,
+            operation_type: &GraphQLOperationType::Query,
+        })
+        .to_result()
+        .unwrap();
+
+        assert!(matches!(
+            ir,
+            IR::IO(io) if matches!(
+                io.as_ref(),
+                IO::Postgres { req_template, .. } if req_template.table == "metrics.events"
+            )
+        ));
+    }
+
+    fn greptime_config_module() -> ConfigModule {
+        let mut config = Config::default();
+        config.links.push(crate::core::config::Link {
+            id: Some("metrics".to_string()),
+            src: "postgresql://greptime@localhost:4003/public".to_string(),
+            type_of: LinkType::GreptimeDb,
+            ..Default::default()
+        });
+        let mut extensions = Extensions::default();
+        extensions.add_database_schema(Some("metrics".to_string()), make_schema("users"));
+        ConfigModule::new(config, extensions)
+    }
+
+    #[test]
+    fn greptimedb_insert_returns_affected_rows() {
+        let cm = greptime_config_module();
+        let db = Greptimedb {
+            db: Some("metrics".to_string()),
+            table: "users".to_string(),
+            operation: GreptimedbOperation::Insert,
+            ..Default::default()
+        };
+
+        let ir = compile_postgres(CompilePostgres {
+            config_module: &cm,
+            postgres: &db,
+            operation_type: &GraphQLOperationType::Mutation,
+        })
+        .to_result()
+        .unwrap();
+
+        match ir {
+            IR::IO(io) => match io.as_ref() {
+                IO::Postgres { req_template, .. } => {
+                    assert_eq!(req_template.result_mode, ResultMode::AffectedRows);
+                }
+                other => panic!("Expected IO::Postgres, got: {other:?}"),
+            },
+            other => panic!("Expected IR::IO, got: {other:?}"),
+        }
+    }
+
+    #[test]
+    fn greptimedb_select_one_uses_single_row_operation() {
+        let cm = greptime_config_module();
+        let db = Greptimedb {
+            db: None,
+            table: "users".to_string(),
+            operation: GreptimedbOperation::SelectOne,
+            ..Default::default()
+        };
+
+        let ir = compile_postgres(CompilePostgres {
+            config_module: &cm,
+            postgres: &db,
+            operation_type: &GraphQLOperationType::Query,
+        })
+        .to_result()
+        .unwrap();
+
+        assert!(matches!(
+            ir,
+            IR::IO(io) if matches!(
+                io.as_ref(),
+                IO::Postgres {
+                    connection_id,
+                    req_template,
+                    ..
+                } if connection_id == "metrics"
+                    && req_template.operation == PostgresOperation::SelectOne
+                    && req_template.result_mode == ResultMode::Rows
+            )
+        ));
+    }
+
+    #[test]
+    fn greptimedb_rejects_unknown_connection() {
+        let cm = greptime_config_module();
+        let db = Greptimedb {
+            db: Some("typo".to_string()),
+            table: "users".to_string(),
+            ..Default::default()
+        };
+
+        let error = compile_postgres(CompilePostgres {
+            config_module: &cm,
+            postgres: &db,
+            operation_type: &GraphQLOperationType::Query,
+        })
+        .to_result()
+        .unwrap_err();
+
+        assert!(
+            error
+                .to_string()
+                .contains("@greptimedb references unknown database connection 'typo'")
+        );
+    }
+
+    #[test]
+    fn greptimedb_rejects_postgres_connection() {
+        let mut config = Config::default();
+        config.links.push(crate::core::config::Link {
+            id: Some("primary".to_string()),
+            src: "postgresql://postgres@localhost/app".to_string(),
+            type_of: LinkType::Postgres,
+            ..Default::default()
+        });
+        let cm = ConfigModule::new(config, Extensions::default());
+        let db = Greptimedb {
+            db: Some("primary".to_string()),
+            table: "metrics".to_string(),
+            ..Default::default()
+        };
+
+        let error = compile_postgres(CompilePostgres {
+            config_module: &cm,
+            postgres: &db,
+            operation_type: &GraphQLOperationType::Query,
+        })
+        .to_result()
+        .unwrap_err();
+
+        assert!(
+            error
+                .to_string()
+                .contains("@greptimedb cannot use @link(type: Postgres)"),
+            "unexpected error: {error}"
+        );
+    }
+
+    #[test]
+    fn postgres_rejects_greptimedb_connection() {
+        let cm = greptime_config_module();
+        let db = Postgres {
+            db: Some("metrics".to_string()),
+            table: "users".to_string(),
+            ..Default::default()
+        };
+
+        let error = compile_postgres(CompilePostgres {
+            config_module: &cm,
+            postgres: &db,
+            operation_type: &GraphQLOperationType::Query,
+        })
+        .to_result()
+        .unwrap_err();
+
+        assert!(
+            error
+                .to_string()
+                .contains("@postgres cannot use @link(type: GreptimeDB)"),
+            "unexpected error: {error}"
+        );
+    }
+
+    #[test]
+    fn greptimedb_delete_returns_affected_rows() {
+        let cm = greptime_config_module();
+        let delete = Greptimedb {
+            db: Some("metrics".to_string()),
+            table: "users".to_string(),
+            operation: GreptimedbOperation::Delete,
+            filter: Some(serde_json::json!({"id": "{{.args.id}}"})),
+            ..Default::default()
+        };
+        let ir = compile_postgres(CompilePostgres {
+            config_module: &cm,
+            postgres: &delete,
+            operation_type: &GraphQLOperationType::Mutation,
+        })
+        .to_result()
+        .unwrap();
+        assert!(matches!(
+            ir,
+            IR::IO(io) if matches!(
+                io.as_ref(),
+                IO::Postgres { req_template, .. } if req_template.result_mode == ResultMode::AffectedRows
+            )
+        ));
     }
 
     #[test]

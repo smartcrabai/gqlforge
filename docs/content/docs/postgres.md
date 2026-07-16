@@ -76,6 +76,30 @@ PostgreSQL column types are automatically mapped to GraphQL scalars:
 | `time`, `interval`, `inet`, `cidr`, `macaddr` | `String`       |
 | Array types (e.g. `integer[]`)                | `JSON`         |
 
+## GreptimeDB
+
+GreptimeDB can be used through its PostgreSQL-compatible protocol with `@link(type: GreptimeDB)`. Use `@greptimedb` rather than `@postgres`; it supports `SELECT`, `SELECT_ONE`, `INSERT`, and `DELETE`.
+
+```graphql
+schema @link(id: "metrics", type: GreptimeDB, src: "postgres://greptime@localhost:4003/public") {
+  query: Query
+  mutation: Mutation
+}
+
+type Query {
+  metrics: [Metric!]! @greptimedb(db: "metrics", table: "metrics")
+}
+
+type Mutation {
+  ingestMetric(input: MetricInput!): Int!
+  @greptimedb(db: "metrics", table: "metrics", operation: INSERT, input: "{{.args.input}}")
+}
+```
+
+`INT64` values are exposed as GraphQL/JSON strings to preserve precision. `DATE` and `TIMESTAMP` values are exposed as `DateTime`.
+
+`INSERT` and `DELETE` return their affected row count. `UPDATE`, `LISTEN`, and `batchKey` are PostgreSQL-only and are rejected for GreptimeDB.
+
 ## The @postgres Directive
 
 Use `@postgres` on fields to map them to table operations:

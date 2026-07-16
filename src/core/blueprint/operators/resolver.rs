@@ -52,6 +52,10 @@ pub fn compile_resolver(
             compile_postgres(super::CompilePostgres { config_module, postgres: pg, operation_type })
                 .trace(config::Postgres::trace_name().as_str())
         }
+        Resolver::Greptimedb(db) => {
+            compile_postgres(super::CompilePostgres { config_module, postgres: db, operation_type })
+                .trace(config::Greptimedb::trace_name().as_str())
+        }
         Resolver::Redis(redis) => {
             compile_redis(super::CompileRedis { config_module, redis, operation_type })
                 .trace(config::Redis::trace_name().as_str())

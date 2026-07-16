@@ -59,7 +59,7 @@ pub(crate) fn row_value_to_const(
         }
         Type::INT8 => {
             let v: Option<i64> = row.try_get(idx)?;
-            Ok(v.map_or(ConstValue::Null, |n| ConstValue::Number(n.into())))
+            Ok(v.map_or(ConstValue::Null, |n| ConstValue::String(n.to_string())))
         }
         Type::FLOAT4 => {
             let v: Option<f32> = row.try_get(idx)?;
@@ -81,7 +81,7 @@ pub(crate) fn row_value_to_const(
         Type::TIMESTAMP => {
             let v: Option<chrono::NaiveDateTime> = row.try_get(idx)?;
             Ok(v.map_or(ConstValue::Null, |dt| {
-                ConstValue::String(dt.format("%Y-%m-%dT%H:%M:%S%.f").to_string())
+                ConstValue::String(dt.and_utc().to_rfc3339())
             }))
         }
         Type::TIMESTAMPTZ => {
@@ -90,7 +90,9 @@ pub(crate) fn row_value_to_const(
         }
         Type::DATE => {
             let v: Option<chrono::NaiveDate> = row.try_get(idx)?;
-            Ok(v.map_or(ConstValue::Null, |d| ConstValue::String(d.to_string())))
+            Ok(v.map_or(ConstValue::Null, |date| {
+                ConstValue::String(date.and_time(chrono::NaiveTime::MIN).and_utc().to_rfc3339())
+            }))
         }
         Type::TIME => {
             let v: Option<chrono::NaiveTime> = row.try_get(idx)?;

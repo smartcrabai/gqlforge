@@ -680,7 +680,7 @@
           "const": "Grpc"
         },
         {
-          "description": "Points to a SQL migration file. Used to build a database schema for\nthe `@postgres` directive offline (without a live database connection).",
+          "description": "Points to a SQL migration file. Used to build a database schema for\nthe `@postgres` and `@greptimedb` directives offline (without a live\ndatabase connection).",
           "type": "string",
           "const": "Sql"
         },
@@ -688,6 +688,11 @@
           "description": "Points to a `PostgreSQL` connection string. The database will be\nintrospected at startup to build a schema for the `@postgres` directive.",
           "type": "string",
           "const": "Postgres"
+        },
+        {
+          "description": "Points to a `GreptimeDB` connection string using its\n`PostgreSQL`-compatible protocol. The database is introspected at\nstartup to build a schema for the `@greptimedb` directive.",
+          "type": "string",
+          "const": "GreptimeDB"
         },
         {
           "description": "Points to an S3 or S3-compatible endpoint. The endpoint URL and\nregion/credentials metadata are used by the `@s3` directive.",

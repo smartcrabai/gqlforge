@@ -4,7 +4,7 @@ expression: errors
 ---
 [
   {
-    "message": "@postgres requires 'db' when multiple Postgres connections are defined",
+    "message": "@postgres requires 'db' when multiple database schemas are defined",
     "trace": [
       "Query",
       "users",

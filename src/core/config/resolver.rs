@@ -6,7 +6,7 @@ use gqlrs::Positioned;
 use gqlrs::parser::types::ConstDirective;
 use serde::{Deserialize, Serialize};
 
-use super::{Call, EntityResolver, Expr, GraphQL, Grpc, Http, JS, Postgres, Redis, S3};
+use super::{Call, EntityResolver, Expr, GraphQL, Greptimedb, Grpc, Http, JS, Postgres, Redis, S3};
 use crate::core::directive::DirectiveCodec;
 use crate::core::merge_right::MergeRight;
 
@@ -36,6 +36,7 @@ pub enum Resolver {
     Js(JS),
     Expr(Expr),
     Postgres(Postgres),
+    Greptimedb(Greptimedb),
     Redis(Redis),
     S3(S3),
     #[serde(skip)]
