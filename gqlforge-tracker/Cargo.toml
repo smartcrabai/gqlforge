@@ -1,6 +1,6 @@
 [package]
 name = "gqlforge-tracker"
-version = "0.1.7"
+version = "0.1.8"
 edition = "2024"
 description = "Usage tracking for gqlforge"
 license = "Apache-2.0"
@@ -21,7 +21,7 @@ machineid-rs = "1.2.4"
 tokio = { workspace = true, features = ["rt", "time", "process"] }
 tracing = { workspace = true }
 sysinfo = "0.39.0"
-gqlforge-version = { path = "../gqlforge-version", version = "0.1.7" }
+gqlforge-version = { path = "../gqlforge-version", version = "0.1.8" }
 posthog-rs = { version = "0.20.0" }
 async-trait = "0.1.89"
 chrono = "0.4.43"

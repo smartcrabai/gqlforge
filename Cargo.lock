@@ -2354,7 +2354,7 @@ checksum = "0cc23270f6e1808e30a928bdc84dea0b9b4136a8bc82338574f23baf47bbd280"
 
 [[package]]
 name = "gqlforge"
-version = "0.1.7"
+version = "0.1.8"
 dependencies = [
  "anyhow",
  "async-recursion",
@@ -2491,11 +2491,11 @@ dependencies = [
 
 [[package]]
 name = "gqlforge-chunk"
-version = "0.1.7"
+version = "0.1.8"
 
 [[package]]
 name = "gqlforge-fixtures"
-version = "0.1.7"
+version = "0.1.8"
 dependencies = [
  "convert_case 0.11.0",
  "derive_more",
@@ -2504,7 +2504,7 @@ dependencies = [
 
 [[package]]
 name = "gqlforge-formatter"
-version = "0.1.7"
+version = "0.1.8"
 dependencies = [
  "pretty_graphql",
  "thiserror 2.0.18",
@@ -2512,14 +2512,14 @@ dependencies = [
 
 [[package]]
 name = "gqlforge-hasher"
-version = "0.1.7"
+version = "0.1.8"
 dependencies = [
  "fxhash",
 ]
 
 [[package]]
 name = "gqlforge-http-cache"
-version = "0.1.7"
+version = "0.1.8"
 dependencies = [
  "http 1.4.2",
  "http-cache",
@@ -2534,7 +2534,7 @@ dependencies = [
 
 [[package]]
 name = "gqlforge-macros"
-version = "0.1.7"
+version = "0.1.8"
 dependencies = [
  "proc-macro2",
  "quote",
@@ -2543,7 +2543,7 @@ dependencies = [
 
 [[package]]
 name = "gqlforge-tracker"
-version = "0.1.7"
+version = "0.1.8"
 dependencies = [
  "async-trait",
  "chrono",
@@ -2568,7 +2568,7 @@ dependencies = [
 
 [[package]]
 name = "gqlforge-typedefs"
-version = "0.1.7"
+version = "0.1.8"
 dependencies = [
  "anyhow",
  "gqlforge",
@@ -2585,7 +2585,7 @@ dependencies = [
 
 [[package]]
 name = "gqlforge-typedefs-common"
-version = "0.1.7"
+version = "0.1.8"
 dependencies = [
  "gqlrs",
  "schemars",
@@ -2594,7 +2594,7 @@ dependencies = [
 
 [[package]]
 name = "gqlforge-valid"
-version = "0.1.7"
+version = "0.1.8"
 dependencies = [
  "derive_setters",
  "http 1.4.2",
@@ -2607,7 +2607,7 @@ dependencies = [
 
 [[package]]
 name = "gqlforge-version"
-version = "0.1.7"
+version = "0.1.8"
 
 [[package]]
 name = "gqlrs"
