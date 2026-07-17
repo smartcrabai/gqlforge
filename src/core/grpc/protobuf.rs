@@ -9,22 +9,104 @@ use prost_reflect::{
     DescriptorPool, DynamicMessage, MessageDescriptor, MethodDescriptor, SerializeOptions,
     ServiceDescriptor,
 };
-use serde_json::Deserializer;
 
 use crate::core::blueprint::GrpcMethod;
 
 fn to_message(descriptor: &MessageDescriptor, input: &str) -> Result<DynamicMessage> {
-    let mut deserializer = Deserializer::from_str(input);
-    let message =
-        DynamicMessage::deserialize(descriptor.clone(), &mut deserializer).with_context(|| {
-            format!(
-                "Failed to parse input according to type {}",
-                descriptor.full_name()
-            )
-        })?;
-    deserializer.end()?;
+    let value: serde_json::Value = serde_json::from_str(input).with_context(|| {
+        format!(
+            "Failed to parse input according to type {}",
+            descriptor.full_name()
+        )
+    })?;
+    let value = coerce_json_value(descriptor, value);
+    let message = DynamicMessage::deserialize(descriptor.clone(), value).with_context(|| {
+        format!(
+            "Failed to parse input according to type {}",
+            descriptor.full_name()
+        )
+    })?;
 
     Ok(message)
+}
+
+/// Mustache rendering stringifies every argument, so boolean fields end up as
+/// `"true"`/`"false"` strings. Canonical proto3 JSON accepts string
+/// representations for numbers but not for booleans, so coerce those strings
+/// back to JSON booleans and drop empty strings (unset arguments) to keep
+/// field presence semantics.
+fn coerce_json_value(
+    descriptor: &MessageDescriptor,
+    value: serde_json::Value,
+) -> serde_json::Value {
+    let serde_json::Value::Object(map) = value else {
+        return value;
+    };
+    let map = map
+        .into_iter()
+        .filter_map(|(key, value)| {
+            match descriptor
+                .get_field_by_json_name(&key)
+                .or_else(|| descriptor.get_field_by_name(&key))
+            {
+                Some(field) => Some((key, coerce_field_value(&field, value)?)),
+                None => Some((key, value)),
+            }
+        })
+        .collect();
+    serde_json::Value::Object(map)
+}
+
+fn coerce_field_value(
+    field: &prost_reflect::FieldDescriptor,
+    value: serde_json::Value,
+) -> Option<serde_json::Value> {
+    if field.is_map() {
+        let value_kind = field
+            .kind()
+            .as_message()
+            .map(|entry| entry.map_entry_value_field().kind());
+        return match (value_kind, value) {
+            (Some(kind), serde_json::Value::Object(entries)) => Some(serde_json::Value::Object(
+                entries
+                    .into_iter()
+                    .filter_map(|(key, value)| Some((key, coerce_kind_value(&kind, value)?)))
+                    .collect(),
+            )),
+            (_, value) => Some(value),
+        };
+    }
+    if field.is_list() {
+        return match value {
+            serde_json::Value::Array(items) => Some(serde_json::Value::Array(
+                items
+                    .into_iter()
+                    .filter_map(|item| coerce_kind_value(&field.kind(), item))
+                    .collect(),
+            )),
+            value => coerce_kind_value(&field.kind(), value),
+        };
+    }
+    coerce_kind_value(&field.kind(), value)
+}
+
+fn coerce_kind_value(
+    kind: &prost_reflect::Kind,
+    value: serde_json::Value,
+) -> Option<serde_json::Value> {
+    match (kind, value) {
+        (prost_reflect::Kind::Bool, serde_json::Value::String(s)) => match s.as_str() {
+            "true" => Some(serde_json::Value::Bool(true)),
+            "false" => Some(serde_json::Value::Bool(false)),
+            "" => None,
+            // let deserialization report the invalid value
+            _ => Some(serde_json::Value::String(s)),
+        },
+        (prost_reflect::Kind::Message(descriptor), value) => {
+            Some(coerce_json_value(descriptor, value))
+        }
+        (_, value) => Some(value),
+    }
 }
 
 fn message_to_bytes(message: &DynamicMessage) -> Result<Vec<u8>> {
@@ -764,6 +846,39 @@ pub mod tests {
 
         assert_eq!(
             input.to_string(),
+            "Failed to parse input according to type scalars.Item"
+        );
+
+        Ok(())
+    }
+
+    #[tokio::test]
+    async fn boolean_as_string_in_json() -> Result<()> {
+        let grpc_method = GrpcMethod::try_from("scalars.Example.Get").unwrap();
+
+        let file = ProtobufSet::from_proto_file(get_proto_file(protobuf::SCALARS).await?)?;
+        let service = file.find_service(&grpc_method)?;
+        let operation = service.find_operation(&grpc_method)?;
+
+        // mustache templates render booleans as strings, so "true"/"false"
+        // must be accepted the same way as string-encoded numbers
+        let input = operation.convert_input(r#"{ "boolean": "true" }"#)?;
+        assert_eq!(input, operation.convert_input(r#"{ "boolean": true }"#)?);
+
+        let input = operation.convert_input(r#"{ "boolean": "false" }"#)?;
+        assert_eq!(input, operation.convert_input(r#"{ "boolean": false }"#)?);
+
+        // an unset argument renders as an empty string and must be treated
+        // as an absent field instead of failing to parse
+        let input = operation.convert_input(r#"{ "boolean": "" }"#)?;
+        assert_eq!(input, operation.convert_input(r"{}")?);
+
+        // invalid values keep failing
+        let error = operation
+            .convert_input(r#"{ "boolean": "yes" }"#)
+            .unwrap_err();
+        assert_eq!(
+            error.to_string(),
             "Failed to parse input according to type scalars.Item"
         );
 
