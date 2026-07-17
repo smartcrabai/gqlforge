@@ -6,7 +6,7 @@ license = "Apache-2.0"
 name = "gqlforge"
 publish = false
 repository = "https://github.com/smartcrabai/gqlforge"
-version = "0.1.8"
+version = "0.1.9"
 
 [[bin]]
 name = "gqlforge"
@@ -22,7 +22,7 @@ gqlrs-value = "0.1.0"
 convert_case = "0.11.0"
 derive_more = { version = "2", features = ["from", "debug"] }
 futures-util = { version = "0.3.31" }
-gqlforge-valid = { path = "gqlforge-valid", version = "0.1.8" }
+gqlforge-valid = { path = "gqlforge-valid", version = "0.1.9" }
 headers = "0.4"
 http = "1"
 indexmap = "2.13.0"
@@ -70,8 +70,8 @@ tokio-postgres-rustls = { version = "0.14" }
 # Dependencies specific to CLI must have optional = true and be added to the default feature.
 
 ctrlc = { version = "3.5.1", optional = true }
-gqlforge-http-cache = { path = "gqlforge-http-cache", version = "0.1.8", optional = true }
-gqlforge-version = { path = "./gqlforge-version", version = "0.1.8", optional = true }
+gqlforge-http-cache = { path = "gqlforge-http-cache", version = "0.1.9", optional = true }
+gqlforge-version = { path = "./gqlforge-version", version = "0.1.9", optional = true }
 http-cache-reqwest = { version = "1.0.0-alpha.5", features = [
   "manager-moka",
   "url-standard",
@@ -177,11 +177,11 @@ convert_case = { workspace = true }
 dashmap = "6.1.0"
 derive_more = { workspace = true }
 dotenvy = "0.15.7"
-gqlforge-chunk = { path = "gqlforge-chunk", version = "0.1.8" }
-gqlforge-hasher = { path = "gqlforge-hasher", version = "0.1.8" }
-gqlforge-macros = { path = "gqlforge-macros", version = "0.1.8" }
-gqlforge-tracker = { path = "gqlforge-tracker", version = "0.1.8", optional = true }
-gqlforge-typedefs-common = { path = "./gqlforge-typedefs-common", version = "0.1.8" }
+gqlforge-chunk = { path = "gqlforge-chunk", version = "0.1.9" }
+gqlforge-hasher = { path = "gqlforge-hasher", version = "0.1.9" }
+gqlforge-macros = { path = "gqlforge-macros", version = "0.1.9" }
+gqlforge-tracker = { path = "gqlforge-tracker", version = "0.1.9", optional = true }
+gqlforge-typedefs-common = { path = "./gqlforge-typedefs-common", version = "0.1.9" }
 gqlforge-valid = { workspace = true }
 headers = { workspace = true }
 htpasswd-verify = { version = "0.3.0" } # uses fork (see [patch.crates-io])
@@ -239,8 +239,8 @@ cacache = { version = "13.1.0", default-features = false, features = [
 ] }
 datatest-stable = "0.3.3"
 flate2 = "1.1.9"
-gqlforge-fixtures = { path = "./gqlforge-fixtures", version = "0.1.8" }
-gqlforge-formatter = { path = "gqlforge-formatter", version = "0.1.8" }
+gqlforge-fixtures = { path = "./gqlforge-fixtures", version = "0.1.9" }
+gqlforge-formatter = { path = "gqlforge-formatter", version = "0.1.9" }
 http-cache-semantics = { version = "3", default-features = false, features = [
   "serde",
   "reqwest",

@@ -1,6 +1,6 @@
 [package]
 name = "gqlforge-http-cache"
-version = "0.1.8"
+version = "0.1.9"
 edition = "2024"
 description = "HTTP caching layer for gqlforge"
 license = "Apache-2.0"
