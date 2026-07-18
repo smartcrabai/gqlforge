@@ -14,7 +14,7 @@ groups:
       review-uncommitted:
         prompt: /review-uncommitted
       fix-review-result:
-        prompt: "Based on the review results below, address anything that seems to
+        prompt: 'Based on the review results below, address anything that seems to
           need attention.
 
           If you judge something to be a false positive, leave a reason and skip it.
@@ -25,7 +25,7 @@ groups:
 
           {prev.output}
 
-"
+          '
 steps:
   mise-trust:
     command: mise trust || true
@@ -65,7 +65,7 @@ steps:
       no-file-changes:
         retry: true
   implement-after-tests:
-    prompt: "Following the plan in {plan}, implement the code so that the tests pass.
+    prompt: 'Following the plan in {plan}, implement the code so that the tests pass.
 
 
       **Important**: The tests have already been written. Implement the code so the
@@ -79,7 +79,7 @@ steps:
       into the existing execution paths (entry points, routing, command definitions,
       event handlers, etc.) so the feature is actually invoked.
 
-      - Since tests are already written, you generally don't need to add more, but
+      - Since tests are already written, you generally don''t need to add more, but
       you may add tests if necessary.
 
       - You may modify tests if a fix requires it.
@@ -108,10 +108,10 @@ steps:
       - Where you use `??`, `||`, or `= defaultValue`, verified the fallback is actually
       necessary.
 
-      - Confirmed that code/exports replaced during refactoring haven't been left
+      - Confirmed that code/exports replaced during refactoring haven''t been left
       behind.
 
-      - Confirmed you haven't added functionality that wasn't requested in the task
+      - Confirmed you haven''t added functionality that wasn''t requested in the task
       instructions.
 
       - Confirmed no if/else branches call the same function differing only by arguments.
@@ -138,7 +138,7 @@ steps:
 
       - Test command and result
 
-"
+      '
     if:
       no-file-changes:
         retry: true
@@ -206,25 +206,25 @@ after-pr:
 
       git merge "origin/$base" --no-edit
 
-'
+      '
   resolve-conflict:
     skip: prev.success
-    prompt: "A conflict with the base branch occurred during `git merge`.
+    prompt: 'A conflict with the base branch occurred during `git merge`.
 
       Check the unresolved files with `git status`, resolve all conflict
 
       markers (<<<<<<<), then run `git add <files>` / `git commit`.
 
-      There is no need to push - the next step handles that.
+      There is no need to push — the next step handles that.
 
-"
+      '
   push-after-sync:
     command: git push
   wait-ci:
     command: gh pr checks {pr.number} --watch
   fix-ci-error:
     skip: prev.success
-    prompt: "The GitHub Actions CI for PR #{pr.number} is failing.
+    prompt: 'The GitHub Actions CI for PR #{pr.number} is failing.
 
       Identify the failing check with `gh pr checks {pr.number}`,
 
@@ -233,12 +233,12 @@ after-pr:
 
       After fixing it, update the PR branch with git add / commit / push.
 
-"
+      '
     if:
       file-changed: sync-base
     next: wait-ci
   merge:
     command:
-      - test "$(gh pr view {pr.number} --json statusCheckRollup -q '.statusCheckRollup
-        | length')" -eq 0 || gh pr checks {pr.number} --watch
-      - gh pr merge {pr.number} --squash
+    - test "$(gh pr view {pr.number} --json statusCheckRollup -q '.statusCheckRollup
+      | length')" -eq 0 || gh pr checks {pr.number} --watch
+    - gh pr merge {pr.number} --squash
