@@ -14,7 +14,7 @@ groups:
       review-uncommitted:
         prompt: /review-uncommitted
       fix-review-result:
-        prompt: 'Based on the review results below, address anything that seems to
+        prompt: "Based on the review results below, address anything that seems to
           need attention.
 
           If you judge something to be a false positive, leave a reason and skip it.
@@ -25,7 +25,7 @@ groups:
 
           {prev.output}
 
-          '
+"
 steps:
   mise-trust:
     command: mise trust || true
@@ -138,7 +138,7 @@ steps:
 
       - Test command and result
 
-      '
+'
     if:
       no-file-changes:
         retry: true
@@ -206,10 +206,10 @@ after-pr:
 
       git merge "origin/$base" --no-edit
 
-      '
+'
   resolve-conflict:
     skip: prev.success
-    prompt: 'A conflict with the base branch occurred during `git merge`.
+    prompt: "A conflict with the base branch occurred during `git merge`.
 
       Check the unresolved files with `git status`, resolve all conflict
 
@@ -217,14 +217,14 @@ after-pr:
 
       There is no need to push — the next step handles that.
 
-      '
+"
   push-after-sync:
     command: git push
   wait-ci:
     command: gh pr checks {pr.number} --watch
   fix-ci-error:
     skip: prev.success
-    prompt: 'The GitHub Actions CI for PR #{pr.number} is failing.
+    prompt: "The GitHub Actions CI for PR #{pr.number} is failing.
 
       Identify the failing check with `gh pr checks {pr.number}`,
 
@@ -233,12 +233,12 @@ after-pr:
 
       After fixing it, update the PR branch with git add / commit / push.
 
-      '
+"
     if:
       file-changed: sync-base
     next: wait-ci
   merge:
     command:
-    - test "$(gh pr view {pr.number} --json statusCheckRollup -q '.statusCheckRollup
-      | length')" -eq 0 || gh pr checks {pr.number} --watch
-    - gh pr merge {pr.number} --squash
+      - test "$(gh pr view {pr.number} --json statusCheckRollup -q '.statusCheckRollup
+        | length')" -eq 0 || gh pr checks {pr.number} --watch
+      - gh pr merge {pr.number} --squash
