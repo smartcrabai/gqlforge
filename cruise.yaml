@@ -148,7 +148,7 @@ after-pr:
       A conflict with the base branch occurred during `git merge`.
       Check the unresolved files with `git status`, resolve all conflict
       markers (<<<<<<<), then run `git add <files>` / `git commit`.
-      There is no need to push; the next step handles that.
+      There is no need to push — the next step handles that.
   push-after-sync:
     command: |-
       git push
@@ -167,7 +167,7 @@ after-pr:
     next: wait-ci
   merge:
     command:
-      - |-
-          test "$(gh pr view {pr.number} --json statusCheckRollup -q '.statusCheckRollup | length')" -eq 0 || gh pr checks {pr.number} --watch
-      - |-
-          gh pr merge {pr.number} --squash
+    - |-
+      test "$(gh pr view {pr.number} --json statusCheckRollup -q '.statusCheckRollup | length')" -eq 0 || gh pr checks {pr.number} --watch
+    - |-
+      gh pr merge {pr.number} --squash
