@@ -171,7 +171,7 @@ gqlrs = { workspace = true, features = [
   # "opentelemetry",
 ] }
 gqlrs-value = { workspace = true }
-base64 = "0.22.1"
+base64 = "0.23.0"
 chrono = "0.4.43"
 convert_case = { workspace = true }
 dashmap = "6.1.0"
