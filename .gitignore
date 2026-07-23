@@ -1,6 +1,7 @@
 /target
 /.idea
 /.vscode
+/.cache
 .DS_Store
 .bsp
 # direnv
