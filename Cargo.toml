@@ -187,7 +187,7 @@ headers = { workspace = true }
 htpasswd-verify = { version = "0.3.0" } # uses fork (see [patch.crates-io])
 http = { workspace = true }
 indenter = "0.3.4"
-jsonwebtoken = { version = "10.3.0", features = ["aws_lc_rs"] }
+jsonwebtoken = { version = "11.0.0", features = ["aws_lc_rs"] }
 mime = "0.3.17"
 num = "0.4.3"
 opentelemetry = { version = "0.32", features = ["trace", "logs", "metrics"] }
