@@ -168,6 +168,6 @@ after-pr:
   merge:
     command:
       - |-
-        test "$(gh pr view {pr.number} --json statusCheckRollup -q '.statusCheckRollup | length')" -eq 0 || gh pr checks {pr.number} --watch
+          test "$(gh pr view {pr.number} --json statusCheckRollup -q '.statusCheckRollup | length')" -eq 0 || gh pr checks {pr.number} --watch
       - |-
-        gh pr merge {pr.number} --squash
+          gh pr merge {pr.number} --squash
