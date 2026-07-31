@@ -1,3 +1,4 @@
+#![allow(clippy::module_inception)]
 mod cache;
 mod data_loader;
 mod dedupe;

@@ -1,3 +1,4 @@
+#![allow(clippy::module_inception)]
 pub use config::*;
 pub use config_module::*;
 pub use directive::Directive;
