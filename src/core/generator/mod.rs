@@ -1,3 +1,4 @@
+#![allow(clippy::module_inception)]
 mod from_database;
 mod from_json;
 mod from_proto;

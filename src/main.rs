@@ -1,6 +1,3 @@
-// Required for the #[global_allocator] proc macro
-#![allow(clippy::too_many_arguments)]
-
 use std::cell::Cell;
 
 use gqlforge::core::Errata;

@@ -1,5 +1,3 @@
-#![allow(clippy::too_many_arguments)]
-
 use std::borrow::Cow;
 use std::hash::{Hash, Hasher};
 

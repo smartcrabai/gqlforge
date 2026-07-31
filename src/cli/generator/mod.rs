@@ -1,4 +1,7 @@
-#![allow(clippy::module_inception)]
+#![expect(
+    clippy::module_inception,
+    reason = "submodule intentionally mirrors the parent module name"
+)]
 
 pub mod config;
 mod generator;

@@ -1,3 +1,4 @@
+#![allow(clippy::module_inception)]
 mod auth;
 mod blueprint;
 mod compress;
