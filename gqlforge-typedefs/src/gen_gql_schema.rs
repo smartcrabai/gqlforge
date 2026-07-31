@@ -7,7 +7,10 @@ pub fn build_service_document() -> ServiceDocument {
 
 #[cfg(test)]
 mod tests {
-    #![expect(dead_code, reason = "test helper types define variants not used in assertions")]
+    #![expect(
+        dead_code,
+        reason = "test helper types define variants not used in assertions"
+    )]
     use std::collections::HashSet;
 
     use gqlforge_typedefs_common::directive_definition::{
