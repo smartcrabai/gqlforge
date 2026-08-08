@@ -449,7 +449,7 @@ mod grpc_fetch {
         );
 
         let resp = grpc_reflection.list_all_files().await?;
-        assert!(!resp.is_empty());
+        assert!(!resp.is_empty(), "expected non-empty response");
 
         http_reflection_list_all.assert();
 

@@ -125,7 +125,7 @@ mod tests {
         let current = vec![];
         let other = vec![];
         let result = merge_key_value_vecs(&current, &other);
-        assert!(result.is_empty());
+        assert!(result.is_empty(), "expected empty result");
     }
 
     #[test]

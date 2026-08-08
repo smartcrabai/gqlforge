@@ -707,7 +707,7 @@ mod tests {
         let table = schema.find_table("orders").unwrap();
         // The FK is not applied via ALTER (not yet supported), so foreign_keys stays
         // empty.
-        assert!(table.foreign_keys.is_empty());
+        assert!(table.foreign_keys.is_empty(), "expected no foreign keys");
     }
 
     #[test]

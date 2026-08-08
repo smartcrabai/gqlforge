@@ -185,8 +185,8 @@ mod test {
         let response = Response::<ConstValue>::new(Ok(value.clone()));
 
         assert_eq!(response.data, value);
-        assert!(response.errors.is_empty());
-        assert!(response.extensions.is_empty());
+        assert!(response.errors.is_empty(), "expected no errors");
+        assert!(response.extensions.is_empty(), "expected no extensions");
     }
 
     #[test]
@@ -197,7 +197,7 @@ mod test {
         );
         let response = Response::<ConstValue>::new(Err(error.clone()));
 
-        assert!(response.extensions.is_empty());
+        assert!(response.extensions.is_empty(), "expected no extensions");
 
         assert_eq!(response.errors.len(), 1);
         insta::assert_debug_snapshot!(response);
@@ -209,7 +209,7 @@ mod test {
         let mut response = Response::<ConstValue>::new(Ok(value.clone()));
 
         // Initially no errors
-        assert!(response.errors.is_empty());
+        assert!(response.errors.is_empty(), "expected no errors initially");
 
         // Add an error
         let error = Positioned::new(

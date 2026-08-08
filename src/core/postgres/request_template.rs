@@ -664,7 +664,7 @@ mod tests {
             rendered.sql,
             r#"SELECT "metric_value", "metric_value" AS "metricValue" FROM "metrics" WHERE "metric_value" IS NULL ORDER BY "metric_value" DESC"#
         );
-        assert!(rendered.params.is_empty());
+        assert!(rendered.params.is_empty(), "expected no params");
     }
 
     #[test]

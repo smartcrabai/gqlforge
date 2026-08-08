@@ -391,6 +391,6 @@ type SensorData {{
             .unwrap();
 
         let sse_events = parse_sse_events(&body);
-        assert!(sse_events.is_empty());
+        assert!(sse_events.is_empty(), "expected no SSE events");
     }
 }
