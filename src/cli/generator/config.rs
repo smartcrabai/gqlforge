@@ -389,8 +389,11 @@ mod tests {
         let location_empty: Location<UnResolved> = serde_json::from_str(r#""""#).unwrap();
         let location_non_empty: Location<UnResolved> =
             serde_json::from_str(r#""https://dummyjson.com/products""#).unwrap();
-        assert!(location_empty.is_empty());
-        assert!(!location_non_empty.is_empty());
+        assert!(location_empty.is_empty(), "expected empty location");
+        assert!(
+            !location_non_empty.is_empty(),
+            "expected non-empty location"
+        );
     }
 
     fn assert_deserialization_error(json: &str, expected_error: &str) {

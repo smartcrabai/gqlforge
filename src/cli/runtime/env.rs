@@ -27,7 +27,7 @@ mod tests {
     #[test]
     fn test_init_with_env_vars() {
         let test_env = EnvNative::init();
-        assert!(!test_env.vars.is_empty());
+        assert!(!test_env.vars.is_empty(), "expected non-empty env vars");
     }
 
     #[test]

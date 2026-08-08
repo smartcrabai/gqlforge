@@ -279,7 +279,7 @@ mod tests {
     #[test]
     fn test_typed_param_date() {
         let bytes = typed_param_to_bytes("2024-01-15", &postgres_types::Type::DATE).unwrap();
-        assert!(!bytes.is_empty());
+        assert!(!bytes.is_empty(), "expected non-empty bytes");
     }
 
     #[test]
@@ -290,7 +290,7 @@ mod tests {
     #[test]
     fn test_typed_param_time() {
         let bytes = typed_param_to_bytes("10:30:00", &postgres_types::Type::TIME).unwrap();
-        assert!(!bytes.is_empty());
+        assert!(!bytes.is_empty(), "expected non-empty bytes");
     }
 
     #[test]
@@ -311,6 +311,6 @@ mod tests {
                 .unwrap(),
             postgres_types::IsNull::Yes
         ));
-        assert!(buffer.is_empty());
+        assert!(buffer.is_empty(), "expected empty buffer");
     }
 }
