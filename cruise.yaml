@@ -161,12 +161,12 @@ steps:
 
       **What to cut:**
       - Unrequested abstractions: an interface with one implementation, a factory for one product, config for a value that never changes.
-      - Boilerplate and scaffolding "for later" — later can scaffold for itself.
+      - Boilerplate and scaffolding "for later" - later can scaffold for itself.
       - if/else branches calling the same function differing only by arguments.
       - Fallbacks that aren't actually needed (`??`, `||`, `= defaultValue`).
       - Old code/exports left behind by a refactor that replaced them.
       - Functionality not requested in the task instructions.
-      Deletion over addition, boring over clever — clever is what someone decodes at 3am.
+      Deletion over addition, boring over clever - clever is what someone decodes at 3am.
       Two options of the same size? Take the one that's correct on edge cases. Lazy means writing less code, not picking the flimsier algorithm.
 
       **Bug fixes address the root cause, not the symptom:**
@@ -218,7 +218,7 @@ after-pr:
       A conflict with the base branch occurred during `git merge`.
       Check the unresolved files with `git status`, resolve all conflict
       markers (<<<<<<<), then run `git add <files>` / `git commit`.
-      There is no need to push — the next step handles that.
+      There is no need to push - the next step handles that.
   push-after-sync:
     command: |-
       git push
@@ -237,7 +237,7 @@ after-pr:
     next: wait-ci
   merge:
     command:
-    - |-
-      test "$(gh pr view {pr.number} --json statusCheckRollup -q '.statusCheckRollup | length')" -eq 0 || gh pr checks {pr.number} --watch
-    - |-
-      gh pr merge {pr.number} --squash
+      - |-
+          test "$(gh pr view {pr.number} --json statusCheckRollup -q '.statusCheckRollup | length')" -eq 0 || gh pr checks {pr.number} --watch
+      - |-
+          gh pr merge {pr.number} --squash
