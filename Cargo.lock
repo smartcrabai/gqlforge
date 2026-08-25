@@ -2987,6 +2987,7 @@ dependencies = [
  "http-cache",
  "http-cache-semantics",
  "reqwest 0.13.4",
+ "reqwest-middleware",
  "url",
 ]
 

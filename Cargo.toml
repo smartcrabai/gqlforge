@@ -74,6 +74,7 @@ gqlforge-http-cache = { path = "gqlforge-http-cache", version = "0.1.9", optiona
 gqlforge-version = { path = "./gqlforge-version", version = "0.1.9", optional = true }
 http-cache-reqwest = { version = "1.0.0-alpha.5", features = [
   "manager-moka",
+  "reqwest-middleware",
   "url-standard",
 ], default-features = false, optional = true }
 hyper-rustls = { version = "0.27", optional = true, features = ["http2"] }
