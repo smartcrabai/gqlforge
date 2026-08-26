@@ -2980,6 +2980,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "0fa15c101fcef1df74dc306d2943bbafb4c654b83449432e130eb8bdd3b39b05"
 dependencies = [
  "anyhow",
+ "async-trait",
  "bytes",
  "http 1.5.0",
  "http-body 1.0.1",
@@ -3183,7 +3184,7 @@ dependencies = [
  "libc",
  "percent-encoding",
  "pin-project-lite",
- "socket2 0.5.10",
+ "socket2 0.6.3",
  "tokio",
  "tower-service",
  "tracing",
@@ -4696,9 +4697,9 @@ dependencies = [
 
 [[package]]
 name = "posthog-rs"
-version = "0.25.2"
+version = "0.25.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "fed13284500e908ba34e4f678f754f154f70e453891a8d39eeca6ff11d740374"
+checksum = "6dee0240ce9b45d3811701cb5a9f45c6c9b73b4165aadfcbae5954fbcc46234f"
 dependencies = [
  "backtrace",
  "chrono",
@@ -4956,7 +4957,7 @@ dependencies = [
  "quinn-udp",
  "rustc-hash 2.1.2",
  "rustls 0.23.43",
- "socket2 0.5.10",
+ "socket2 0.6.3",
  "thiserror 2.0.20",
  "tokio",
  "tracing",
@@ -4994,7 +4995,7 @@ dependencies = [
  "cfg_aliases",
  "libc",
  "once_cell",
- "socket2 0.5.10",
+ "socket2 0.6.3",
  "tracing",
  "windows-sys 0.59.0",
 ]
