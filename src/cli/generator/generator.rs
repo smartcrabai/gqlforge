@@ -79,8 +79,8 @@ impl Generator {
         let source = ConfigSource::detect(config_path)?;
         let mut config_content = self.runtime.file.read(config_path).await?;
 
-        // While reading resolve the internal paths and mustache headers of generalized
-        // config.
+        // While reading resolve the internal paths and mustache headers of
+        // generalized config.
         let reader_context = ConfigReaderContext::new(&self.runtime);
         config_content = Mustache::parse(&config_content).render(&reader_context);
 

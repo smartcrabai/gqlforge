@@ -94,7 +94,8 @@ where
                     // try to support insertion order while merging index maps.
                     // if value is present on left, present it's position
                     // and if value is present only on the right then
-                    // add it to the end of left map preserving the iteration order of the right map
+                    // add it to the end of left map preserving the iteration
+                    // order of the right map
                     let value = std::mem::take(occupied_entry.get_mut());
 
                     *occupied_entry.get_mut() = value.merge_right(other_value);

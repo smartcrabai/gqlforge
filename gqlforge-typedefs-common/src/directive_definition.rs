@@ -65,8 +65,9 @@ pub fn into_directive_definition<S: BuildHasher>(
                 continue;
             }
             // the definition could either be an enum or a type
-            // we don't know which one is it, so we first try to get an EnumValue
-            // if into_enum_value returns Some we can be sure it's an Enum
+            // we don't know which one is it, so we first try to get an
+            // EnumValue if into_enum_value returns Some we can be
+            // sure it's an Enum
             if let Ok(schema) = Schema::try_from(schema_value.clone()) {
                 if let Some(enum_values) = into_enum_value(&schema) {
                     service_doc_definitions.push(into_enum_definition(enum_values, name));

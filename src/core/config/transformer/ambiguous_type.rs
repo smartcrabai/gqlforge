@@ -73,7 +73,8 @@ impl Transform for AmbiguousType {
                     resolution_map = insert_resolution(resolution_map, current_name, resolution);
                     for field in ty.fields.values() {
                         for args in field.args.values() {
-                            // if arg is of output type then it should be changed to that of
+                            // if arg is of output type then it should be
+                            // changed to that of
                             // newly created input type.
                             if output_types.contains(args.type_of.name())
                                 && !resolution_map.contains_key(args.type_of.name())

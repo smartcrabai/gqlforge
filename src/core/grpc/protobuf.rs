@@ -330,8 +330,8 @@ impl ProtobufOperation {
         if bytes.len() < 5 {
             bail!("Empty response");
         }
-        // ignore 5 first bytes as they are part of Length-Prefixed Message Framing
-        // see https://www.oreilly.com/library/view/grpc-up-and/9781492058328/ch04.html#:~:text=Length%2DPrefixed%20Message%20Framing
+        // ignore 5 first bytes as they are part of Length-Prefixed Message
+        // Framing see https://www.oreilly.com/library/view/grpc-up-and/9781492058328/ch04.html#:~:text=Length%2DPrefixed%20Message%20Framing
         // 1st byte - compression flag
         // 2-4th bytes - length of the message
         let message =
@@ -695,8 +695,8 @@ pub mod tests {
         let service = file.find_service(&grpc_method)?;
         let operation = service.find_operation(&grpc_method)?;
 
-        // only single key-value in json since the converted output can change the
-        // ordering on every run
+        // only single key-value in json since the converted output can change
+        // the ordering on every run
         let input = operation.convert_input(r#"{ "map": { "key": "value" } }"#)?;
 
         assert_eq!(input, b"\0\0\0\0\x0e\n\x0c\n\x03key\x12\x05value");

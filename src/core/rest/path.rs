@@ -67,7 +67,8 @@ impl Path {
             }
         }
 
-        // If there is still some segments in incoming request it should not match
+        // If there is still some segments in incoming request it should not
+        // match
         if req_segments.next().is_some() {
             return None;
         }

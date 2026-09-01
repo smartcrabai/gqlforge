@@ -52,8 +52,8 @@ impl Jwks {
                 return Err(Error::Invalid);
             }
 
-            // iterate over all available jwk and try to decode incoming token with it
-            // if any succeeds return the data
+            // iterate over all available jwk and try to decode incoming token
+            // with it if any succeeds return the data
             for jwk in &self.set.keys {
                 if let Ok(claims) = Self::decode_with_jwk(token, jwk) {
                     return Ok(claims);

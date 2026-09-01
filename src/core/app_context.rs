@@ -121,24 +121,29 @@ impl AppContext {
                                     result
                                 }
                                 IO::GrpcStream { .. } => {
-                                    // GrpcStream is used in subscriptions, no data loader needed
+                                    // GrpcStream is used in subscriptions, no
+                                    // data loader needed
                                     None
                                 }
                                 IO::GraphQLStream { .. } => {
-                                    // GraphQLStream is used in subscriptions, no data loader needed
+                                    // GraphQLStream is used in subscriptions,
+                                    // no data loader needed
                                     None
                                 }
                                 IO::HttpStream { .. } => {
-                                    // HttpStream is used in subscriptions, no data loader needed
+                                    // HttpStream is used in subscriptions, no
+                                    // data loader needed
                                     None
                                 }
                                 IO::PostgresStream { .. } => {
-                                    // PostgresStream is used in subscriptions, no data loader
+                                    // PostgresStream is used in subscriptions,
+                                    // no data loader
                                     // needed
                                     None
                                 }
                                 IO::RedisStream { .. } => {
-                                    // RedisStream is used in subscriptions, no data loader needed
+                                    // RedisStream is used in subscriptions, no
+                                    // data loader needed
                                     None
                                 }
                                 IO::Postgres {
@@ -160,7 +165,8 @@ impl AppContext {
                                     })))
                                 }
                                 IO::Redis { req_template, dedupe, connection_id } => {
-                                    // Redis has no data loader (no batching yet); carry the IO
+                                    // Redis has no data loader (no batching
+                                    // yet); carry the IO
                                     // through unchanged.
                                     Some(IR::IO(Box::new(IO::Redis {
                                         req_template: req_template.clone(),

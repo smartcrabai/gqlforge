@@ -8,7 +8,8 @@ pub fn print_schema(schema: &Schema) -> String {
     let sdl = schema.sdl_with_options(SDLExportOptions::new().sorted_fields());
     let lines: Vec<&str> = sdl.lines().collect();
 
-    // Mark lines to skip: directive @include/@skip and their preceding doc comments
+    // Mark lines to skip: directive @include/@skip and their preceding doc
+    // comments
     let mut skip = vec![false; lines.len()];
     for (i, line) in lines.iter().enumerate() {
         let trimmed = line.trim();
@@ -20,7 +21,8 @@ pub fn print_schema(schema: &Schema) -> String {
                 let prev = lines[j].trim();
                 if prev == "\"\"\"" {
                     skip[j] = true;
-                    // If this is the closing """, keep going to find the opening """
+                    // If this is the closing """, keep going to find the
+                    // opening """
                     if j > 0 && skip[j] {
                         let mut k = j.wrapping_sub(1);
                         while k < lines.len() {

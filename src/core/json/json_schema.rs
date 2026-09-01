@@ -238,9 +238,10 @@ impl TryFrom<&MessageDescriptor> for JsonSchema {
         for field in fields {
             let field_schema = JsonSchema::try_from(&field)?;
 
-            // the snake_case for field names is automatically converted to camelCase
-            // by prost on serde serialize/deserealize and in graphql type name should be in
-            // camelCase as well, so convert field.name to camelCase here
+            // the snake_case for field names is automatically converted to
+            // camelCase by prost on serde serialize/deserealize and
+            // in graphql type name should be in camelCase as well,
+            // so convert field.name to camelCase here
             map.insert(field.name().to_case(Case::Camel), field_schema);
         }
 

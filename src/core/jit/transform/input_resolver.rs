@@ -71,8 +71,8 @@ where
             .map(|field| Self::resolve_field(&index, field?))
             .collect::<Result<Vec<_>, _>>()?;
 
-        // adjust the pre-computed values in selection set like graphql query for
-        // @graphql directive.
+        // adjust the pre-computed values in selection set like graphql query
+        // for @graphql directive.
         Self::resolve_graphql_selection_set(&mut selection, variables);
 
         Ok(OperationPlan {
@@ -90,7 +90,8 @@ where
         })
     }
 
-    // resolves the variables in selection set mustache template for graphql query.
+    // resolves the variables in selection set mustache template for graphql
+    // query.
     fn resolve_graphql_selection_set(
         base_field: &mut [Field<Output>],
         variables: &Variables<Output>,

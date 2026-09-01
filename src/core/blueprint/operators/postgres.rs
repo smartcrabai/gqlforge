@@ -653,7 +653,8 @@ mod tests {
             postgres: &pg,
             operation_type: &GraphQLOperationType::Query,
         });
-        // No schema -> skips table validation, succeeds with connection_id "default"
+        // No schema -> skips table validation, succeeds with connection_id
+        // "default"
         let ir = result.to_result().unwrap();
         match ir {
             IR::IO(io) => match io.as_ref() {

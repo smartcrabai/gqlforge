@@ -136,8 +136,8 @@ impl NativeHttp {
             }));
         }
 
-        // hyper-rustls requires an explicit CryptoProvider (unlike reqwest which
-        // handles this internally)
+        // hyper-rustls requires an explicit CryptoProvider (unlike reqwest
+        // which handles this internally)
         let _ = rustls::crypto::aws_lc_rs::default_provider().install_default();
         let https_connector = hyper_rustls::HttpsConnectorBuilder::new()
             .with_native_roots()
@@ -253,7 +253,8 @@ impl HttpIO for NativeHttp {
             let status = resp.status();
             let mut resp_headers = resp.headers().clone();
             let collected = resp.into_body().collect().await?;
-            // Merge HTTP/2 trailers into headers for gRPC trailers-only responses
+            // Merge HTTP/2 trailers into headers for gRPC trailers-only
+            // responses
             if let Some(trailers) = collected.trailers().cloned() {
                 resp_headers.extend(trailers);
             }
@@ -356,7 +357,8 @@ mod tests {
         let resp = make_request(&url2, &native_http).await;
         assert_eq!(resp.headers.get("x-cache-lookup").unwrap(), "HIT");
 
-        // now cache is full, let's make 3rd request and cache it and evict url1.
+        // now cache is full, let's make 3rd request and cache it and evict
+        // url1.
         let url3 = format!("http://localhost:{port}/test-3");
         let resp = make_request(&url3, &native_http).await;
         assert_eq!(resp.headers.get("x-cache-lookup").unwrap(), "MISS");
@@ -391,7 +393,8 @@ mod tests {
         // Convert the error to a string to check its content
         let error = result.unwrap_err();
         let error_string = format!("{error:?}");
-        // Check that the error contains both the status code and the error message
+        // Check that the error contains both the status code and the error
+        // message
         assert!(
             error_string.contains("404"),
             "Error should contain status code"

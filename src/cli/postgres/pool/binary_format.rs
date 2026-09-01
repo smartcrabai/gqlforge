@@ -521,7 +521,8 @@ mod tests {
 
     #[test]
     fn test_parse_pg_numeric_negative_decimal() {
-        // -123.45: ndigits=2, weight=0, sign=0x4000, dscale=2, digits=[123, 4500]
+        // -123.45: ndigits=2, weight=0, sign=0x4000, dscale=2, digits=[123,
+        // 4500]
         let mut raw = Vec::new();
         raw.extend_from_slice(&2i16.to_be_bytes());
         raw.extend_from_slice(&0i16.to_be_bytes());
@@ -785,9 +786,9 @@ mod tests {
 
     #[test]
     fn test_format_range_unbounded_lower() {
-        // RANGE_LB_INF (0x08) | RANGE_UB_INC (0x04) = 0x0C: lower is infinite, upper is
-        // inclusive. PostgreSQL text representation: (,10]  (infinite lower is
-        // always exclusive)
+        // RANGE_LB_INF (0x08) | RANGE_UB_INC (0x04) = 0x0C: lower is infinite,
+        // upper is inclusive. PostgreSQL text representation: (,10]
+        // (infinite lower is always exclusive)
         let raw = build_int4_range(0x0C, None, Some(10));
         assert_eq!(
             format_range(&raw, &postgres_types::Type::INT4).unwrap(),
@@ -797,9 +798,9 @@ mod tests {
 
     #[test]
     fn test_format_range_unbounded_upper() {
-        // RANGE_LB_INC (0x02) | RANGE_UB_INF (0x10) = 0x12: lower is inclusive, upper
-        // is infinite. PostgreSQL text representation: [1,)  (infinite upper is
-        // always exclusive)
+        // RANGE_LB_INC (0x02) | RANGE_UB_INF (0x10) = 0x12: lower is inclusive,
+        // upper is infinite. PostgreSQL text representation: [1,)
+        // (infinite upper is always exclusive)
         let raw = build_int4_range(0x12, Some(1), None);
         assert_eq!(
             format_range(&raw, &postgres_types::Type::INT4).unwrap(),

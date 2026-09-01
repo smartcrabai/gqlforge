@@ -74,8 +74,8 @@ where
     async fn init(&mut self) {
         join_all(self.request.plan().selection.iter().map(|field| async {
             let ctx = Context::new(field, self.request);
-            // TODO: with_args should be called on inside iter_field on any level, not only
-            // for root fields
+            // TODO: with_args should be called on inside iter_field on any
+            // level, not only for root fields
             self.execute(&ctx).await
         }))
         .await;
@@ -88,7 +88,8 @@ where
     ) -> Result<(), Error> {
         let field = ctx.field();
         // TODO: Validate if the value is an Object
-        // Has to be an Object, we don't do anything while executing if its a Scalar
+        // Has to be an Object, we don't do anything while executing if its a
+        // Scalar
         join_all(field.iter().map(|child| {
             let ctx = ctx.with_value_and_field(value, child);
             async move { self.execute(&ctx).await }

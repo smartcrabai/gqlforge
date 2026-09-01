@@ -75,8 +75,8 @@ impl JITExecutor {
         &self,
         request: gqlrs::Request,
     ) -> impl Future<Output = AnyResponse<Vec<u8>>> + Send + '_ {
-        // TODO: hash considering only the query itself ignoring specified operation and
-        // variables that could differ for the same query
+        // TODO: hash considering only the query itself ignoring specified
+        // operation and variables that could differ for the same query
         let hash = Self::req_hash(&request);
 
         async move {
@@ -111,7 +111,8 @@ impl JITExecutor {
                 self.exec(exec, jit_request).await
             };
 
-            // Cache the response if it's constant and not wrapped with protected.
+            // Cache the response if it's constant and not wrapped with
+            // protected.
             if is_const && !is_protected {
                 self.app_ctx
                     .const_execution_cache

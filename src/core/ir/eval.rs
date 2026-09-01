@@ -35,10 +35,12 @@ impl IR {
                     let verifier = AuthVerifier::from(auth.clone());
                     let verification = verifier.verify(ctx.request_ctx).await;
                     let claims = verification.to_result_with_claims()?;
-                    // TODO: auth_claims is stored in request-global shared state
-                    // (Arc<Mutex>). When multiple @protected fields with access_expr
-                    // are evaluated concurrently (e.g., via IR::Merge or IR::Entity),
-                    // claims from one field can overwrite another's. To fix properly,
+                    // TODO: auth_claims is stored in request-global shared
+                    // state (Arc<Mutex>). When multiple
+                    // @protected fields with access_expr
+                    // are evaluated concurrently (e.g., via IR::Merge or
+                    // IR::Entity), claims from one field
+                    // can overwrite another's. To fix properly,
                     // scope claims to EvalContext instead of RequestContext.
                     if let Some(claims) = claims {
                         ctx.request_ctx.set_auth_claims(claims);
@@ -113,9 +115,11 @@ impl IR {
                     .into_iter()
                     .collect::<Result<_, _>>()?;
 
-                    // TODO: This is a very opinionated merge. We should allow users to customize
-                    // how they would like to merge the values. In future we should support more
-                    // merging capabilities by adding an additional parameter to `Merge`.
+                    // TODO: This is a very opinionated merge. We should allow
+                    // users to customize how they would
+                    // like to merge the values. In future we should support
+                    // more merging capabilities by adding
+                    // an additional parameter to `Merge`.
                     Ok(results
                         .into_iter()
                         .reduce(super::super::merge_right::MergeRight::merge_right)
@@ -146,8 +150,9 @@ impl IR {
                             "Cannot find a resolver for type: `{type_name}`"
                         )))?;
 
-                        // pass the input for current representation as value in context
-                        // TODO: can we drop clone?
+                        // pass the input for current representation as value in
+                        // context TODO: can we drop
+                        // clone?
                         let mut ctx = ctx.with_value(repr.clone());
 
                         tasks.push(async move {

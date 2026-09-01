@@ -60,8 +60,8 @@ mod tests {
         .unwrap();
         let error = to_mustache_headers(&input).to_result().unwrap_err();
 
-        // HeaderValue should be parsed just fine despite non-visible ascii symbols
-        // range see https://github.com/hyperium/http/issues/519
+        // HeaderValue should be parsed just fine despite non-visible ascii
+        // symbols range see https://github.com/hyperium/http/issues/519
         assert_eq!(
             error.to_string(),
             "Validation Error\n\u{2022} invalid HTTP header name [\u{1F605}]\n"

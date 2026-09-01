@@ -75,7 +75,8 @@ fn resolve_operand<Ctx: ResolverContextLike + Sync>(
 ) -> Option<serde_json::Value> {
     match operand {
         Operand::Path(segments) => {
-            // For claims paths, resolve directly from serde_json::Value to preserve types
+            // For claims paths, resolve directly from serde_json::Value to
+            // preserve types
             if segments.first().map(std::string::String::as_str) == Some("claims")
                 && segments.len() > 1
             {
@@ -414,7 +415,8 @@ mod tests {
         let eval_ctx = EvalContext::new(&req_ctx, &res_ctx);
 
         let expr = AccessExpr::parse("claims.role == 'admin'").unwrap();
-        // Missing claims path resolves to None, 'admin' resolves to Some - not equal
+        // Missing claims path resolves to None, 'admin' resolves to Some - not
+        // equal
         assert!(!expr.evaluate(&eval_ctx).unwrap());
     }
 
@@ -445,8 +447,8 @@ mod tests {
 
     #[test]
     fn test_parse_bool_boundary() {
-        // "trueValue" should parse as a path, not bool literal "true" + leftover
-        // "Value"
+        // "trueValue" should parse as a path, not bool literal "true" +
+        // leftover "Value"
         let expr = AccessExpr::parse("claims.trueValue == 'yes'").unwrap();
         assert_eq!(
             expr,

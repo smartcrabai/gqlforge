@@ -691,10 +691,10 @@ impl Config {
 
     #[must_use]
     pub fn graphql_schema() -> ServiceDocument {
-        // Multiple structs may contain a field of the same type when creating directive
-        // definitions. To avoid generating the same GraphQL type multiple times,
-        // this hash set is used to track visited types and ensure no duplicates are
-        // generated.
+        // Multiple structs may contain a field of the same type when creating
+        // directive definitions. To avoid generating the same GraphQL
+        // type multiple times, this hash set is used to track visited
+        // types and ensure no duplicates are generated.
         let mut generated_types: HashSet<String> = HashSet::new();
         let generated_types = &mut generated_types;
 

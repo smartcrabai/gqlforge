@@ -466,8 +466,9 @@ fn to_fields(
                 ));
 
             if fields_with_different_auth_ids.contains(name) || parent_auth_ids.is_none() {
-                // if the field has a different auth id than the parent type or parent has no
-                // auth id, we need to add correct trace.
+                // if the field has a different auth id than the parent type or
+                // parent has no auth id, we need to add correct
+                // trace.
                 result = result.trace(name);
             }
 

@@ -98,7 +98,8 @@ pub mod client {
 
             // NOTE: ListObjectsV2 returns up to 1,000 keys per request.
             // Pagination is intentionally not implemented here; callers should
-            // use the `prefix` parameter to narrow results within a single page.
+            // use the `prefix` parameter to narrow results within a single
+            // page.
             let output = req.send().await?;
             let contents = output.contents();
 

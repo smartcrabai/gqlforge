@@ -63,8 +63,9 @@ impl<K: Key, V: Value> Dedupe<K, V> {
                     Ok(value) => value,
                     Err(_) => {
                         // If we get an error that means the task with
-                        // owned tx (sender) was dropped.i.e. there is no result in cache
-                        // and we can try another attempt because probably another
+                        // owned tx (sender) was dropped.i.e. there is no result
+                        // in cache and we can try
+                        // another attempt because probably another
                         // task will do the execution
                         continue;
                     }
@@ -106,9 +107,10 @@ impl<K: Key, V: Value> Dedupe<K, V> {
         let (tx, _) = broadcast::channel(self.size);
         let tx = Arc::new(tx);
         // Store a Weak version of tx and pass actual tx to further handling
-        // to control if tx is still alive and will be able to handle the request.
-        // Only single `strong` reference to tx should exist so we can
-        // understand when the execution is still alive and we'll get the response
+        // to control if tx is still alive and will be able to handle the
+        // request. Only single `strong` reference to tx should exist so
+        // we can understand when the execution is still alive and we'll
+        // get the response
         this.insert(key.to_owned(), State::Pending(Arc::downgrade(&tx)));
         Step::Init(tx)
     }
@@ -349,7 +351,8 @@ mod tests {
 
         sleep(Duration::from_millis(300)).await;
 
-        // Task 1 should still have completed because others are dependent on it.
+        // Task 1 should still have completed because others are dependent on
+        // it.
         let actual = status
             .lock()
             .unwrap_or_else(PoisonError::into_inner)

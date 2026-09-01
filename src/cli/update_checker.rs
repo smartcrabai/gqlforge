@@ -84,7 +84,8 @@ pub fn check_for_update() {
     let informer = update_informer::new(registry::GitHub, name, VERSION.as_str());
 
     if let Some(latest_version) = informer.check_version().ok().flatten() {
-        // schedules the update message to be shown when the user presses Ctrl+C on cli.
+        // schedules the update message to be shown when the user presses Ctrl+C
+        // on cli.
         let _ = set_handler(move || {
             show_update_message(name, &latest_version);
             std::process::exit(exitcode::OK);

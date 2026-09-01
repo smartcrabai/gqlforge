@@ -138,7 +138,8 @@ fn format_selection_set<'a>(
 ) -> Option<String> {
     let set = selection_set
         .filter_map(|field| {
-            // add to set only related fields that should be resolved with current resolver
+            // add to set only related fields that should be resolved with
+            // current resolver
             related_fields.get(field.name()).map(|related_fields| {
                 format_selection_field(field, &related_fields.0, &related_fields.1)
             })

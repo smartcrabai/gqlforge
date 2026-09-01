@@ -86,8 +86,8 @@ impl<'a> TypeGenerator<'a> {
                 }
                 field
             } else {
-                // if object, array is empty or object has in-compatible fields then
-                // generate scalar for it.
+                // if object, array is empty or object has in-compatible fields
+                // then generate scalar for it.
                 Field {
                     type_of: Self::generate_scalar(config).to_string().into(),
                     ..Default::default()
@@ -127,7 +127,8 @@ impl<'a> TypeGenerator<'a> {
                 }
 
                 if !object_types.is_empty() {
-                    // merge the generated types of list into single concrete type.
+                    // merge the generated types of list into single concrete
+                    // type.
                     let merged_type = TypeMerger::merge_fields(object_types);
                     let generate_type_name = self.type_name_generator.next();
                     config.types.insert(generate_type_name.clone(), merged_type);

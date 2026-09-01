@@ -90,7 +90,8 @@ impl ExecutionSpec {
                             let _ = children.next();
                         }
                     } else if heading.depth == 2 {
-                        // TODO: use frontmatter parsing instead of handle it as heading?
+                        // TODO: use frontmatter parsing instead of handle it as
+                        // heading?
                         if let Some(Node::Text(expect)) = heading.children.first() {
                             let split = expect.value.splitn(2, ':').collect::<Vec<&str>>();
                             match split[..] {
@@ -173,7 +174,8 @@ impl ExecutionSpec {
                                     );
                                 }
                                 "schema" => {
-                                    // Schemas configs are only parsed if the test isn't skipped.
+                                    // Schemas configs are only parsed if the
+                                    // test isn't skipped.
                                     let name = format!("schema_{links_counter}.graphql");
                                     files.insert(name.clone(), content);
                                     config.links.push(Link { src: name, ..Default::default() });

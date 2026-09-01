@@ -85,8 +85,8 @@ impl MergeableTypes {
             || self.are_union_type(type_1, type_2)
             || self.are_interface_type(type_1, type_2)
         {
-            // if the type is input or union then they're similar only when they've exact
-            // same fields.
+            // if the type is input or union then they're similar only when
+            // they've exact same fields.
             1.0
         } else {
             self.threshold

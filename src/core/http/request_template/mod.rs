@@ -48,8 +48,8 @@ impl RequestTemplate {
             return Ok(url);
         }
 
-        // evaluates mustache template and returns the values evaluated by mustache
-        // template.
+        // evaluates mustache template and returns the values evaluated by
+        // mustache template.
         let mustache_eval = ValueStringEval::default();
 
         let extra_qp = self.query.iter().filter_map(|query| {
@@ -143,7 +143,8 @@ impl RequestTemplate {
                 }
                 Encoding::ApplicationXWwwFormUrlencoded => {
                     // TODO: this is a performance bottleneck
-                    // We first encode everything to string and then back to form-urlencoded
+                    // We first encode everything to string and then back to
+                    // form-urlencoded
                     let body = body_path.render(ctx);
                     let form_data = match serde_json::from_str::<serde_json::Value>(&body) {
                         Ok(deserialized_data) => serde_urlencoded::to_string(deserialized_data)?,
@@ -337,14 +338,15 @@ impl<'a, A: PathString> Eval<'a> for ExpressionValueEval<A> {
         // 2. body_key: The value of the first expression found in the template
         //
         // This implementation is a critical optimization for request batching:
-        // - During batching, we need to extract individual request values from the
-        //   batch response and map them back to their original requests
-        // - Instead of parsing the body JSON multiple times, we extract the key during
-        //   initial template evaluation
-        // - Since we enforce that batch requests can only contain one expression in
-        //   their body, this key uniquely identifies each request
-        // - This approach eliminates the need for repeated JSON parsing/serialization
-        //   during the batching process, significantly improving performance
+        // - During batching, we need to extract individual request values from
+        //   the batch response and map them back to their original requests
+        // - Instead of parsing the body JSON multiple times, we extract the key
+        //   during initial template evaluation
+        // - Since we enforce that batch requests can only contain one
+        //   expression in their body, this key uniquely identifies each request
+        // - This approach eliminates the need for repeated JSON
+        //   parsing/serialization during the batching process, significantly
+        //   improving performance
         let mut first_expression_value = None;
         for segment in mustache.segments() {
             match segment {

@@ -104,8 +104,8 @@ impl Context {
                 return;
             }
 
-            // since all of the fields are actually optional in protobuf generate also a
-            // type without this oneof completely
+            // since all of the fields are actually optional in protobuf
+            // generate also a type without this oneof completely
             collect_types(
                 format!("{type_name}__Var"),
                 base_type.clone(),
@@ -117,7 +117,8 @@ impl Context {
                 let mut new_type = base_type.clone();
                 let mut field = field.clone();
 
-                // mark this field as required to force type-check on specific variant of oneof
+                // mark this field as required to force type-check on specific
+                // variant of oneof
                 field.type_of = field.type_of.into_required();
 
                 // add new field specific to this variant of oneof field
@@ -200,8 +201,9 @@ impl Context {
 
                 // Format the variant with its comment as description
                 if let Some(comment) = comment {
-                    // TODO: better support for enum variant descriptions [There is no way to define
-                    // description for enum variant in current config structure]
+                    // TODO: better support for enum variant descriptions [There
+                    // is no way to define description for
+                    // enum variant in current config structure]
                     let variant_with_comment =
                         format!("\"\"\n  {comment}\n  \"\"\n  {variant_name}");
                     variants_with_comments.insert(variant_with_comment);
@@ -297,10 +299,12 @@ impl Context {
                             && !field.proto3_optional.unwrap_or(false)
                             && field.r#type() != ProtoType::Message
                         {
-                            // Proto3: non-explicit-optional scalar/enum fields are required
+                            // Proto3: non-explicit-optional scalar/enum fields
+                            // are required
                             cfg_field.type_of.into_required()
                         } else {
-                            // Proto2 optional / proto3 explicit optional / message type
+                            // Proto2 optional / proto3 explicit optional /
+                            // message type
                             cfg_field.type_of
                         }
                     }
@@ -309,14 +313,15 @@ impl Context {
                 if let Some(type_name) = &field.type_name {
                     // check that current field is map.
                     // it's done by checking that we've seen this type before
-                    // inside the nested type. It works only if we explore nested types
-                    // before the current type
+                    // inside the nested type. It works only if we explore
+                    // nested types before the current type
                     if self.map_types.contains(&type_name[1..]) {
                         // override type with single scalar
                         cfg_field.type_of = "JSON".to_string().into();
                     } else if let Some(scalar) = well_known_type_scalar(type_name) {
                         // well-known types are serialized to special JSON
-                        // representations by prost, so map them to matching scalars
+                        // representations by prost, so map them to matching
+                        // scalars
                         cfg_field.type_of = cfg_field.type_of.with_name(scalar.to_string());
                     } else {
                         // for non-primitive types
@@ -471,9 +476,9 @@ fn graphql_type_from_ref(name: &str) -> Result<GraphQLType<Unparsed>> {
 fn convert_primitive_type(proto_ty: &str) -> String {
     let binding = proto_ty.to_lowercase();
     let proto_ty = binding.strip_prefix("type_").unwrap_or(proto_ty);
-    // use Int64Str and Uint64Str to represent 64bit integers as string by default
-    // it's how this values are represented in JSON by default in prost
-    // see tests in `protobuf::tests::scalars_proto_file`
+    // use Int64Str and Uint64Str to represent 64bit integers as string by
+    // default it's how this values are represented in JSON by default in
+    // prost see tests in `protobuf::tests::scalars_proto_file`
     match proto_ty {
         "double" | "float" => "Float",
         "int32" | "sint32" | "fixed32" | "sfixed32" => "Int",
@@ -511,7 +516,8 @@ fn get_output_type(output_ty: &str) -> Result<GraphQLType<Unparsed>> {
     if let Some(scalar) = well_known_type_scalar(output_ty) {
         return Ok(GraphQLType::new(scalar));
     }
-    // Setting it not null by default. There's no way to infer this from proto file
+    // Setting it not null by default. There's no way to infer this from proto
+    // file
     graphql_type_from_ref(output_ty)
 }
 
@@ -626,9 +632,9 @@ mod test {
     #[test]
     fn test_required_types() {
         // Proto2 `required` label test.
-        // Proto3 singular fields without `optional` keyword are now mapped as required
-        // in GraphQL. This test uses proto2 to verify the proto2-specific `required`
-        // label.
+        // Proto3 singular fields without `optional` keyword are now mapped as
+        // required in GraphQL. This test uses proto2 to verify the
+        // proto2-specific `required` label.
 
         assert_gen!(protobuf::PERSON);
     }

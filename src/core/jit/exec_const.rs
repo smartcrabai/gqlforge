@@ -75,9 +75,9 @@ impl ConstValueExecutor {
         };
 
         // Attempt to replace variables in the plan with the actual values
-        // TODO: operation from [ExecutableDocument] could contain definitions for
-        // default values of arguments. That info should be passed to
-        // [InputResolver] to resolve defaults properly
+        // TODO: operation from [ExecutableDocument] could contain definitions
+        // for default values of arguments. That info should be passed
+        // to [InputResolver] to resolve defaults properly
         let result = InputResolver::new(plan).resolve_input(variables);
 
         let plan = match result {
@@ -161,10 +161,12 @@ impl IRExecutor for ConstValueExec<'_> {
             Some(value) if value.as_array().is_some() => {
                 let mut tasks = Vec::new();
 
-                // collect the async tasks first before creating the final result
+                // collect the async tasks first before creating the final
+                // result
                 value.for_each(&mut |value| {
-                    // execute the resolver only for fields that are related to current value
-                    // for fragments on union/interface
+                    // execute the resolver only for fields that are related to
+                    // current value for fragments on
+                    // union/interface
                     if self.plan.field_is_part_of_value(field, value) {
                         let ctx = ctx.with_value(value);
                         tasks.push(async move { self.call(&ctx, ir).await });
@@ -175,12 +177,13 @@ impl IRExecutor for ConstValueExec<'_> {
 
                 let mut iter = results.into_iter();
 
-                // map input value to the calculated results preserving the shape
-                // of the input
+                // map input value to the calculated results preserving the
+                // shape of the input
                 Ok(value.map_ref(&mut |value| {
                     // for fragments on union/interface we will
                     // have less entries for resolved values based on the type
-                    // pull from the result only field is related and fill with null otherwise
+                    // pull from the result only field is related and fill with
+                    // null otherwise
                     if self.plan.field_is_part_of_value(field, value) {
                         iter.next().unwrap_or(Err(ir::Error::IO(
                             "Expected value to be present".to_string(),

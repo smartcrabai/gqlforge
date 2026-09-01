@@ -143,7 +143,8 @@ impl Transform for FromJsonGenerator<'_> {
             let mut rename_types = HashMap::new();
             rename_types.insert(existing_name, suggested_name);
 
-            // these transformations are required in order to generate a base config.
+            // these transformations are required in order to generate a base
+            // config.
             GraphQLTypesGenerator::new(sample, type_name_gen)
                 .pipe(json::SchemaGenerator::new(
                     &sample.operation_type,

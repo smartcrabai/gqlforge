@@ -84,7 +84,8 @@ impl KeyedDiscriminator {
         let type_name = self.resolve_type(&value)?;
         let mut value = match value {
             Value::Object(index_map) => {
-                // this is safe to unwrap because we already validated it in `resolve_type`
+                // this is safe to unwrap because we already validated it in
+                // `resolve_type`
                 let (_, value) = index_map.into_iter().next().unwrap_or_else(|| {
                     unreachable!("resolve_type already validated Object has exactly one entry")
                 });

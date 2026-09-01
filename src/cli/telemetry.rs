@@ -59,11 +59,12 @@ fn set_trace_provider(
     // Set the global tracer provider for context propagation
     global::set_tracer_provider(provider);
 
-    // TEMPORARY: Disable tracing-opentelemetry layer due to version incompatibility
-    // tracing-opentelemetry v0.32.1 depends on opentelemetry v0.31.0, but we use
-    // v0.32.0 This should be re-enabled once tracing-opentelemetry v0.33+ is
-    // released with opentelemetry v0.32 support
-    // TODO: Re-enable when tracing-opentelemetry supports opentelemetry v0.32
+    // TEMPORARY: Disable tracing-opentelemetry layer due to version
+    // incompatibility tracing-opentelemetry v0.32.1 depends on
+    // opentelemetry v0.31.0, but we use v0.32.0 This should be re-enabled
+    // once tracing-opentelemetry v0.33+ is released with opentelemetry
+    // v0.32 support TODO: Re-enable when tracing-opentelemetry supports
+    // opentelemetry v0.32
     Ok(None)
 }
 
@@ -189,9 +190,10 @@ pub async fn init_opentelemetry(config: Telemetry, runtime: &TargetRuntime) -> a
             .with(default_tracing())
             .with(
                 log_layer.with_filter(dynamic_filter_fn(|_metatada, context| {
-                    // ignore logs that are generated inside tracing::Span since they will be logged
-                    // anyway with tracer_provider and log here only the events without associated
-                    // span
+                    // ignore logs that are generated inside tracing::Span since
+                    // they will be logged anyway with
+                    // tracer_provider and log here only the events without
+                    // associated span
                     context.lookup_current().is_none()
                 })),
             )

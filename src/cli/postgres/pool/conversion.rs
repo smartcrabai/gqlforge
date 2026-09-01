@@ -172,8 +172,8 @@ pub(crate) fn row_value_to_const(
                 };
             }
 
-            // Fallback: try to get as String (works for TEXT, VARCHAR, BPCHAR, NAME,
-            // UNKNOWN).
+            // Fallback: try to get as String (works for TEXT, VARCHAR, BPCHAR,
+            // NAME, UNKNOWN).
             if let Ok(v) = row.try_get::<_, Option<String>>(idx) {
                 Ok(v.map_or(ConstValue::Null, ConstValue::String))
             } else {

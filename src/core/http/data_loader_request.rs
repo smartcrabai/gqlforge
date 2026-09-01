@@ -46,9 +46,9 @@ impl DataLoaderRequest {
 impl Hash for DataLoaderRequest {
     fn hash<H: Hasher>(&self, state: &mut H) {
         self.request.url().hash(state);
-        // use body in hash for graphql queries with query operation as they used to
-        // fetch data while http post and graphql mutation should not be loaded
-        // through dataloader at all!
+        // use body in hash for graphql queries with query operation as they
+        // used to fetch data while http post and graphql mutation
+        // should not be loaded through dataloader at all!
         if let Some(body) = self.request.body() {
             body.as_bytes().hash(state);
         }

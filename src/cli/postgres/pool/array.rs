@@ -73,7 +73,8 @@ pub(super) fn raw_element_to_const(
             Ok(ConstValue::from_json(v).unwrap_or(ConstValue::Null))
         }
         _ => {
-            // For range types (e.g., arrays of ranges), format as PostgreSQL text.
+            // For range types (e.g., arrays of ranges), format as PostgreSQL
+            // text.
             if let Kind::Range(elem_ty) = ty.kind() {
                 return Ok(ConstValue::String(format_range(raw, elem_ty)?));
             }
@@ -375,8 +376,9 @@ mod tests {
 
     #[test]
     fn test_raw_element_timestamp() {
-        // 2024-01-15T10:30:00 is 8780 days + 37800 seconds after 2000-01-01T00:00:00
-        // = (8780 * 86400 + 37800) * 1_000_000 us = 758_629_800_000_000
+        // 2024-01-15T10:30:00 is 8780 days + 37800 seconds after
+        // 2000-01-01T00:00:00 = (8780 * 86400 + 37800) * 1_000_000 us =
+        // 758_629_800_000_000
         let us: i64 = 758_629_800_000_000;
         let result =
             raw_element_to_const(&postgres_types::Type::TIMESTAMP, &us.to_be_bytes()).unwrap();
