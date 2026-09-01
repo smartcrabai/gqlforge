@@ -143,13 +143,15 @@ impl RequestContext {
 
                 // Check if 'set-cookie' already exists in our map
                 if let Some(existing_cookies) = map.get(&cookie_name) {
-                    // Convert the existing HeaderValue to a str, append the new cookies,
-                    // and then convert back to a HeaderValue. If the conversion fails, we skip
+                    // Convert the existing HeaderValue to a str, append the new
+                    // cookies, and then convert back to a
+                    // HeaderValue. If the conversion fails, we skip
                     // appending.
                     if let Ok(existing_str) = existing_cookies.to_str()
                         && let Ok(new_cookies_str) = new_cookies.to_str()
                     {
-                        // Create a new value by appending the new cookies to the existing ones
+                        // Create a new value by appending the new cookies to
+                        // the existing ones
                         let combined_cookies = format!("{existing_str}; {new_cookies_str}");
 
                         // Replace the old value with the new, combined value
@@ -163,7 +165,8 @@ impl RequestContext {
                         );
                     }
                 } else {
-                    // If 'set-cookie' does not already exist in our map, just insert the new value
+                    // If 'set-cookie' does not already exist in our map, just
+                    // insert the new value
                     map.insert(cookie_name, new_cookies.clone());
                 }
             }

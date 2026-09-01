@@ -68,7 +68,8 @@ impl Loader<DataLoaderRequest> for HttpDataLoader {
             let query_name = group_by.key();
             let mut dl_requests = keys.to_vec();
             if cfg!(debug_assertions) {
-                // Sort keys to build consistent URLs only in Testing environment.
+                // Sort keys to build consistent URLs only in Testing
+                // environment.
                 dl_requests.sort_by(|a, b| a.to_request().url().cmp(b.to_request().url()));
             }
 
@@ -103,10 +104,12 @@ impl Loader<DataLoaderRequest> for HttpDataLoader {
                 // Parse the response body and group it by batchKey
                 let path = &group_by.path();
 
-                // ResponseMap contains the response body grouped by the batchKey
+                // ResponseMap contains the response body grouped by the
+                // batchKey
                 let response_map = res.body.group_by(path);
 
-                // depending on graphql type, it will extract the data out of the response.
+                // depending on graphql type, it will extract the data out of
+                // the response.
                 let data_extractor = if self.is_list {
                     get_body_value_list
                 } else {

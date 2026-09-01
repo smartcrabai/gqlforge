@@ -66,9 +66,9 @@ impl<'a> MustachePartsValidator<'a> {
                 }
             }
             "args" => {
-                // XXX this is a linear search but it's cost is less than that of
-                // constructing a HashMap since we'd have 3-4 arguments at max in
-                // most cases
+                // XXX this is a linear search but it's cost is less than that
+                // of constructing a HashMap since we'd have 3-4
+                // arguments at max in most cases
                 if let Some(arg) = args.iter().find(|arg| arg.name == tail) {
                     if !is_query && arg.of_type.is_list() {
                         return Valid::fail(BlueprintError::CantUseListTypeHere(tail.to_string()));
@@ -185,10 +185,10 @@ impl FieldDefinition {
         config: &Config,
     ) -> Valid<(), BlueprintError> {
         // XXX we could use `Mustache`'s `render` method with a mock
-        // struct implementing the `PathString` trait encapsulating `validation_map`
-        // but `render` simply falls back to the default value for a given
-        // type if it doesn't exist, so we wouldn't be able to get enough
-        // context from that method alone
+        // struct implementing the `PathString` trait encapsulating
+        // `validation_map` but `render` simply falls back to the
+        // default value for a given type if it doesn't exist, so we
+        // wouldn't be able to get enough context from that method alone
         // So we must duplicate some of that logic here :(
         let parts_validator = MustachePartsValidator::new(type_of, config, self);
 

@@ -81,8 +81,8 @@ fn validate_schema(
     input_type
         .zip(output_type)
         .and_then(|(_input_schema, sub_type)| {
-            // TODO: add validation for input schema - should compare result grpc.body to
-            // schema
+            // TODO: add validation for input schema - should compare result
+            // grpc.body to schema
             let super_type = field_schema.field;
             match sub_type.is_a(&super_type, name).to_result() {
                 Ok(res) => Valid::succeed(res),
@@ -122,8 +122,8 @@ fn validate_group_by(
     json_schema
         .zip(Valid::from(output_type))
         .and_then(|(_input_schema, output_schema)| {
-            // TODO: add validation for input schema - should compare result grpc.body to
-            // schema considering repeated message type
+            // TODO: add validation for input schema - should compare result
+            // grpc.body to schema considering repeated message type
             let fields = &field_schema.field;
             let fields = JsonSchema::Arr(Box::new(fields.to_owned()));
             match output_schema

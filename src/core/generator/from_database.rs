@@ -503,7 +503,8 @@ mod tests {
         let posts_type = config.types.get("Posts").unwrap();
         assert!(posts_type.fields.contains_key("users"));
 
-        // Users should have a `posts` has-many field (already plural -> postsList)
+        // Users should have a `posts` has-many field (already plural ->
+        // postsList)
         let users_type = config.types.get("Users").unwrap();
         assert!(users_type.fields.contains_key("postsList"));
     }

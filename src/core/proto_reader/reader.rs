@@ -212,8 +212,9 @@ impl ProtoReader {
         proto_paths: Option<&[PathBuf]>,
     ) -> anyhow::Result<FileDescriptorProto> {
         if let Ok(file) = GoogleFileResolver::new().open_file(path.as_ref()) {
-            // protox 0.9+ returns pre-parsed file descriptors for well-known types
-            // without source text, so use the descriptor directly
+            // protox 0.9+ returns pre-parsed file descriptors for well-known
+            // types without source text, so use the descriptor
+            // directly
             if let Some(source) = file.source() {
                 return Ok(protox_parse::parse(path.as_ref(), source)?);
             }

@@ -113,7 +113,8 @@ pub fn compile_http(
                     hook,
                 }))
             } else if !http.batch_key.is_empty() {
-                // Find a query parameter that contains a reference to the {{.value}} key
+                // Find a query parameter that contains a reference to the
+                // {{.value}} key
                 let key = if http.method == Method::GET {
                     http.query.iter().find_map(|q| {
                         Mustache::parse(&q.value)

@@ -34,8 +34,8 @@ pub fn is_valid_field_name(property_name: &str) -> bool {
 pub fn to_gql_type(value: &Value) -> String {
     match value {
         Value::Null => {
-            // treat null values as JSON scalars as we don't know the exact shape of the
-            // output.
+            // treat null values as JSON scalars as we don't know the exact
+            // shape of the output.
             "JSON"
         }
         Value::Bool(_) => "Boolean",

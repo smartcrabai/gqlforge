@@ -68,8 +68,8 @@ impl<'a> Similarity<'a> {
                     let field_2_type_of = field_2.type_of.name();
 
                     if config.is_scalar(field_1_type_of) && config.is_scalar(field_2_type_of) {
-                        // if field type_of is scalar and they don't match then we can't merge
-                        // types.
+                        // if field type_of is scalar and they don't match then
+                        // we can't merge types.
                         let json_scalar = &Scalar::JSON.to_string();
                         if field_1_type_of == field_2_type_of
                             || field_1_type_of == json_scalar
@@ -88,19 +88,23 @@ impl<'a> Similarity<'a> {
                         }
                     } else if field_1_type_of == field_2_type_of {
                         // in order to consider the fields to be exactly same.
-                        // it's output type must match (we can ignore the required bounds).
+                        // it's output type must match (we can ignore the
+                        // required bounds).
                         if field_1.type_of.is_list() == field_2.type_of.is_list() {
-                            // if they're of both of list type then they're probably of same type.
+                            // if they're of both of list type then they're
+                            // probably of same type.
                             same_field_count += 1;
                         } else {
-                            // If the list properties don't match, we cannot merge these types.
+                            // If the list properties don't match, we cannot
+                            // merge these types.
                             return Valid::fail("Type merge failed: The fields have different list types and cannot be merged.".to_string());
                         }
                     } else if let Some(type_1) = config.types.get(field_1_type_of)
                         && let Some(type_2) = config.types.get(field_2_type_of)
                     {
                         if visited_type.contains(field_1_type_of, field_2_type_of) {
-                            // it's cyclic type, return true as they're the same.
+                            // it's cyclic type, return true as they're the
+                            // same.
                             return Valid::succeed(true);
                         }
                         visited_type.insert(field_1_type_of.to_owned(), field_2_type_of.to_owned());

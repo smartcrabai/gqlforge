@@ -165,11 +165,13 @@ fn apply_statement(schema: &mut DatabaseSchema, stmt: &Statement) {
             let from_tables = collect_from_table_names(&create.query);
 
             let columns = if create.columns.is_empty() {
-                // No explicit column list: infer columns from SELECT projection.
+                // No explicit column list: infer columns from SELECT
+                // projection.
                 infer_view_columns_from_projection(&create.query, &from_tables, schema)
             } else {
-                // Explicit column list: use ViewColumnDef; fall back to positional
-                // SELECT projection for types that are not spelled out.
+                // Explicit column list: use ViewColumnDef; fall back to
+                // positional SELECT projection for types that
+                // are not spelled out.
                 create
                     .columns
                     .iter()
@@ -702,11 +704,12 @@ mod tests {
             "ALTER TABLE orders ADD CONSTRAINT fk_user FOREIGN KEY (user_id) REFERENCES users(id);"
                 .to_string();
 
-        // Should not panic; the ADD CONSTRAINT is warned but gracefully ignored.
+        // Should not panic; the ADD CONSTRAINT is warned but gracefully
+        // ignored.
         let schema = parse_migrations(&[m1, m2]).unwrap();
         let table = schema.find_table("orders").unwrap();
-        // The FK is not applied via ALTER (not yet supported), so foreign_keys stays
-        // empty.
+        // The FK is not applied via ALTER (not yet supported), so foreign_keys
+        // stays empty.
         assert!(table.foreign_keys.is_empty(), "expected no foreign keys");
     }
 

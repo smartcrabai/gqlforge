@@ -52,7 +52,8 @@ impl OperationTypeGenerator {
 
         field.resolvers = Resolver::Http(http_resolver).into();
 
-        // if type is already present, then append the new field to it else create one.
+        // if type is already present, then append the new field to it else
+        // create one.
         let req_op = request_sample
             .operation_type
             .to_string()

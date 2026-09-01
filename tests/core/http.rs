@@ -119,8 +119,8 @@ impl HttpIO for Http {
                 .map(|body| String::from_utf8_lossy(&body.to_bytes()).to_string())
                 .unwrap_or_default();
 
-            // Return the JSON error body directly as the error so it can be processed in
-            // the error module
+            // Return the JSON error body directly as the error so it can be
+            // processed in the error module
             let error = Error::HTTP {
                 message: format!("{status_code}: {error_body}"),
                 body: error_body,

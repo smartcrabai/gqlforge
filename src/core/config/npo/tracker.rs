@@ -190,7 +190,8 @@ impl<'a> PathTracker<'a> {
             if type_of.has_resolver() {
                 let parent_path = Name::Entity(TypeName(type_name.as_str()));
                 // entity resolver are used to fetch multiple instances at once
-                // and therefore the resolver itself should be batched to avoid n + 1
+                // and therefore the resolver itself should be batched to avoid
+                // n + 1
                 if type_of.has_batched_resolver() {
                     // if batched resolver is present traverse inner fields
                     chunks = chunks.concat(self.traverse(

@@ -71,7 +71,8 @@ pub fn update_ir(ir: &mut IR, vec: &mut Vec<Auth>) {
                 update_ir(ir_0, vec);
                 *ir = *ir_0.clone();
             } else {
-                // Expression-based access rules stay in place (field-level evaluation)
+                // Expression-based access rules stay in place (field-level
+                // evaluation)
                 update_ir(ir_0, vec);
             }
         }

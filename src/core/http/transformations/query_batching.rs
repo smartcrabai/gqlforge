@@ -34,8 +34,8 @@ impl Transform for QueryBatching<'_> {
             };
 
             if !pairs.is_empty() {
-                // if pair's are empty then don't extend the query params else it ends
-                // up appending '?' to the url.
+                // if pair's are empty then don't extend the query params else
+                // it ends up appending '?' to the url.
                 base_request.url_mut().query_pairs_mut().extend_pairs(pairs);
             }
         }

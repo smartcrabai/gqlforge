@@ -51,8 +51,8 @@ impl TypeMerger {
         let mut types = mergeable_types.iter().collect::<Vec<_>>();
         types.sort();
 
-        // step 1: identify all the types that satisfies the thresh criteria and group
-        // them.
+        // step 1: identify all the types that satisfies the thresh criteria and
+        // group them.
         for type_name_1 in &types {
             let type_name_1 = type_name_1.as_str();
             if let Some(type_info_1) = config.types.get(type_name_1) {

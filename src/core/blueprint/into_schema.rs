@@ -400,7 +400,8 @@ impl From<&Blueprint> for SchemaBuilder {
         schema = inject_custom_scalars(schema, blueprint);
 
         for def in &blueprint.definitions {
-            // Register subscription type definitions as Subscription, not Object
+            // Register subscription type definitions as Subscription, not
+            // Object
             if let Definition::Object(obj_def) = def
                 && subscription.as_deref() == Some(&obj_def.name)
             {

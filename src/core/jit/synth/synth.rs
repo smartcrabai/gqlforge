@@ -161,9 +161,9 @@ where
                 Err(ValidationError::ValueRequired.into())
             }
         } else if let Some(scalar) = node.scalar.as_ref() {
-            // TODO: add validation for input type as well. But input types are not checked
-            // by gqlrs anyway so it should be done after replacing
-            // default engine with JIT
+            // TODO: add validation for input type as well. But input types are
+            // not checked by gqlrs anyway so it should be done
+            // after replacing default engine with JIT
             if scalar.validate(value) {
                 Ok(Output::clone_from(value))
             } else {
@@ -197,7 +197,8 @@ where
                         .filter(|field| self.plan.field_is_part_of_value(field, value))
                     {
                         // all checks for skip must occur in `iter_inner`
-                        // and include be checked before calling `iter` or recursing.
+                        // and include be checked before calling `iter` or
+                        // recursing.
                         if self.include(child) {
                             let value = if child.name == "__typename" {
                                 Output::string(node.value_type(value).into())
@@ -352,11 +353,12 @@ mod tests {
         let plan = builder.build(None).unwrap();
         let plan = plan
             .try_map(|v| {
-                // Earlier we hard OperationPlan<ConstValue> which has impl Deserialize
-                // but now InputResolver takes OperationPlan<gqlrs_value::Value>
-                // and returns OperationPlan<gqlrs_value::Value>.
-                // So we need to map Plan to some other value before being able to deserialize
-                // it.
+                // Earlier we hard OperationPlan<ConstValue> which has impl
+                // Deserialize but now InputResolver takes
+                // OperationPlan<gqlrs_value::Value> and returns
+                // OperationPlan<gqlrs_value::Value>. So we need
+                // to map Plan to some other value before being able to
+                // deserialize it.
                 let serde = v.into_json().unwrap();
                 Deserialize::deserialize(serde)
             })

@@ -116,8 +116,8 @@ impl PostgresListener {
             }
 
             backoff_ms = (backoff_ms * 2).min(MAX_RECONNECT_DELAY_MS);
-            // Add +/-25% jitter to prevent thundering herd when multiple listeners
-            // reconnect
+            // Add +/-25% jitter to prevent thundering herd when multiple
+            // listeners reconnect
             let jitter: u64 = rand::random_range(0..=backoff_ms / 4);
             let delay_ms = if rand::random_bool(0.5) {
                 backoff_ms.saturating_sub(jitter)

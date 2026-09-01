@@ -456,7 +456,8 @@ mod tests {
         let chunk2 = chunk1.clone().append(3);
         let chunk3 = chunk1.clone().append(4);
 
-        // Verify that modifications create new structures while preserving the original
+        // Verify that modifications create new structures while preserving the
+        // original
         assert_eq!(chunk1.as_vec(), vec![1, 2]);
         assert_eq!(chunk2.as_vec(), vec![1, 2, 3]);
         assert_eq!(chunk3.as_vec(), vec![1, 2, 4]);

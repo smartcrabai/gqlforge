@@ -69,9 +69,10 @@ where
         if let gqlrs::Value::Object(other_obj) = &other.data {
             if let Some(self_obj) = self.data.as_object_mut() {
                 for (k, v) in other_obj {
-                    // this function is mostly used for merging the usual response with
-                    // introspection result from gqlrs.
-                    // But gqlrs response in that case
+                    // this function is mostly used for merging the usual
+                    // response with introspection result
+                    // from gqlrs. But gqlrs response in
+                    // that case
                     if self_obj.get_key(k.as_str()).is_none() {
                         self_obj.insert_key(k.as_str(), Value::clone_from(v));
                     }

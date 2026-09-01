@@ -11,12 +11,13 @@ thread_local! {
 fn run_blocking() -> anyhow::Result<()> {
     let rt = tokio::runtime::Builder::new_current_thread()
         .on_thread_start(|| {
-            // initialize default tracing setup for the cli execution for every thread that
-            // is spawned based on https://github.com/tokio-rs/tracing/issues/593#issuecomment-589857097
-            // and required due to the fact that later for tracing the global subscriber
-            // will be set by `src/cli/opentelemetry.rs` and until that we need
-            // to use the default tracing configuration for cli output. And
-            // since `set_default` works only for current thread incorporate this
+            // initialize default tracing setup for the cli execution for every
+            // thread that is spawned based on https://github.com/tokio-rs/tracing/issues/593#issuecomment-589857097
+            // and required due to the fact that later for tracing the global
+            // subscriber will be set by `src/cli/opentelemetry.rs`
+            // and until that we need to use the default tracing
+            // configuration for cli output. And since `set_default`
+            // works only for current thread incorporate this
             // with tokio runtime
             let guard = tracing::subscriber::set_default(default_tracing_gqlforge());
 
@@ -40,8 +41,8 @@ fn run_blocking() -> anyhow::Result<()> {
 )]
 fn main() -> anyhow::Result<()> {
     // Initialize rustls CryptoProvider first (using aws_lc_rs)
-    // Explicit configuration required when both aws-lc-rs and ring are present as
-    // dependencies
+    // Explicit configuration required when both aws-lc-rs and ring are present
+    // as dependencies
     rustls::crypto::aws_lc_rs::default_provider()
         .install_default()
         .expect("Failed to install rustls CryptoProvider");

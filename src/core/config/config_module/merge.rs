@@ -536,7 +536,8 @@ mod tests {
         // Test merging cache1 and cache2
         let merged = cache1.clone().unify(cache2.clone()).to_result()?;
 
-        // Verify that allowed_headers from cache2 are preserved in the merged cache
+        // Verify that allowed_headers from cache2 are preserved in the merged
+        // cache
         assert_eq!(
             merged.config.upstream.allowed_headers,
             Some(headers.clone())

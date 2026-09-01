@@ -37,8 +37,8 @@ impl<'a> CandidateConvergence<'a> {
         let mut converged_candidate_set = HashSet::new();
 
         for (type_name, candidate_list) in &self.candidates {
-            // Filter out candidates that have already been converged or are already present
-            // in types
+            // Filter out candidates that have already been converged or are
+            // already present in types
             let candidates_to_consider = candidate_list.iter().filter(|(candidate_name, _)| {
                 let candidate_type_name = candidate_name.to_case(Case::Pascal);
                 !converged_candidate_set.contains(&candidate_type_name)
@@ -81,7 +81,8 @@ impl<'a> CandidateGeneration<'a> {
                 if self.config.is_scalar(field_info.type_of.name())
                     || field_name.starts_with(PREFIX)
                 {
-                    // If field type is scalar or auto generated then ignore type name inference.
+                    // If field type is scalar or auto generated then ignore
+                    // type name inference.
                     continue;
                 }
 
@@ -95,8 +96,9 @@ impl<'a> CandidateGeneration<'a> {
                 if let Some(key_val) = inner_map.get_mut(&singularized_candidate) {
                     key_val.frequency += 1;
                 } else {
-                    // in order to infer the types correctly, always prioritize the non-operation
-                    // types but final selection will still depend upon the
+                    // in order to infer the types correctly, always prioritize
+                    // the non-operation types but final
+                    // selection will still depend upon the
                     // frequency.
                     let priority = u8::from(!self.config.is_root_operation_type(type_name));
 

@@ -62,7 +62,8 @@ impl Response<Bytes> {
         if let Err(err) = response.error_for_status_ref() {
             // Get the body content first (this is the key step)
             let body_text = response.text().await?;
-            // Create an error with the status code and add body content as context
+            // Create an error with the status code and add body content as
+            // context
             let err = Error::HTTP {
                 message: err.without_url().to_string(),
                 body: body_text.clone(),

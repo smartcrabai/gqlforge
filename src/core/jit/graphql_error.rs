@@ -23,10 +23,10 @@ pub struct GraphQLError {
 
 impl From<gqlrs::ServerError> for GraphQLError {
     fn from(value: gqlrs::ServerError) -> Self {
-        // TODO: remove this once either extension are avail public or we migrate from
-        // gqlrs. we can't copy extensions, bcoz it's private inside the
-        // gqlrs. hack: serialize the value and deserialize it back to
-        // btreemap.
+        // TODO: remove this once either extension are avail public or we
+        // migrate from gqlrs. we can't copy extensions, bcoz it's
+        // private inside the gqlrs. hack: serialize the value and
+        // deserialize it back to btreemap.
         let extensions = value.extensions.and_then(|ext| {
             serde_json::to_value(ext)
                 .ok()

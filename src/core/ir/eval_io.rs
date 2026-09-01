@@ -19,8 +19,8 @@ pub async fn eval_io<Ctx>(io: &IO, ctx: &mut EvalContext<'_, Ctx>) -> Result<Con
 where
     Ctx: ResolverContextLike + Sync,
 {
-    // Note: Handled the case separately for performance reasons. It avoids cache
-    // key generation when it's not required
+    // Note: Handled the case separately for performance reasons. It avoids
+    // cache key generation when it's not required
     let dedupe = io.dedupe();
 
     if !dedupe || !ctx.is_query() {

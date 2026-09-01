@@ -41,8 +41,8 @@ pub async fn introspect(connection_url: &str) -> Result<DatabaseSchema> {
     let client = Arc::new(client);
     let mut schema = DatabaseSchema::new();
 
-    // Fetch tables, views, and their metadata (columns, primary keys, foreign keys,
-    // unique constraints) in parallel per table.
+    // Fetch tables, views, and their metadata (columns, primary keys, foreign
+    // keys, unique constraints) in parallel per table.
     let tables_query = r"
         SELECT table_schema, table_name, table_type
         FROM information_schema.tables
@@ -80,8 +80,8 @@ pub async fn introspect(connection_url: &str) -> Result<DatabaseSchema> {
         });
     }
 
-    // Materialized views use pg_catalog.pg_matviews since information_schema omits
-    // them (relkind = 'm').
+    // Materialized views use pg_catalog.pg_matviews since information_schema
+    // omits them (relkind = 'm').
     let matviews_query = r"
         SELECT schemaname AS table_schema, matviewname AS table_name
         FROM pg_catalog.pg_matviews

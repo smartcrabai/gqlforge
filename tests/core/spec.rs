@@ -97,11 +97,11 @@ async fn is_sdl_error(spec: &ExecutionSpec, config_module: Valid<ConfigModule, S
 
 async fn check_identity(spec: &ExecutionSpec, reader_ctx: &ConfigReaderContext<'_>) {
     // TODO: we should probably figure out a way to do this for every test
-    // but GraphQL identity checking is very hard, since a lot depends on the code
-    // style the re-serializing check gives us some of the advantages of the
-    // identity check too, but we are missing out on some by having it only
-    // enabled for either new tests that request it or old graphql_spec
-    // tests that were explicitly written with it in mind
+    // but GraphQL identity checking is very hard, since a lot depends on the
+    // code style the re-serializing check gives us some of the advantages
+    // of the identity check too, but we are missing out on some by having
+    // it only enabled for either new tests that request it or old
+    // graphql_spec tests that were explicitly written with it in mind
     if spec.check_identity {
         for link in spec
             .config
@@ -115,7 +115,8 @@ async fn check_identity(spec: &ExecutionSpec, reader_ctx: &ConfigReaderContext<'
             let config = Config::from_source(Source::GraphQL, &content).unwrap();
             let actual = config.to_sdl();
 
-            // \r is added automatically in windows, it's safe to replace it with \n
+            // \r is added automatically in windows, it's safe to replace it
+            // with \n
             let content = content.replace("\r\n", "\n");
 
             let path_str = spec.path.display().to_string();

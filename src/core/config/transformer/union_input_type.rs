@@ -123,8 +123,8 @@ impl<'cfg> Visitor<'cfg> {
             for type_name in &union_.types {
                 if let Some(UnionPresence::Union(union_types)) = self.union_presence.get(type_name)
                 {
-                    // union type members could be the union itself or could be the type
-                    // that has nested unions
+                    // union type members could be the union itself or could be
+                    // the type that has nested unions
                     types.extend(union_types.clone());
                 } else {
                     types.insert(type_name.clone());
@@ -134,7 +134,8 @@ impl<'cfg> Visitor<'cfg> {
             self.union_presence
                 .insert(type_name, UnionPresence::Union(types.into_iter().collect()));
         } else if let Some(type_) = self.config.types.get(type_name) {
-            // first, recursively walk over nested fields to see if there any nested unions
+            // first, recursively walk over nested fields to see if there any
+            // nested unions
             for field in type_.fields.values() {
                 self.collect_nested_unions_for_type(field.type_of.name());
             }
@@ -142,8 +143,9 @@ impl<'cfg> Visitor<'cfg> {
             // store any fields that contain union
             let mut union_fields = Vec::new();
 
-            // then again loop over fields and check if there any fields that are resolved
-            // to multiple types. As separate loop to bypass borrow checker
+            // then again loop over fields and check if there any fields that
+            // are resolved to multiple types. As separate loop to
+            // bypass borrow checker
             for (field_name, field) in &type_.fields {
                 if let Some(UnionPresence::Union(union_types)) =
                     self.union_presence.get(field.type_of.name())
@@ -207,8 +209,8 @@ impl<'cfg> Visitor<'cfg> {
 
         if let Some(UnionPresence::Union(union_types)) = self.union_presence.get(arg.type_of.name())
         {
-            // if the type is union walk over all type members and generate new separate
-            // field for this variant
+            // if the type is union walk over all type members and generate new
+            // separate field for this variant
             for (i, type_) in union_types.iter().enumerate() {
                 let new_arg = Arg {
                     type_of: arg.type_of.clone().with_name(type_.to_owned()),

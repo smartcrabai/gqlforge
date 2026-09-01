@@ -376,7 +376,8 @@ type Query {
                 gqlforge::core::ir::model::IO::RedisStream { source, .. } => match source {
                     RedisStreamSource::Stream { key, start_id } => {
                         assert_eq!(key.to_string(), "events");
-                        // Default start_id when unset is "$" (only new entries).
+                        // Default start_id when unset is "$" (only new
+                        // entries).
                         assert_eq!(start_id.to_string(), "$");
                     }
                     RedisStreamSource::PubSub { .. } => {
