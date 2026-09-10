@@ -2399,7 +2399,6 @@ dependencies = [
  "hyper 1.11.1",
  "hyper-rustls 0.27.9",
  "hyper-util",
- "indenter",
  "indexmap",
  "inquire",
  "insta",
@@ -2439,7 +2438,6 @@ dependencies = [
  "regex",
  "reqwest 0.13.5",
  "reqwest-middleware",
- "resource",
  "rquickjs",
  "rustls 0.23.44",
  "rustls-native-certs",
@@ -2542,14 +2540,12 @@ dependencies = [
  "derive_more",
  "gqlforge-version",
  "http 1.5.0",
- "lazy_static",
  "machineid-rs",
  "posthog-rs",
  "regex",
  "reqwest 0.13.5",
  "serde",
  "serde_json",
- "strum 0.28.0",
  "sysinfo 0.39.6",
  "tokio",
  "tracing",
@@ -2593,7 +2589,6 @@ dependencies = [
  "serde",
  "serde_json",
  "serde_path_to_error",
- "thiserror 2.0.20",
 ]
 
 [[package]]
@@ -5370,24 +5365,6 @@ dependencies = [
  "reqwest 0.13.5",
  "thiserror 2.0.20",
  "tower-service",
-]
-
-[[package]]
-name = "resource"
-version = "0.6.1"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "f77952223cf98193d7bbd64b1f2aa3c3b95949ed2bb7f1dc90879e5e12d68176"
-dependencies = [
- "resource_list_proc_macro",
-]
-
-[[package]]
-name = "resource_list_proc_macro"
-version = "0.6.1"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "dae77d3af77dfd48e45d8e2fa3a3cc02525181eccc930eee4b8c3de62e12e816"
-dependencies = [
- "quote",
 ]
 
 [[package]]
