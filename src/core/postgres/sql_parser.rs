@@ -307,6 +307,9 @@ fn data_type_to_pg_type(dt: &DataType) -> PgType {
                     data_type_to_pg_type(inner_dt)
                 }
                 sqlparser::ast::ArrayElemTypeDef::None => PgType::Text,
+                sqlparser::ast::ArrayElemTypeDef::Qualified(inner_dt, _) => {
+                    data_type_to_pg_type(inner_dt)
+                }
             };
             PgType::Array(Box::new(inner))
         }
