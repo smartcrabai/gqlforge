@@ -303,7 +303,8 @@ fn data_type_to_pg_type(dt: &DataType) -> PgType {
             let inner = match arr_inner {
                 sqlparser::ast::ArrayElemTypeDef::AngleBracket(inner_dt)
                 | sqlparser::ast::ArrayElemTypeDef::SquareBracket(inner_dt, _)
-                | sqlparser::ast::ArrayElemTypeDef::Parenthesis(inner_dt) => {
+                | sqlparser::ast::ArrayElemTypeDef::Parenthesis(inner_dt)
+                | sqlparser::ast::ArrayElemTypeDef::Qualified(inner_dt, _) => {
                     data_type_to_pg_type(inner_dt)
                 }
                 sqlparser::ast::ArrayElemTypeDef::None => PgType::Text,
