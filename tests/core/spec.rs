@@ -285,8 +285,7 @@ async fn run_test(
         let body = request
             .body
             .as_ref()
-            .map(|body| Full::new(Bytes::from(body.to_bytes())))
-            .unwrap_or_default();
+            .map_or_default(|body| Full::new(Bytes::from(body.to_bytes())));
 
         let method = request.method;
         let headers = request.headers.clone();
