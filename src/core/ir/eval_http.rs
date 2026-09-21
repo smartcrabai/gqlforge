@@ -154,8 +154,7 @@ pub async fn execute_request_with_dl<
         .upstream
         .batch
         .clone()
-        .map(|s| s.headers)
-        .unwrap_or_default();
+        .map_or_default(|s| s.headers);
 
     let (req, batching_value) = req.into_parts();
     let endpoint_key =
@@ -245,8 +244,7 @@ pub async fn execute_grpc_request_with_dl<
         .upstream
         .batch
         .clone()
-        .map(|s| s.headers)
-        .unwrap_or_default();
+        .map_or_default(|s| s.headers);
     let endpoint_key = grpc::DataLoaderRequest::new(rendered, headers);
 
     Ok(data_loader
@@ -272,6 +270,5 @@ pub fn parse_graphql_response<Ctx: ResolverContextLike>(
     Ok(res
         .data
         .get_key(field_name)
-        .map(std::borrow::ToOwned::to_owned)
-        .unwrap_or_default())
+        .map_or_default(std::borrow::ToOwned::to_owned))
 }

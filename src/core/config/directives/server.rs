@@ -299,8 +299,7 @@ impl Server {
     pub fn get_experimental_headers(&self) -> BTreeSet<String> {
         self.headers
             .as_ref()
-            .map(|h| h.experimental.clone().unwrap_or_default())
-            .unwrap_or_default()
+            .map_or_default(|h| h.experimental.clone().unwrap_or_default())
     }
 
     #[must_use]

@@ -169,8 +169,7 @@ impl From<anyhow::Error> for Errata {
                     Err(error) => {
                         let sources = error
                             .source()
-                            .map(|error| vec![Errata::new(error.to_string().as_str())])
-                            .unwrap_or_default();
+                            .map_or_default(|error| vec![Errata::new(error.to_string().as_str())]);
 
                         Errata::new(&error.to_string()).caused_by(sources)
                     }

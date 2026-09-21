@@ -131,7 +131,7 @@ impl TryFrom<Response<gqlrs::Value>> for WorkerResponse {
 impl Display for Uri {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         let host = self.host.as_deref().unwrap_or("localhost");
-        let port = self.port.map(|p| format!(":{p}")).unwrap_or_default();
+        let port = self.port.map_or_default(|p| format!(":{p}"));
         let scheme = match self.scheme {
             Scheme::Https => "https",
             Scheme::Http => "http",

@@ -54,8 +54,7 @@ impl RequestTemplate {
             .into_request()
             .body()
             .and_then(|a| a.as_bytes())
-            .map(<[u8]>::to_vec)
-            .unwrap_or_default();
+            .map_or_default(<[u8]>::to_vec);
 
         Ok(std::str::from_utf8(&body)?.to_string())
     }

@@ -369,7 +369,7 @@ fn sanitize_order_by(rendered: &str, columns: &[String]) -> String {
             }
             let mut tokens = part.split_whitespace();
             let col = resolve_column_name(columns, tokens.next()?).ok()?;
-            let dir = tokens.next().map(str::to_uppercase).unwrap_or_default();
+            let dir = tokens.next().map_or_default(str::to_uppercase);
             match dir.as_str() {
                 "ASC" => Some(format!("{} ASC", quote_ident(&col))),
                 "DESC" => Some(format!("{} DESC", quote_ident(&col))),

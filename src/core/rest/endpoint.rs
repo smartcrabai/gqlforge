@@ -137,11 +137,9 @@ impl Endpoint {
     }
 
     pub fn matches<'a>(&'a self, request: &Request) -> Option<PartialRequest<'a>> {
-        let query_params = request
-            .uri()
-            .query()
-            .map(|query| serde_urlencoded::from_str(query).unwrap_or_else(|_| BTreeMap::new()))
-            .unwrap_or_default();
+        let query_params = request.uri().query().map_or_default(|query| {
+            serde_urlencoded::from_str(query).unwrap_or_else(|_| BTreeMap::new())
+        });
 
         let mut variables = Variables::default();
 
