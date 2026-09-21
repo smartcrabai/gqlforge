@@ -294,10 +294,7 @@ fn print_field(field: &gqlrs::parser::types::FieldDefinition) -> String {
 }
 
 fn print_default_value(value: Option<&Positioned<ConstValue>>) -> String {
-    value
-        .as_ref()
-        .map(|val| format!(" = {val}"))
-        .unwrap_or_default()
+    value.as_ref().map_or_default(|val| format!(" = {val}"))
 }
 
 fn print_input_value(field: &gqlrs::parser::types::InputValueDefinition) -> String {

@@ -151,8 +151,7 @@ async fn email() -> HashSet<String> {
                 .ok()
                 .as_ref()
                 .and_then(parse)
-                .map(|s| parse_email(&s))
-                .unwrap_or_default()
+                .map_or_default(|s| parse_email(&s))
         })
         .collect::<HashSet<String>>()
 }

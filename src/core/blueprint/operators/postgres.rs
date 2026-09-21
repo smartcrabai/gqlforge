@@ -316,15 +316,13 @@ pub fn compile_postgres<D: DatabaseDirective>(
         let limit = pg.limit().map(Mustache::parse);
         let offset = pg.offset().map(Mustache::parse);
         let order_by = pg.order_by().map(Mustache::parse);
-        let columns = resolved_table
-            .map(|table| {
-                table
-                    .columns
-                    .iter()
-                    .map(|column| column.name.clone())
-                    .collect()
-            })
-            .unwrap_or_default();
+        let columns = resolved_table.map_or_default(|table| {
+            table
+                .columns
+                .iter()
+                .map(|column| column.name.clone())
+                .collect()
+        });
 
         let req_template = RequestTemplate {
             table: resolved_table.map_or_else(

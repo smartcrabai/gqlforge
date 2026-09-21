@@ -56,8 +56,7 @@ impl<A: PathString> Eval<'_> for PathStringEval<A> {
                 Segment::Literal(text) => text.clone(),
                 Segment::Expression(parts) => in_value
                     .path_string(parts)
-                    .map(|a| a.to_string())
-                    .unwrap_or_default(),
+                    .map_or_default(|a| a.to_string()),
             })
             .collect()
     }

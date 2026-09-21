@@ -75,7 +75,7 @@ impl GraphQLError {
     pub fn new(message: impl Into<String>, pos: Option<Pos>) -> Self {
         Self {
             message: message.into(),
-            locations: pos.map(|pos| vec![pos]).unwrap_or_default(),
+            locations: pos.map_or_default(|pos| vec![pos]),
             path: Vec::new(),
             extensions: None,
         }

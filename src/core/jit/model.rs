@@ -117,8 +117,7 @@ impl<Input: Display> Display for Arg<Input> {
             || {
                 self.default_value
                     .as_ref()
-                    .map(std::string::ToString::to_string)
-                    .unwrap_or_default()
+                    .map_or_default(std::string::ToString::to_string)
             },
             std::string::ToString::to_string,
         );

@@ -22,19 +22,15 @@ pub struct Http {
 
 impl Http {
     pub fn new(spec: &ExecutionSpec) -> Self {
-        let mocks = spec
-            .mock
-            .as_ref()
-            .map(|mocks| {
-                mocks
-                    .iter()
-                    .map(|mock| ExecutionMock {
-                        mock: mock.clone(),
-                        actual_hits: Arc::new(AtomicUsize::default()),
-                    })
-                    .collect()
-            })
-            .unwrap_or_default();
+        let mocks = spec.mock.as_ref().map_or_default(|mocks| {
+            mocks
+                .iter()
+                .map(|mock| ExecutionMock {
+                    mock: mock.clone(),
+                    actual_hits: Arc::new(AtomicUsize::default()),
+                })
+                .collect()
+        });
 
         let cwd = std::env::current_dir().unwrap_or_else(|_| std::path::PathBuf::from("."));
         let spec_path = spec
@@ -116,8 +112,7 @@ impl HttpIO for Http {
             let error_body = mock_response
                 .0
                 .body
-                .map(|body| String::from_utf8_lossy(&body.to_bytes()).to_string())
-                .unwrap_or_default();
+                .map_or_default(|body| String::from_utf8_lossy(&body.to_bytes()).to_string());
 
             // Return the JSON error body directly as the error so it can be
             // processed in the error module
