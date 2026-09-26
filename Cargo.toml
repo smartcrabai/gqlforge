@@ -215,7 +215,7 @@ strum = "0.28.0"
 tonic = { version = "0.14", default-features = false }
 tonic-types = "0.14"
 tracing = { workspace = true }
-tracing-opentelemetry = "0.33"
+tracing-opentelemetry = "0.34"
 tracing-subscriber = { version = "0.3.22", features = [
   "default",
   "fmt",
