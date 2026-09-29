@@ -666,7 +666,7 @@ dependencies = [
  "rustls-native-certs",
  "rustls-pki-types",
  "tokio",
- "tokio-rustls 0.26.5",
+ "tokio-rustls 0.26.6",
  "tower",
  "tracing",
 ]
@@ -1249,7 +1249,7 @@ version = "3.1.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "faf9468729b8cbcea668e36183cb69d317348c2e08e994829fb56ebfdfbaac34"
 dependencies = [
- "windows-sys 0.61.2",
+ "windows-sys 0.59.0",
 ]
 
 [[package]]
@@ -2000,7 +2000,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "39cab71617ae0d63f51a36d69f866391735b51691dbda63cf6f96d042b63efeb"
 dependencies = [
  "libc",
- "windows-sys 0.61.2",
+ "windows-sys 0.59.0",
 ]
 
 [[package]]
@@ -2454,7 +2454,7 @@ dependencies = [
  "tokio",
  "tokio-postgres",
  "tokio-postgres-rustls",
- "tokio-rustls 0.26.5",
+ "tokio-rustls 0.26.6",
  "tokio-test",
  "tonic",
  "tonic-types",
@@ -3118,7 +3118,7 @@ dependencies = [
  "rustls 0.23.45",
  "rustls-native-certs",
  "tokio",
- "tokio-rustls 0.26.5",
+ "tokio-rustls 0.26.6",
  "tower-service",
 ]
 
@@ -3947,7 +3947,7 @@ version = "0.50.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "7957b9740744892f114936ab4a57b3f487491bbeafaf8083688b16841a4240e5"
 dependencies = [
- "windows-sys 0.61.2",
+ "windows-sys 0.59.0",
 ]
 
 [[package]]
@@ -4942,7 +4942,7 @@ dependencies = [
  "quinn-udp",
  "rustc-hash 2.1.2",
  "rustls 0.23.45",
- "socket2 0.6.3",
+ "socket2 0.5.10",
  "thiserror 2.0.21",
  "tokio",
  "tracing",
@@ -4980,7 +4980,7 @@ dependencies = [
  "cfg_aliases",
  "libc",
  "once_cell",
- "socket2 0.6.3",
+ "socket2 0.5.10",
  "tracing",
  "windows-sys 0.59.0",
 ]
@@ -5154,7 +5154,7 @@ dependencies = [
  "ryu",
  "socket2 0.6.3",
  "tokio",
- "tokio-rustls 0.26.5",
+ "tokio-rustls 0.26.6",
  "tokio-util",
  "url",
  "xxhash-rust",
@@ -5336,7 +5336,7 @@ dependencies = [
  "serde_json",
  "sync_wrapper",
  "tokio",
- "tokio-rustls 0.26.5",
+ "tokio-rustls 0.26.6",
  "tokio-util",
  "tower",
  "tower-http 0.6.11",
@@ -5481,7 +5481,7 @@ dependencies = [
  "errno",
  "libc",
  "linux-raw-sys",
- "windows-sys 0.61.2",
+ "windows-sys 0.59.0",
 ]
 
 [[package]]
@@ -5560,7 +5560,7 @@ dependencies = [
  "security-framework",
  "security-framework-sys",
  "webpki-root-certs",
- "windows-sys 0.61.2",
+ "windows-sys 0.59.0",
 ]
 
 [[package]]
@@ -6340,7 +6340,7 @@ dependencies = [
  "getrandom 0.4.2",
  "once_cell",
  "rustix",
- "windows-sys 0.61.2",
+ "windows-sys 0.59.0",
 ]
 
 [[package]]
@@ -6577,7 +6577,7 @@ dependencies = [
  "sha2 0.11.0",
  "tokio",
  "tokio-postgres",
- "tokio-rustls 0.26.5",
+ "tokio-rustls 0.26.6",
  "x509-cert",
 ]
 
@@ -6593,9 +6593,9 @@ dependencies = [
 
 [[package]]
 name = "tokio-rustls"
-version = "0.26.5"
+version = "0.26.6"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "b0c85f2c3ef0b1cd58b36682f4b17aaa995f0e5db534d85692b4903abce21f67"
+checksum = "c9cc2678c2cdd569ef8215e2afd7954ada2ae20b4fdd2c5fe6139a3b02d105db"
 dependencies = [
  "rustls 0.23.45",
  "tokio",
@@ -6686,7 +6686,7 @@ dependencies = [
  "rustls-native-certs",
  "sync_wrapper",
  "tokio",
- "tokio-rustls 0.26.5",
+ "tokio-rustls 0.26.6",
  "tokio-stream",
  "tower",
  "tower-layer",
@@ -7308,7 +7308,7 @@ version = "0.1.11"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "c2a7b1c03c876122aa43f3020e6c3c3ee5c05081c9a00739faf7503aeba10d22"
 dependencies = [
- "windows-sys 0.61.2",
+ "windows-sys 0.59.0",
 ]
 
 [[package]]
