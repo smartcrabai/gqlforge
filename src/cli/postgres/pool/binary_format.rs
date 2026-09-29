@@ -155,13 +155,13 @@ pub(super) fn format_inet(raw: &[u8]) -> anyhow::Result<String> {
         if addr_len != 16 {
             anyhow::bail!("Invalid IPv6 address length");
         }
-        let mut parts = Vec::with_capacity(8);
-        for i in 0..8 {
-            let val = u16::from_be_bytes([addr[i * 2], addr[i * 2 + 1]]);
-            parts.push(format!("{val:x}"));
+        let ip = std::net::Ipv6Addr::from(<[u8; 16]>::try_from(addr)?);
+        if ip.to_ipv4_mapped().is_some() {
+            let segments = ip.segments();
+            format!("::ffff:{:x}:{:x}", segments[6], segments[7])
+        } else {
+            ip.to_string()
         }
-        let full = parts.join(":");
-        compress_ipv6(&full)
     } else {
         anyhow::bail!("Unknown INET address family: {family}");
     };
@@ -172,46 +172,6 @@ pub(super) fn format_inet(raw: &[u8]) -> anyhow::Result<String> {
     } else {
         Ok(addr_str)
     }
-}
-
-fn compress_ipv6(full: &str) -> String {
-    let parts: Vec<&str> = full.split(':').collect();
-    if parts.len() != 8 {
-        return full.to_string();
-    }
-
-    // Find longest run of "0" groups.
-    let mut best_start = 0usize;
-    let mut best_len = 0usize;
-    let mut cur_start = 0usize;
-    let mut cur_len = 0usize;
-
-    for (i, p) in parts.iter().enumerate() {
-        if *p == "0" {
-            if cur_len == 0 {
-                cur_start = i;
-            }
-            cur_len += 1;
-        } else {
-            if cur_len > best_len {
-                best_start = cur_start;
-                best_len = cur_len;
-            }
-            cur_len = 0;
-        }
-    }
-    if cur_len > best_len {
-        best_start = cur_start;
-        best_len = cur_len;
-    }
-
-    if best_len < 2 {
-        return full.to_string();
-    }
-
-    let before = parts[..best_start].join(":");
-    let after = parts[best_start + best_len..].join(":");
-    format!("{before}::{after}")
 }
 
 pub(super) fn format_macaddr(raw: &[u8]) -> anyhow::Result<String> {
@@ -662,13 +622,6 @@ mod tests {
     #[test]
     fn test_format_bytea_empty() {
         assert_eq!(format_bytea(&[]), "\\x");
-    }
-
-    #[test]
-    fn test_compress_ipv6() {
-        assert_eq!(compress_ipv6("0:0:0:0:0:0:0:1"), "::1");
-        assert_eq!(compress_ipv6("2001:db8:0:0:0:0:0:1"), "2001:db8::1");
-        assert_eq!(compress_ipv6("0:0:0:0:0:0:0:0"), "::");
     }
 
     #[test]

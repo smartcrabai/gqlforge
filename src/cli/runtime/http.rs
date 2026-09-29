@@ -179,19 +179,6 @@ impl HttpIO for NativeHttp {
 
         let mut req_counter = RequestCounter::new(self.enable_telemetry, &request);
 
-        if self.enable_telemetry {
-            // TEMPORARY: Disabled due to opentelemetry version incompatibility
-            // tracing-opentelemetry v0.32.1 uses opentelemetry v0.31, but we
-            // use v0.32 TODO: Re-enable when tracing-opentelemetry
-            // supports opentelemetry v0.32
-            // opentelemetry::global::get_text_map_propagator(|propagator| {
-            //     propagator.inject_context(
-            //         &tracing::Span::current().context(),
-            //         &mut HeaderInjector(request.headers_mut()),
-            //     );
-            // });
-        }
-
         tracing::info!(
             "{} {} {:?}",
             request.method(),
@@ -318,6 +305,43 @@ mod tests {
         assert!(response.headers.get("x-cache-lookup").is_none());
 
         header_serv.assert_calls(2);
+    }
+
+    #[tokio::test]
+    async fn test_native_http_decodes_gzip_response() {
+        use std::io::Write;
+
+        let mut encoder = flate2::write::GzEncoder::new(Vec::new(), flate2::Compression::default());
+        encoder.write_all(br#"{"id":1}"#).unwrap();
+        let compressed_body = encoder.finish().unwrap();
+
+        let server = start_mock_server();
+        let response_body = compressed_body.clone();
+        server.mock(|when, then| {
+            when.method(httpmock::Method::GET)
+                .path("/gzip")
+                .header("accept-encoding", "gzip");
+            then.status(200)
+                .header("Content-Encoding", "gzip")
+                .header("Content-Type", "application/json")
+                .body(response_body);
+        });
+
+        let request_url = format!("http://localhost:{}/gzip", server.port());
+        let mut request = reqwest::Request::new(Method::GET, request_url.parse().unwrap());
+        request.headers_mut().insert(
+            reqwest::header::ACCEPT_ENCODING,
+            reqwest::header::HeaderValue::from_static("gzip"),
+        );
+
+        let response = NativeHttp::default().execute(request).await.unwrap();
+        assert_eq!(response.body.as_ref(), br#"{"id":1}"#);
+
+        let json_response = response.to_json::<gqlrs_value::ConstValue>().unwrap();
+        assert_eq!(
+            serde_json::to_value(json_response.body).unwrap(),
+            serde_json::json!({"id": 1})
+        );
     }
 
     #[tokio::test]

@@ -15,11 +15,8 @@ impl<A: PartialEq + Hash + Eq + Clone, V> PairMap<A, V> {
     }
 
     pub fn get(&self, a1: &A, a2: &A) -> Option<&V> {
-        if self.map.contains_key(&(a1.to_owned(), a2.to_owned())) {
-            return self.map.get(&(a1.to_owned(), a2.to_owned()));
-        } else if self.map.contains_key(&(a2.to_owned(), a1.to_owned())) {
-            return self.map.get(&(a2.to_owned(), a1.to_owned()));
-        }
-        None
+        self.map
+            .get(&(a1.clone(), a2.clone()))
+            .or_else(|| self.map.get(&(a2.clone(), a1.clone())))
     }
 }

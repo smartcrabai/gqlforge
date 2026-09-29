@@ -81,8 +81,30 @@ pub fn to_interface_type_definition(
     }))
 }
 
-type InvalidPathHandler = dyn Fn(&str, &[String], &[String]) -> Valid<Type, BlueprintError>;
-type PathResolverErrorHandler = dyn Fn(&str, &str, &str, &[String]) -> Valid<Type, BlueprintError>;
+fn invalid_path(field_name: &str, original_path: &[String]) -> Valid<Type, BlueprintError> {
+    Valid::fail_with(
+        BlueprintError::CannotAddField,
+        BlueprintError::PathDoesNotExist(original_path.join(", ")),
+    )
+    .trace(field_name)
+}
+
+fn path_resolver_error(
+    resolver_name: &str,
+    field_type: &str,
+    field_name: &str,
+    original_path: &[String],
+) -> Valid<Type, BlueprintError> {
+    Valid::<Type, BlueprintError>::fail_with(
+        BlueprintError::CannotAddField,
+        BlueprintError::PathContainsResolver(
+            original_path.join(", "),
+            resolver_name.to_string(),
+            field_type.to_string(),
+            field_name.to_string(),
+        ),
+    )
+}
 
 #[derive(Clone, Copy)]
 struct ProcessFieldWithinTypeContext<'a> {
@@ -90,10 +112,7 @@ struct ProcessFieldWithinTypeContext<'a> {
     field_name: &'a str,
     remaining_path: &'a [String],
     type_info: &'a config::Type,
-    is_required: bool,
     config_module: &'a ConfigModule,
-    invalid_path_handler: &'a InvalidPathHandler,
-    path_resolver_error_handler: &'a PathResolverErrorHandler,
     original_path: &'a [String],
 }
 
@@ -102,11 +121,7 @@ struct ProcessPathContext<'a> {
     path: &'a [String],
     field: &'a config::Field,
     type_info: &'a config::Type,
-    // TODO: does it even used other than as false?
-    is_required: bool,
     config_module: &'a ConfigModule,
-    invalid_path_handler: &'a InvalidPathHandler,
-    path_resolver_error_handler: &'a PathResolverErrorHandler,
     original_path: &'a [String],
 }
 
@@ -117,17 +132,14 @@ fn process_field_within_type(
     let field_name = context.field_name;
     let remaining_path = context.remaining_path;
     let type_info = context.type_info;
-    let is_required = context.is_required;
     let config_module = context.config_module;
-    let invalid_path_handler = context.invalid_path_handler;
-    let path_resolver_error_handler = context.path_resolver_error_handler;
 
     if let Some(next_field) = type_info.fields.get(field_name) {
         if !next_field.resolvers.is_empty() {
             let mut valid = Valid::succeed(field.type_of.clone());
 
             for resolver in next_field.resolvers.iter() {
-                valid = valid.and(path_resolver_error_handler(
+                valid = valid.and(path_resolver_error(
                     &resolver.directive_name(),
                     field.type_of.name(),
                     field_name,
@@ -137,26 +149,19 @@ fn process_field_within_type(
 
             return valid.and(process_path(ProcessPathContext {
                 type_info,
-                is_required,
                 config_module,
-                invalid_path_handler,
-                path_resolver_error_handler,
                 path: remaining_path,
                 field: next_field,
                 original_path: context.original_path,
             }));
         }
 
-        let next_is_required = is_required && !next_field.type_of.is_nullable();
         if scalar::Scalar::is_predefined(next_field.type_of.name()) {
             return process_path(ProcessPathContext {
                 type_info,
                 config_module,
-                invalid_path_handler,
-                path_resolver_error_handler,
                 path: remaining_path,
                 field: next_field,
-                is_required: next_is_required,
                 original_path: context.original_path,
             });
         }
@@ -164,17 +169,14 @@ fn process_field_within_type(
         if let Some(next_type_info) = config_module.find_type(next_field.type_of.name()) {
             return process_path(ProcessPathContext {
                 config_module,
-                invalid_path_handler,
-                path_resolver_error_handler,
                 path: remaining_path,
                 field: next_field,
                 type_info: next_type_info,
-                is_required: next_is_required,
                 original_path: context.original_path,
             })
             .and_then(|of_type| {
                 if next_field.type_of.is_list() {
-                    Valid::succeed(Type::List { of_type: Box::new(of_type), non_null: is_required })
+                    Valid::succeed(Type::List { of_type: Box::new(of_type), non_null: false })
                 } else {
                     Valid::succeed(of_type)
                 }
@@ -187,15 +189,12 @@ fn process_field_within_type(
             path: tail,
             field,
             type_info,
-            is_required,
             config_module,
-            invalid_path_handler,
-            path_resolver_error_handler,
             original_path: context.original_path,
         });
     }
 
-    invalid_path_handler(field_name, remaining_path, context.original_path)
+    invalid_path(field_name, context.original_path)
 }
 
 // Helper function to recursively process the path and return the corresponding
@@ -204,23 +203,16 @@ fn process_path(context: ProcessPathContext) -> Valid<Type, BlueprintError> {
     let path = context.path;
     let field = context.field;
     let type_info = context.type_info;
-    let is_required = context.is_required;
     let config_module = context.config_module;
-    let invalid_path_handler = context.invalid_path_handler;
-    let path_resolver_error_handler = context.path_resolver_error_handler;
     if let Some((field_name, remaining_path)) = path.split_first() {
         if field_name.parse::<usize>().is_ok() {
             let mut modified_field = field.clone();
-            // TODO: does it required?
             modified_field.type_of = modified_field.type_of.into_single();
             return process_path(ProcessPathContext {
                 config_module,
                 type_info,
-                invalid_path_handler,
-                path_resolver_error_handler,
                 path: remaining_path,
                 field: &modified_field,
-                is_required: false,
                 original_path: context.original_path,
             });
         }
@@ -236,21 +228,14 @@ fn process_path(context: ProcessPathContext) -> Valid<Type, BlueprintError> {
                 field_name,
                 remaining_path,
                 type_info,
-                is_required,
                 config_module,
-                invalid_path_handler,
-                path_resolver_error_handler,
                 original_path: context.original_path,
             });
         }
-        return invalid_path_handler(field_name, path, context.original_path);
+        return invalid_path(field_name, context.original_path);
     }
 
-    Valid::succeed(if is_required {
-        field.type_of.clone().into_required()
-    } else {
-        field.type_of.clone().into_nullable()
-    })
+    Valid::succeed(field.type_of.clone().into_nullable())
 }
 
 fn to_enum_type_definition((name, eu): (&String, &Enum)) -> Definition {
@@ -501,40 +486,12 @@ fn to_fields(
                         .map(std::borrow::ToOwned::to_owned)
                         .collect::<Vec<_>>()
                 };
-                let invalid_path_handler = |field_name: &str,
-                                            _added_field_path: &[String],
-                                            original_path: &[String]|
-                 -> Valid<Type, BlueprintError> {
-                    Valid::fail_with(
-                        BlueprintError::CannotAddField,
-                        BlueprintError::PathDoesNotExist(original_path.join(", ")),
-                    )
-                    .trace(field_name)
-                };
-                let path_resolver_error_handler = |resolver_name: &str,
-                                                   field_type: &str,
-                                                   field_name: &str,
-                                                   original_path: &[String]|
-                 -> Valid<Type, BlueprintError> {
-                    Valid::<Type, BlueprintError>::fail_with(
-                        BlueprintError::CannotAddField,
-                        BlueprintError::PathContainsResolver(
-                            original_path.join(", "),
-                            resolver_name.to_string(),
-                            field_type.to_string(),
-                            field_name.to_string(),
-                        ),
-                    )
-                };
                 update_resolver_from_path(
                     &ProcessPathContext {
                         path: &added_field_path,
                         field: source_field,
                         type_info: type_of,
-                        is_required: false,
                         config_module,
-                        invalid_path_handler: &invalid_path_handler,
-                        path_resolver_error_handler: &path_resolver_error_handler,
                         original_path: &add_field.path,
                     },
                     field_definition,

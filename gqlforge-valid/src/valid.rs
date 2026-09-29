@@ -226,18 +226,6 @@ mod tests {
     use crate::{Valid, Validator};
 
     #[test]
-    fn test_ok() {
-        let result = Valid::<i32, ()>::succeed(1);
-        assert_eq!(result, Valid::succeed(1));
-    }
-
-    #[test]
-    fn test_fail() {
-        let result = Valid::<(), i32>::fail(1);
-        assert_eq!(result, Valid::fail(1));
-    }
-
-    #[test]
     fn test_validate_or_both_ok() {
         let result1 = Valid::<bool, i32>::succeed(true);
         let result2 = Valid::<u8, i32>::succeed(3);
@@ -263,16 +251,6 @@ mod tests {
 
     #[test]
     fn test_validate_all() {
-        let input: Vec<i32> = [1, 2, 3].to_vec();
-        let result: Valid<Vec<i32>, i32> = Valid::from_iter(input, |a| Valid::fail(a * 2));
-        assert_eq!(
-            result,
-            Valid::from_vec_cause(vec![Cause::new(2), Cause::new(4), Cause::new(6)])
-        );
-    }
-
-    #[test]
-    fn test_validate_all_ques() {
         let input: Vec<i32> = [1, 2, 3].to_vec();
         let result: Valid<Vec<i32>, i32> = Valid::from_iter(input, |a| Valid::fail(a * 2));
         assert_eq!(

@@ -50,15 +50,10 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v7
-      - name: Set up Rust
-        uses: actions-rs/toolchain@v1
-        with:
-          toolchain: stable
-          profile: minimal
-          override: true
-
       - name: Install Rust
         uses: actions-rust-lang/setup-rust-toolchain@v2
+        with:
+          toolchain: stable
 
       - name: Build Project
         run: cargo build

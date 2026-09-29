@@ -207,26 +207,14 @@ mod tests {
 
     #[test]
     fn test_sanitize_graphql_name_normal() {
-        assert_eq!(sanitize_graphql_name("user_name"), "user_name");
-    }
-
-    #[test]
-    fn test_sanitize_graphql_name_special_chars() {
-        assert_eq!(sanitize_graphql_name("user-name"), "user_name");
-    }
-
-    #[test]
-    fn test_sanitize_graphql_name_starts_with_digit() {
-        assert_eq!(sanitize_graphql_name("1col"), "_1col");
-    }
-
-    #[test]
-    fn test_sanitize_graphql_name_empty() {
-        assert_eq!(sanitize_graphql_name(""), "_unnamed");
-    }
-
-    #[test]
-    fn test_sanitize_graphql_name_double_underscore() {
-        assert_eq!(sanitize_graphql_name("__type"), "x__type");
+        for (input, expected) in [
+            ("user_name", "user_name"),
+            ("user-name", "user_name"),
+            ("1col", "_1col"),
+            ("", "_unnamed"),
+            ("__type", "x__type"),
+        ] {
+            assert_eq!(sanitize_graphql_name(input), expected, "input: {input:?}");
+        }
     }
 }

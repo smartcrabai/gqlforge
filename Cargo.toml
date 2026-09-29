@@ -27,7 +27,6 @@ headers = "0.4"
 http = "1"
 indexmap = "2.13.0"
 insta = { version = "1.46.3", features = ["json"] }
-lazy_static = "1.5.0"
 reqwest = { version = "0.13", features = [
   "json",
   "rustls",
@@ -80,9 +79,6 @@ http-cache-reqwest = { version = "1.0.0-alpha.5", features = [
 hyper-rustls = { version = "0.27", optional = true, features = ["http2"] }
 inquire = { version = "0.9.3", optional = true }
 mimalloc = { version = "0.1.48", default-features = false, optional = true }
-moka = { version = "0.12.13", default-features = false, features = [
-  "future",
-], optional = true }
 opentelemetry-otlp = { version = "0.33", features = [
   "trace",
   "logs",
@@ -115,7 +111,6 @@ colored = "3.1.1"
 derive-getters = "0.5.0"
 derive_setters = "0.1.9"
 exitcode = "1.1.2"
-fnv = "1.0.7"
 futures-channel = { version = "0.3.31" }
 futures-util = { workspace = true }
 http-body-util = "0.1"
@@ -131,11 +126,8 @@ hyper-util = { version = "0.1", features = [
   "client-legacy",
 ] }
 indexmap = { workspace = true }
-lazy_static = { workspace = true }
 lru = { version = "0.18.0" }
 nom = "8.0.0"
-num_cpus = "1.17.0"
-once_cell = "1.21.3"
 prost = "0.14"
 prost-reflect = { version = "0.16", features = ["serde"] }
 protox = "0.9"
@@ -187,8 +179,6 @@ headers = { workspace = true }
 htpasswd-verify = { version = "0.3.0" } # uses fork (see [patch.crates-io])
 http = { workspace = true }
 jsonwebtoken = { version = "11.0.0", features = ["aws_lc_rs"] }
-mime = "0.3.17"
-num = "0.4.3"
 opentelemetry = { version = "0.33", features = ["trace", "logs", "metrics"] }
 opentelemetry-appender-tracing = "0.33"
 opentelemetry-http = "0.33"
@@ -267,9 +257,9 @@ js = ["dep:rquickjs"]
 cli = [
   "tokio/fs",
   "tokio/rt-multi-thread",
+  "reqwest/gzip",
   "dep:mimalloc",
   "dep:http-cache-reqwest",
-  "dep:moka",
   "dep:hyper-rustls",
   "dep:rustls",
   "dep:tokio-rustls",

@@ -30,10 +30,6 @@ impl<Value> DynamicRequest<Value> {
         self.request
     }
 
-    pub fn into_body_key(self) -> Option<Value> {
-        self.batching_value
-    }
-
     pub fn into_parts(self) -> (reqwest::Request, Option<Value>) {
         (self.request, self.batching_value)
     }

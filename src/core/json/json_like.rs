@@ -58,9 +58,23 @@ pub trait JsonLike<'json>: Sized {
     fn as_f64(&self) -> Option<f64>;
     fn as_bool(&self) -> Option<bool>;
     fn is_null(&self) -> bool;
-    fn get_path<T: AsRef<str>>(&'json self, path: &[T]) -> Option<&'json Self>;
-    fn get_key(&'json self, path: &str) -> Option<&'json Self>;
-    fn group_by(&'json self, path: &[String]) -> HashMap<String, Vec<&'json Self>>;
+    fn get_path<T: AsRef<str>>(&'json self, path: &[T]) -> Option<&'json Self> {
+        path.iter().try_fold(self, |value, token| {
+            if let Some(array) = value.as_array() {
+                array.get(token.as_ref().parse::<usize>().ok()?)
+            } else {
+                value.get_key(token.as_ref())
+            }
+        })
+    }
+
+    fn get_key(&'json self, path: &str) -> Option<&'json Self> {
+        self.as_object()?.get_key(path)
+    }
+
+    fn group_by(&'json self, path: &[String]) -> HashMap<String, Vec<&'json Self>> {
+        super::group_by_key(super::gather_path_matches(self, path, vec![]))
+    }
 }
 
 /// A trait for objects that can be used as JSON objects

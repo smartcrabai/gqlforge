@@ -2,7 +2,7 @@
 error: true
 ---
 
-# test-field-already-implemented-from-Interface
+# test-field-already-implemented-from-interface
 
 ```graphql @schema
 schema {

@@ -21,13 +21,15 @@ tokio = { workspace = true, features = ["rt", "time", "process"] }
 tracing = { workspace = true }
 sysinfo = "0.39.0"
 gqlforge-version = { path = "../gqlforge-version", version = "0.1.9" }
-posthog-rs = { version = "0.27.0" }
 async-trait = "0.1.89"
-chrono = "0.4.43"
+chrono = { version = "0.4.43", features = ["serde"] }
 whoami = "2.1.0"
 convert_case = { workspace = true }
 http = { workspace = true }
 regex = "1.12.3"
+
+[dev-dependencies]
+tokio = { workspace = true, features = ["macros"] }
 
 [lints]
 workspace = true

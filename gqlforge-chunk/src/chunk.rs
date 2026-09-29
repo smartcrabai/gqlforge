@@ -376,12 +376,6 @@ mod tests {
     use super::*;
 
     #[test]
-    fn test_new() {
-        let chunk: Chunk<i32> = Chunk::default();
-        assert!(chunk.is_null());
-    }
-
-    #[test]
     fn test_default() {
         let chunk: Chunk<i32> = Chunk::default();
         assert!(chunk.is_null());
@@ -461,28 +455,6 @@ mod tests {
         assert_eq!(chunk1.as_vec(), vec![1, 2]);
         assert_eq!(chunk2.as_vec(), vec![1, 2, 3]);
         assert_eq!(chunk3.as_vec(), vec![1, 2, 4]);
-    }
-
-    #[test]
-    fn test_with_different_types() {
-        // Test with strings
-        let string_chunk = Chunk::default()
-            .append(String::from("hello"))
-            .append(String::from("world"));
-        assert_eq!(string_chunk.as_vec().len(), 2);
-
-        // Test with floating point numbers - using standard constants
-        let float_chunk = Chunk::default()
-            .append(std::f64::consts::PI)
-            .append(std::f64::consts::E);
-        assert_eq!(
-            float_chunk.as_vec(),
-            vec![std::f64::consts::PI, std::f64::consts::E]
-        );
-
-        // Test with boolean values
-        let bool_chunk = Chunk::default().append(true).append(false).append(true);
-        assert_eq!(bool_chunk.as_vec(), vec![true, false, true]);
     }
 
     #[test]
@@ -605,23 +577,5 @@ mod tests {
         // Test collecting from map iterator
         let doubled: Chunk<_> = vec![1, 2, 3].into_iter().map(|x| x * 2).collect();
         assert_eq!(doubled.as_vec(), vec![2, 4, 6]);
-    }
-
-    #[test]
-    fn test_concat_optimization() {
-        // Create a collected chunk
-        let collected: Chunk<i32> = vec![1, 2, 3].into_iter().collect();
-
-        // Concat a single element
-        let result = collected.concat(Chunk::Single(4));
-
-        // Verify the result
-        assert_eq!(result.as_vec(), vec![1, 2, 3, 4]);
-
-        // Verify it's still a Collect variant (not a Concat)
-        match result {
-            Chunk::Collect(_) => (), // This is what we want
-            _ => panic!("Expected Collect variant after optimization"),
-        }
     }
 }

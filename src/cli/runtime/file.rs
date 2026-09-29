@@ -1,5 +1,3 @@
-use tokio::io::{AsyncReadExt, AsyncWriteExt};
-
 use crate::core::{Errata, FileIO};
 
 #[derive(Clone)]
@@ -12,22 +10,13 @@ impl NativeFileIO {
 }
 
 async fn read(path: &str) -> anyhow::Result<String> {
-    let mut file = tokio::fs::File::open(path).await?;
-    let mut buffer = Vec::new();
-    file.read_to_end(&mut buffer).await?;
-    Ok(String::from_utf8(buffer)?)
-}
-
-async fn write<'a>(path: &'a str, content: &'a [u8]) -> anyhow::Result<()> {
-    let mut file = tokio::fs::File::create(path).await?;
-    file.write_all(content).await?;
-    Ok(())
+    Ok(String::from_utf8(tokio::fs::read(path).await?)?)
 }
 
 #[async_trait::async_trait]
 impl FileIO for NativeFileIO {
     async fn write<'a>(&'a self, path: &'a str, content: &'a [u8]) -> anyhow::Result<()> {
-        write(path, content).await.map_err(|err| {
+        tokio::fs::write(path, content).await.map_err(|err| {
             Errata::new(format!("Failed to write file: {path}").as_str())
                 .description(err.to_string())
         })?;

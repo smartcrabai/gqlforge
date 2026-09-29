@@ -28,23 +28,19 @@ mod tests {
     use super::*;
     #[test]
     fn usage_enabled_true() {
-        assert!(can_track_inner(true, Some(true)));
-        assert!(can_track_inner(false, Some(true)));
-    }
-
-    #[test]
-    fn usage_enabled_false() {
-        assert!(!can_track_inner(true, Some(false)));
-        assert!(!can_track_inner(false, Some(false)));
-    }
-
-    #[test]
-    fn usage_enabled_none_is_prod_true() {
-        assert!(can_track_inner(true, None));
-    }
-
-    #[test]
-    fn usage_enabled_none_is_prod_false() {
-        assert!(!can_track_inner(false, None));
+        for (is_prod_build, usage_enabled, expected) in [
+            (true, Some(true), true),
+            (false, Some(true), true),
+            (true, Some(false), false),
+            (false, Some(false), false),
+            (true, None, true),
+            (false, None, false),
+        ] {
+            assert_eq!(
+                can_track_inner(is_prod_build, usage_enabled),
+                expected,
+                "is_prod_build={is_prod_build}, usage_enabled={usage_enabled:?}"
+            );
+        }
     }
 }

@@ -1,5 +1,4 @@
 use std::borrow::Cow;
-use std::collections::HashMap;
 
 use serde_json::{Map, Value};
 
@@ -109,33 +108,6 @@ impl<'json> JsonLike<'json> for Value {
 
     fn is_null(&self) -> bool {
         self.is_null()
-    }
-
-    fn get_path<T: AsRef<str>>(&self, path: &[T]) -> Option<&Self> {
-        let mut val = self;
-        for token in path {
-            val = match val {
-                Value::Array(arr) => {
-                    let index = token.as_ref().parse::<usize>().ok()?;
-                    arr.get(index)?
-                }
-                Value::Object(map) => map.get(token.as_ref())?,
-                _ => return None,
-            };
-        }
-        Some(val)
-    }
-
-    fn get_key(&self, path: &str) -> Option<&Self> {
-        match self {
-            Value::Object(map) => map.get(path),
-            _ => None,
-        }
-    }
-
-    fn group_by(&self, path: &[String]) -> HashMap<String, Vec<&Self>> {
-        let src = super::gather_path_matches(self, path, vec![]);
-        super::group_by_key(src)
     }
 
     fn null() -> Self {

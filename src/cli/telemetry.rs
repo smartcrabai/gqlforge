@@ -59,12 +59,6 @@ fn set_trace_provider(
     // Set the global tracer provider for context propagation
     global::set_tracer_provider(provider);
 
-    // TEMPORARY: Disable tracing-opentelemetry layer due to version
-    // incompatibility tracing-opentelemetry v0.32.1 depends on
-    // opentelemetry v0.31.0, but we use v0.32.0 This should be re-enabled
-    // once tracing-opentelemetry v0.33+ is released with opentelemetry
-    // v0.32 support TODO: Re-enable when tracing-opentelemetry supports
-    // opentelemetry v0.32
     Ok(None)
 }
 
@@ -181,12 +175,7 @@ pub async fn init_opentelemetry(config: Telemetry, runtime: &TargetRuntime) -> a
 
         global::set_text_map_propagator(TraceContextPropagator::new());
 
-        // TEMPORARY: Build subscriber without trace_layer due to version
-        // incompatibility Once tracing-opentelemetry v0.33+ is released with
-        // opentelemetry v0.32 support, uncomment the trace_layer line below
         let subscriber = tracing_subscriber::registry()
-            // .with(trace_layer)  // TODO: Re-enable when tracing-opentelemetry supports
-            // opentelemetry v0.32
             .with(default_tracing())
             .with(
                 log_layer.with_filter(dynamic_filter_fn(|_metatada, context| {

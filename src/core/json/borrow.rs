@@ -2,7 +2,7 @@ use std::borrow::Cow;
 
 use serde_json_borrow::{ObjectAsVec, Value};
 
-use super::{JsonLike, JsonObjectLike, JsonPrimitive, gather_path_matches, group_by_key};
+use super::{JsonLike, JsonObjectLike, JsonPrimitive};
 
 // BorrowedValue
 impl<'ctx> JsonObjectLike<'ctx> for ObjectAsVec<'ctx> {
@@ -156,32 +156,5 @@ impl<'ctx> JsonLike<'ctx> for Value<'ctx> {
 
     fn is_null(&self) -> bool {
         self.is_null()
-    }
-
-    fn get_path<T: AsRef<str>>(&'ctx self, path: &[T]) -> Option<&'ctx Self> {
-        let mut val = self;
-        for token in path {
-            val = match val {
-                Value::Array(arr) => {
-                    let index = token.as_ref().parse::<usize>().ok()?;
-                    arr.get(index)?
-                }
-                Value::Object(map) => map.get(token.as_ref())?,
-                _ => return None,
-            };
-        }
-        Some(val)
-    }
-
-    fn get_key(&'ctx self, path: &str) -> Option<&'ctx Self> {
-        match self {
-            Value::Object(map) => map.get(path),
-            _ => None,
-        }
-    }
-
-    fn group_by(&'ctx self, path: &[String]) -> std::collections::HashMap<String, Vec<&'ctx Self>> {
-        let src = gather_path_matches(self, path, vec![]);
-        group_by_key(src)
     }
 }

@@ -107,12 +107,6 @@ mod tests {
     }
 
     #[test]
-    fn test_default_keyvalues() {
-        let kv = KeyValues::default();
-        assert_eq!(kv.0.len(), 0);
-    }
-
-    #[test]
     fn test_deref() {
         let mut kv = KeyValues::default();
         kv.0.insert("a".to_string(), "b".to_string());

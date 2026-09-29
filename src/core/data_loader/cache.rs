@@ -163,18 +163,3 @@ where
         Box::new(self.0.iter())
     }
 }
-
-#[cfg(test)]
-mod tests {
-    use std::hash::BuildHasher;
-    use std::marker::PhantomData;
-
-    use super::HashMapCache;
-
-    impl<S: Send + Sync + BuildHasher + Default + 'static> HashMapCache<S> {
-        /// Use specified `S: BuildHasher` to create a `HashMap` cache.
-        pub fn new() -> Self {
-            Self { _mark: PhantomData }
-        }
-    }
-}

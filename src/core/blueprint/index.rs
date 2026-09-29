@@ -228,7 +228,7 @@ mod test {
     use crate::include_config;
 
     fn setup() -> Index {
-        let config = include_config!("./fixture/all-constructs.graphql").unwrap();
+        let config = include_config!("./fixtures/all-constructs.graphql").unwrap();
         let cfg_module = ConfigModule::from(config);
         let blueprint = Blueprint::try_from(&cfg_module).unwrap();
 

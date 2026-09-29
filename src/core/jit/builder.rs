@@ -12,7 +12,7 @@ use gqlrs_value::Value;
 use super::BuildError;
 use super::model::{Arg, ArgId, Directive as JitDirective, Field, FieldId, Variable};
 use crate::core::blueprint::{Blueprint, Index, QueryField};
-use crate::core::counter::{Count, Counter};
+use crate::core::counter::Counter;
 use crate::core::jit::model::OperationPlan;
 use crate::core::{Type, scalar};
 
