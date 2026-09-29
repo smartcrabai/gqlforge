@@ -48,70 +48,57 @@ mod tests {
 
     #[test]
     fn test_parse_naive_datetime_iso_t() {
-        let dt = parse_naive_datetime("2024-01-15T10:30:00").unwrap();
-        assert_eq!(dt.to_string(), "2024-01-15 10:30:00");
-    }
-
-    #[test]
-    fn test_parse_naive_datetime_space() {
-        let dt = parse_naive_datetime("2024-01-15 10:30:00").unwrap();
-        assert_eq!(dt.to_string(), "2024-01-15 10:30:00");
-    }
-
-    #[test]
-    fn test_parse_naive_datetime_with_frac() {
-        let dt = parse_naive_datetime("2024-01-15T10:30:00.123456").unwrap();
-        assert_eq!(dt.to_string(), "2024-01-15 10:30:00.123456");
-    }
-
-    #[test]
-    fn test_parse_naive_datetime_invalid() {
-        assert!(parse_naive_datetime("not-a-date").is_err());
+        for (input, expected) in [
+            ("2024-01-15T10:30:00", Some("2024-01-15 10:30:00")),
+            ("2024-01-15 10:30:00", Some("2024-01-15 10:30:00")),
+            (
+                "2024-01-15T10:30:00.123456",
+                Some("2024-01-15 10:30:00.123456"),
+            ),
+            ("not-a-date", None),
+        ] {
+            if let Some(expected) = expected {
+                let dt = parse_naive_datetime(input).unwrap();
+                assert_eq!(dt.to_string(), expected, "input: {input}");
+            } else {
+                assert!(parse_naive_datetime(input).is_err(), "input: {input}");
+            }
+        }
     }
 
     #[test]
     fn test_parse_naive_time_hms() {
-        let t = parse_naive_time("10:30:00").unwrap();
-        assert_eq!(t.to_string(), "10:30:00");
-    }
-
-    #[test]
-    fn test_parse_naive_time_hm() {
-        let t = parse_naive_time("10:30").unwrap();
-        assert_eq!(t.to_string(), "10:30:00");
-    }
-
-    #[test]
-    fn test_parse_naive_time_invalid() {
-        assert!(parse_naive_time("25:00:00").is_err());
+        for (input, expected) in [
+            ("10:30:00", Some("10:30:00")),
+            ("10:30", Some("10:30:00")),
+            ("25:00:00", None),
+        ] {
+            if let Some(expected) = expected {
+                let time = parse_naive_time(input).unwrap();
+                assert_eq!(time.to_string(), expected, "input: {input}");
+            } else {
+                assert!(parse_naive_time(input).is_err(), "input: {input}");
+            }
+        }
     }
 
     #[test]
     fn test_parse_uuid_to_bytes_valid() {
-        let bytes = parse_uuid_to_bytes("550e8400-e29b-41d4-a716-446655440000").unwrap();
-        assert_eq!(
-            bytes,
-            [
-                0x55, 0x0e, 0x84, 0x00, 0xe2, 0x9b, 0x41, 0xd4, 0xa7, 0x16, 0x44, 0x66, 0x55, 0x44,
-                0x00, 0x00
-            ]
-        );
-    }
-
-    #[test]
-    fn test_parse_uuid_to_bytes_no_hyphens() {
-        let bytes = parse_uuid_to_bytes("550e8400e29b41d4a716446655440000").unwrap();
-        assert_eq!(
-            bytes,
-            [
-                0x55, 0x0e, 0x84, 0x00, 0xe2, 0x9b, 0x41, 0xd4, 0xa7, 0x16, 0x44, 0x66, 0x55, 0x44,
-                0x00, 0x00
-            ]
-        );
-    }
-
-    #[test]
-    fn test_parse_uuid_to_bytes_invalid() {
-        assert!(parse_uuid_to_bytes("invalid-uuid").is_err());
+        let expected_bytes = [
+            0x55, 0x0e, 0x84, 0x00, 0xe2, 0x9b, 0x41, 0xd4, 0xa7, 0x16, 0x44, 0x66, 0x55, 0x44,
+            0x00, 0x00,
+        ];
+        for (input, expected) in [
+            ("550e8400-e29b-41d4-a716-446655440000", Some(expected_bytes)),
+            ("550e8400e29b41d4a716446655440000", Some(expected_bytes)),
+            ("invalid-uuid", None),
+        ] {
+            if let Some(expected) = expected {
+                let bytes = parse_uuid_to_bytes(input).unwrap();
+                assert_eq!(bytes, expected, "input: {input}");
+            } else {
+                assert!(parse_uuid_to_bytes(input).is_err(), "input: {input}");
+            }
+        }
     }
 }

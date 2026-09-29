@@ -73,7 +73,7 @@ mod test {
 
     #[test]
     fn test_recursive_case() {
-        let config = include_config!("../fixture/recursive-arg.graphql");
+        let config = include_config!("./fixtures/recursive-arg.graphql");
         let config = config.unwrap();
         let template = Mustache::parse("{{.args.id.data}}");
         let field = config

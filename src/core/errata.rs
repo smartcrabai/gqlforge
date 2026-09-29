@@ -245,37 +245,19 @@ mod tests {
 
     #[test]
     fn test_no_newline() {
-        let input = "Hello";
-        let expected = "    Hello";
-        assert_eq!(margin(input, 4), expected);
-    }
-
-    #[test]
-    fn test_with_newline() {
-        let input = "Hello\nWorld";
-        let expected = "    Hello\n    World";
-        assert_eq!(margin(input, 4), expected);
-    }
-
-    #[test]
-    fn test_empty_string() {
-        let input = "";
-        let expected = "";
-        assert_eq!(margin(input, 4), expected);
-    }
-
-    #[test]
-    fn test_zero_margin() {
-        let input = "Hello";
-        let expected = "Hello";
-        assert_eq!(margin(input, 0), expected);
-    }
-
-    #[test]
-    fn test_zero_margin_with_newline() {
-        let input = "Hello\nWorld";
-        let expected = "Hello\nWorld";
-        assert_eq!(margin(input, 0), expected);
+        for (input, amount, expected) in [
+            ("Hello", 4, "    Hello"),
+            ("Hello\nWorld", 4, "    Hello\n    World"),
+            ("", 4, ""),
+            ("Hello", 0, "Hello"),
+            ("Hello\nWorld", 0, "Hello\nWorld"),
+        ] {
+            assert_eq!(
+                margin(input, amount),
+                expected,
+                "input: {input:?}, margin: {amount}"
+            );
+        }
     }
 
     #[test]

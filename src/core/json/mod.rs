@@ -47,11 +47,7 @@ fn group_by_key<'json, J: JsonLike<'json>>(
             .or_else(|| key.as_f64().map(|a| a.to_string()));
 
         if let Some(key) = key_str {
-            if let Some(values) = map.get_mut(&key) {
-                values.push(value);
-            } else {
-                map.insert(key, vec![value]);
-            }
+            map.entry(key).or_default().push(value);
         }
     }
     map

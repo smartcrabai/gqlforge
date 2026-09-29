@@ -64,62 +64,50 @@ mod tests {
 
     #[test]
     fn test_render_value_nested() {
-        let value = json!({"a": "{{foo.bar.baz}}"});
-        let value = DynamicValue::try_from(&value).unwrap();
-        let ctx = json!({"foo": {"bar": {"baz": 1}}});
-        let result = value.render_value(&ctx);
-        let expected = gqlrs::Value::from_json(json!({"a": 1})).unwrap();
-        assert_eq!(result, expected);
-    }
+        let cases = [
+            (
+                "nested integer",
+                json!({"a": "{{foo.bar.baz}}"}),
+                json!({"foo": {"bar": {"baz": 1}}}),
+                json!({"a": 1}),
+            ),
+            (
+                "nested string",
+                json!({"a": "{{foo.bar.baz}}"}),
+                json!({"foo": {"bar": {"baz": "foo"}}}),
+                json!({"a": "foo"}),
+            ),
+            (
+                "null",
+                json!("{{foo.bar.baz}}"),
+                json!({"foo": {"bar": {"baz": null}}}),
+                json!(null),
+            ),
+            (
+                "nested boolean",
+                json!({"a": "{{foo.bar.baz}}"}),
+                json!({"foo": {"bar": {"baz": true}}}),
+                json!({"a": true}),
+            ),
+            (
+                "nested float",
+                json!({"a": "{{foo.bar.baz}}"}),
+                json!({"foo": {"bar": {"baz": 1.1}}}),
+                json!({"a": 1.1}),
+            ),
+            (
+                "nested array",
+                json!({"a": "{{foo.bar.baz}}"}),
+                json!({"foo": {"bar": {"baz": [1, 2, 3]}}}),
+                json!({"a": [1, 2, 3]}),
+            ),
+        ];
 
-    #[test]
-    fn test_render_value_nested_str() {
-        let value = json!({"a": "{{foo.bar.baz}}"});
-        let value = DynamicValue::try_from(&value).unwrap();
-        let ctx = json!({"foo": {"bar": {"baz": "foo"}}});
-        let result = value.render_value(&ctx);
-        let expected = gqlrs::Value::from_json(json!({"a": "foo"})).unwrap();
-        assert_eq!(result, expected);
-    }
-
-    #[test]
-    fn test_render_value_null() {
-        let value = json!("{{foo.bar.baz}}");
-        let value = DynamicValue::try_from(&value).unwrap();
-        let ctx = json!({"foo": {"bar": {"baz": null}}});
-        let result = value.render_value(&ctx);
-        let expected = gqlrs::Value::from_json(json!(null)).unwrap();
-        assert_eq!(result, expected);
-    }
-
-    #[test]
-    fn test_render_value_nested_bool() {
-        let value = json!({"a": "{{foo.bar.baz}}"});
-        let value = DynamicValue::try_from(&value).unwrap();
-        let ctx = json!({"foo": {"bar": {"baz": true}}});
-        let result = value.render_value(&ctx);
-        let expected = gqlrs::Value::from_json(json!({"a": true})).unwrap();
-        assert_eq!(result, expected);
-    }
-
-    #[test]
-    fn test_render_value_nested_float() {
-        let value = json!({"a": "{{foo.bar.baz}}"});
-        let value = DynamicValue::try_from(&value).unwrap();
-        let ctx = json!({"foo": {"bar": {"baz": 1.1}}});
-        let result = value.render_value(&ctx);
-        let expected = gqlrs::Value::from_json(json!({"a": 1.1})).unwrap();
-        assert_eq!(result, expected);
-    }
-
-    #[test]
-    fn test_render_value_arr() {
-        let value = json!({"a": "{{foo.bar.baz}}"});
-        let value = DynamicValue::try_from(&value).unwrap();
-        let ctx = json!({"foo": {"bar": {"baz": [1,2,3]}}});
-        let result = value.render_value(&ctx);
-        let expected = gqlrs::Value::from_json(json!({"a": [1, 2, 3]})).unwrap();
-        assert_eq!(result, expected);
+        for (case, value, ctx, expected) in cases {
+            let value = DynamicValue::try_from(&value).unwrap();
+            let expected = gqlrs::Value::from_json(expected).unwrap();
+            assert_eq!(value.render_value(&ctx), expected, "case: {case}");
+        }
     }
 
     #[test]

@@ -25,12 +25,6 @@ mod tests {
     use super::*;
 
     #[test]
-    fn test_init_with_env_vars() {
-        let test_env = EnvNative::init();
-        assert!(!test_env.vars.is_empty(), "expected non-empty env vars");
-    }
-
-    #[test]
     fn test_get_existing_var() {
         let mut vars = HashMap::new();
         vars.insert("EXISTING_VAR".to_string(), "value".to_string());

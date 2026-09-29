@@ -155,38 +155,17 @@ mod tests {
 
     #[test]
     fn test_typed_param_bool_true() {
-        let bytes = typed_param_to_bytes("true", &postgres_types::Type::BOOL).unwrap();
-        assert_eq!(bytes, vec![1]);
-    }
-
-    #[test]
-    fn test_typed_param_bool_false() {
-        let bytes = typed_param_to_bytes("false", &postgres_types::Type::BOOL).unwrap();
-        assert_eq!(bytes, vec![0]);
-    }
-
-    #[test]
-    fn test_typed_param_bool_t() {
-        let bytes = typed_param_to_bytes("t", &postgres_types::Type::BOOL).unwrap();
-        assert_eq!(bytes, vec![1]);
-    }
-
-    #[test]
-    fn test_typed_param_bool_f() {
-        let bytes = typed_param_to_bytes("f", &postgres_types::Type::BOOL).unwrap();
-        assert_eq!(bytes, vec![0]);
-    }
-
-    #[test]
-    fn test_typed_param_bool_1() {
-        let bytes = typed_param_to_bytes("1", &postgres_types::Type::BOOL).unwrap();
-        assert_eq!(bytes, vec![1]);
-    }
-
-    #[test]
-    fn test_typed_param_bool_0() {
-        let bytes = typed_param_to_bytes("0", &postgres_types::Type::BOOL).unwrap();
-        assert_eq!(bytes, vec![0]);
+        for (input, expected) in [
+            ("true", 1),
+            ("false", 0),
+            ("t", 1),
+            ("f", 0),
+            ("1", 1),
+            ("0", 0),
+        ] {
+            let bytes = typed_param_to_bytes(input, &postgres_types::Type::BOOL).unwrap();
+            assert_eq!(bytes, vec![expected], "input: {input}");
+        }
     }
 
     #[test]
@@ -196,14 +175,10 @@ mod tests {
 
     #[test]
     fn test_typed_param_int4() {
-        let bytes = typed_param_to_bytes("42", &postgres_types::Type::INT4).unwrap();
-        assert_eq!(bytes, 42i32.to_be_bytes().to_vec());
-    }
-
-    #[test]
-    fn test_typed_param_int4_neg() {
-        let bytes = typed_param_to_bytes("-1", &postgres_types::Type::INT4).unwrap();
-        assert_eq!(bytes, (-1i32).to_be_bytes().to_vec());
+        for (input, expected) in [("42", 42i32), ("-1", -1i32)] {
+            let bytes = typed_param_to_bytes(input, &postgres_types::Type::INT4).unwrap();
+            assert_eq!(bytes, expected.to_be_bytes().to_vec(), "input: {input}");
+        }
     }
 
     #[test]
@@ -237,15 +212,13 @@ mod tests {
 
     #[test]
     fn test_typed_param_text() {
-        let bytes = typed_param_to_bytes("hello", &postgres_types::Type::TEXT).unwrap();
-        assert_eq!(bytes, b"hello".to_vec());
-    }
-
-    #[test]
-    fn test_typed_param_text_default() {
-        // Unknown type falls back to text encoding.
-        let bytes = typed_param_to_bytes("hello", &postgres_types::Type::NAME).unwrap();
-        assert_eq!(bytes, b"hello".to_vec());
+        for (type_name, ty) in [
+            ("TEXT", &postgres_types::Type::TEXT),
+            ("NAME", &postgres_types::Type::NAME),
+        ] {
+            let bytes = typed_param_to_bytes("hello", ty).unwrap();
+            assert_eq!(bytes, b"hello".to_vec(), "PostgreSQL type: {type_name}");
+        }
     }
 
     #[test]

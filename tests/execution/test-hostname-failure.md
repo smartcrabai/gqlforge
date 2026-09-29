@@ -2,7 +2,7 @@
 error: true
 ---
 
-# test-hostname-faliure
+# test-hostname-failure
 
 ```yaml @config
 server:

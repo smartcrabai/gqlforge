@@ -1,11 +1,10 @@
 use std::borrow::Cow;
-use std::collections::HashMap;
 
 use gqlrs::Name;
 use gqlrs_value::{ConstValue, Value};
 use indexmap::IndexMap;
 
-use super::{JsonLike, JsonObjectLike, JsonPrimitive, gather_path_matches, group_by_key};
+use super::{JsonLike, JsonObjectLike, JsonPrimitive};
 
 impl<'obj, Value: JsonLike<'obj>> JsonObjectLike<'obj> for IndexMap<Name, Value> {
     type Value = Value;
@@ -134,33 +133,6 @@ impl<'json> JsonLike<'json> for ConstValue {
         matches!(self, ConstValue::Null)
     }
 
-    fn get_path<T: AsRef<str>>(&self, path: &[T]) -> Option<&Self> {
-        let mut val = self;
-        for token in path {
-            val = match val {
-                ConstValue::List(seq) => {
-                    let index = token.as_ref().parse::<usize>().ok()?;
-                    seq.get(index)?
-                }
-                ConstValue::Object(map) => map.get(token.as_ref())?,
-                _ => return None,
-            };
-        }
-        Some(val)
-    }
-
-    fn get_key(&self, path: &str) -> Option<&Self> {
-        match self {
-            ConstValue::Object(map) => map.get(&gqlrs::Name::new(path)),
-            _ => None,
-        }
-    }
-
-    fn group_by(&self, path: &[String]) -> HashMap<String, Vec<&Self>> {
-        let src = gather_path_matches(self, path, vec![]);
-        group_by_key(src)
-    }
-
     fn null() -> Self {
         ConstValue::Null
     }
@@ -282,33 +254,6 @@ impl<'json> JsonLike<'json> for Value {
 
     fn is_null(&self) -> bool {
         matches!(self, Value::Null)
-    }
-
-    fn get_path<T: AsRef<str>>(&self, path: &[T]) -> Option<&Self> {
-        let mut val = self;
-        for token in path {
-            val = match val {
-                Value::List(seq) => {
-                    let index = token.as_ref().parse::<usize>().ok()?;
-                    seq.get(index)?
-                }
-                Value::Object(map) => map.get(token.as_ref())?,
-                _ => return None,
-            };
-        }
-        Some(val)
-    }
-
-    fn get_key(&self, path: &str) -> Option<&Self> {
-        match self {
-            Value::Object(map) => map.get(&gqlrs::Name::new(path)),
-            _ => None,
-        }
-    }
-
-    fn group_by(&self, path: &[String]) -> HashMap<String, Vec<&Self>> {
-        let src = gather_path_matches(self, path, vec![]);
-        group_by_key(src)
     }
 
     fn null() -> Self {

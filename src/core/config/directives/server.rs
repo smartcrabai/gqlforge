@@ -1,4 +1,5 @@
 use std::collections::{BTreeMap, BTreeSet};
+use std::thread::available_parallelism;
 
 use derive_getters::Getters;
 use gqlforge_macros::DirectiveDefinition;
@@ -228,7 +229,8 @@ impl Server {
 
     #[must_use]
     pub fn get_workers(&self) -> usize {
-        self.workers.unwrap_or(num_cpus::get())
+        self.workers
+            .unwrap_or_else(|| available_parallelism().map_or(1, usize::from))
     }
 
     #[must_use]

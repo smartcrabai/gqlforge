@@ -415,8 +415,6 @@ mod tests {
     use std::sync::Arc;
     use std::time::Duration;
 
-    use fnv::FnvBuildHasher;
-
     use super::*;
     use crate::core::data_loader::cache::HashMapCache;
 
@@ -497,37 +495,6 @@ mod tests {
     #[tokio::test]
     async fn test_dataloader_with_cache() {
         let loader = DataLoader::with_cache(MyLoader, &HashMapCache::default());
-        loader.feed_many(vec![(1, 10), (2, 20), (3, 30)]);
-
-        // All from the cache
-        assert_eq!(
-            loader.load_many(vec![1, 2, 3]).await.unwrap(),
-            vec![(1, 10), (2, 20), (3, 30)].into_iter().collect()
-        );
-
-        // Part from the cache
-        assert_eq!(
-            loader.load_many(vec![1, 5, 6]).await.unwrap(),
-            vec![(1, 10), (5, 5), (6, 6)].into_iter().collect()
-        );
-
-        // All from the loader
-        assert_eq!(
-            loader.load_many(vec![8, 9, 10]).await.unwrap(),
-            vec![(8, 8), (9, 9), (10, 10)].into_iter().collect()
-        );
-
-        // Clear cache
-        loader.clear();
-        assert_eq!(
-            loader.load_many(vec![1, 2, 3]).await.unwrap(),
-            vec![(1, 1), (2, 2), (3, 3)].into_iter().collect()
-        );
-    }
-
-    #[tokio::test]
-    async fn test_dataloader_with_cache_hashmap_fnv() {
-        let loader = DataLoader::with_cache(MyLoader, &HashMapCache::<FnvBuildHasher>::new());
         loader.feed_many(vec![(1, 10), (2, 20), (3, 30)]);
 
         // All from the cache

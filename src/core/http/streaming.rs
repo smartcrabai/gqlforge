@@ -27,9 +27,7 @@ pub async fn execute_http_streaming_request(
     // Add SSE accept header
     request.headers_mut().insert(
         reqwest::header::ACCEPT,
-        "text/event-stream"
-            .parse()
-            .unwrap_or_else(|_| unreachable!("text/event-stream is a valid HeaderValue")),
+        reqwest::header::HeaderValue::from_static("text/event-stream"),
     );
 
     let response = runtime.http.execute_raw(request).await?;
@@ -52,10 +50,7 @@ pub async fn execute_http_streaming_request(
                 Ok(chunk) => {
                     let events = parser.decode(&chunk);
                     for event_data in events {
-                        match parse_sse_raw_json(&event_data) {
-                            Ok(value) => yield Ok(value),
-                            Err(e) => yield Err(e),
-                        }
+                        yield parse_sse_raw_json(&event_data);
                     }
                 }
                 Err(e) => {

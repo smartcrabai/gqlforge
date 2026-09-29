@@ -1,10 +1,5 @@
 use std::cell::Cell;
 
-pub trait Count {
-    type Item;
-    fn next(&self) -> Self::Item;
-}
-
 #[derive(Default)]
 pub struct Counter<A>(Cell<A>);
 impl<A> Counter<A> {
@@ -13,12 +8,10 @@ impl<A> Counter<A> {
     }
 }
 
-impl<A: Copy + num::Num> Count for Counter<A> {
-    type Item = A;
-
-    fn next(&self) -> A {
+impl<A: Copy + std::ops::Add<Output = A> + From<u8>> Counter<A> {
+    pub fn next(&self) -> A {
         let curr = self.0.get();
-        self.0.set(curr + A::one());
+        self.0.set(curr + A::from(1_u8));
         curr
     }
 }

@@ -15,12 +15,6 @@ pub enum Error {
     #[debug("Url Parser Error: {}", _0)]
     UrlParser(url::ParseError),
 
-    #[debug("PostHog Error: {}", _0)]
-    PostHog(posthog_rs::Error),
-
-    #[debug("Tokio Join Error: {}", _0)]
-    TokioJoin(tokio::task::JoinError),
-
     #[debug("IO Error: {}", _0)]
     IO(std::io::Error),
 }

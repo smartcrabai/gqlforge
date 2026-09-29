@@ -11,7 +11,7 @@ pub use from_database::from_database;
 pub use from_json::{FromJsonGenerator, RequestSample};
 pub use generator::{Generator, Input};
 
-use crate::core::counter::{Count, Counter};
+use crate::core::counter::Counter;
 
 // it's used as prefix to all the names which are auto generated.
 pub const PREFIX: &str = "GEN__";

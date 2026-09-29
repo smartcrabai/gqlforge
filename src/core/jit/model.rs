@@ -237,6 +237,7 @@ impl Variable {
     pub fn as_str(&self) -> &str {
         &self.0
     }
+
     #[must_use]
     pub fn into_string(self) -> String {
         self.0
@@ -428,10 +429,7 @@ impl<Input> OperationPlan<Input> {
 
     /// Returns number of fields in plan
     pub fn size(&self) -> usize {
-        fn count<A>(field: &Field<A>) -> usize {
-            1 + field.selection.iter().map(count).sum::<usize>()
-        }
-        self.selection.iter().map(count).sum()
+        self.iter_dfs().count()
     }
 
     /// Check if the field is of scalar type

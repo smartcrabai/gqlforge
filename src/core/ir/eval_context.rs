@@ -196,23 +196,8 @@ fn format_selection_field_arguments(field: &SelectionField) -> Cow<'static, str>
     Cow::Owned(format!("({})", args.escape_default()))
 }
 
-// TODO: this is the same code as src/json/json_like.rs::get_path
 pub fn get_path_value<'a, T: AsRef<str>>(input: &'a Value, path: &[T]) -> Option<&'a Value> {
-    let mut value = Some(input);
-    for name in path {
-        match value {
-            Some(Value::Object(map)) => {
-                value = map.get(name.as_ref());
-            }
-
-            Some(Value::List(list)) => {
-                value = list.get(name.as_ref().parse::<usize>().ok()?);
-            }
-            _ => return None,
-        }
-    }
-
-    value
+    crate::core::json::JsonLike::get_path(input, path)
 }
 
 #[cfg(test)]

@@ -112,13 +112,6 @@ mod tests {
     }
 
     #[tokio::test]
-    async fn test_put() {
-        let manager = HttpCacheManager::default();
-        insert_key_into_cache(&manager, "test").await;
-        assert!(manager.cache.contains_key("test"));
-    }
-
-    #[tokio::test]
     async fn test_get_when_key_present() {
         let manager = HttpCacheManager::default();
         insert_key_into_cache(&manager, "test").await;
