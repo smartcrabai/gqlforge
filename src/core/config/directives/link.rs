@@ -84,6 +84,72 @@ pub enum LinkType {
     Redis,
 }
 
+impl Link {
+    const REGION_KEY: &str = "region";
+    const ADMIN_KEY: &str = "admin";
+
+    #[must_use]
+    pub fn dsql_region(&self) -> Option<&str> {
+        self.meta
+            .as_ref()
+            .and_then(|m| m.get(Self::REGION_KEY))
+            .and_then(|v| v.as_str())
+    }
+
+    pub fn dsql_admin(&self) -> bool {
+        self.meta
+            .as_ref()
+            .and_then(|m| m.get(Self::ADMIN_KEY))
+            .and_then(serde_json::Value::as_bool)
+            .unwrap_or(false)
+    }
+}
+
+/// The @link directive allows you to import external resources, such as
+/// configuration - which will be merged into the config importing it -,
+/// or a .proto file - which will be later used by the `@grpc` directive.
+#[derive(
+    Default,
+    Serialize,
+    Deserialize,
+    PartialEq,
+    Eq,
+    Debug,
+    Clone,
+    schemars::JsonSchema,
+    DirectiveDefinition,
+)]
+#[directive_definition(repeatable, locations = "Schema")]
+#[serde(deny_unknown_fields)]
+pub struct Link {
+    ///
+    /// The id of the link. It is used to reference the link in the schema.
+    #[serde(default, skip_serializing_if = "is_default")]
+    pub id: Option<String>,
+    ///
+    /// The source of the link. It can be a URL or a path to a file.
+    /// If a path is provided, it is relative to the file that imports the link.
+    #[serde(default, skip_serializing_if = "is_default")]
+    pub src: String,
+    ///
+    /// The type of the link. It can be `Config`, or `Protobuf`.
+    #[serde(default, skip_serializing_if = "is_default", rename = "type")]
+    pub type_of: LinkType,
+    ///
+    /// Custom headers for gRPC reflection server.
+    #[serde(default, skip_serializing_if = "is_default")]
+    pub headers: Option<Vec<KeyValue>>,
+    ///
+    /// Additional metadata pertaining to the linked resource.
+    #[serde(default, skip_serializing_if = "is_default")]
+    pub meta: Option<serde_json::Value>,
+    ///
+    /// The proto paths to be used when resolving dependencies.
+    /// Only valid when [`Link::type_of`] is [`LinkType::Protobuf`]
+    #[serde(default, skip_serializing_if = "is_default")]
+    pub proto_paths: Option<Vec<String>>,
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -169,70 +235,4 @@ mod tests {
         };
         assert!(link.dsql_admin());
     }
-}
-
-impl Link {
-    const REGION_KEY: &str = "region";
-    const ADMIN_KEY: &str = "admin";
-
-    #[must_use]
-    pub fn dsql_region(&self) -> Option<&str> {
-        self.meta
-            .as_ref()
-            .and_then(|m| m.get(Self::REGION_KEY))
-            .and_then(|v| v.as_str())
-    }
-
-    pub fn dsql_admin(&self) -> bool {
-        self.meta
-            .as_ref()
-            .and_then(|m| m.get(Self::ADMIN_KEY))
-            .and_then(serde_json::Value::as_bool)
-            .unwrap_or(false)
-    }
-}
-
-/// The @link directive allows you to import external resources, such as
-/// configuration - which will be merged into the config importing it -,
-/// or a .proto file - which will be later used by the `@grpc` directive.
-#[derive(
-    Default,
-    Serialize,
-    Deserialize,
-    PartialEq,
-    Eq,
-    Debug,
-    Clone,
-    schemars::JsonSchema,
-    DirectiveDefinition,
-)]
-#[directive_definition(repeatable, locations = "Schema")]
-#[serde(deny_unknown_fields)]
-pub struct Link {
-    ///
-    /// The id of the link. It is used to reference the link in the schema.
-    #[serde(default, skip_serializing_if = "is_default")]
-    pub id: Option<String>,
-    ///
-    /// The source of the link. It can be a URL or a path to a file.
-    /// If a path is provided, it is relative to the file that imports the link.
-    #[serde(default, skip_serializing_if = "is_default")]
-    pub src: String,
-    ///
-    /// The type of the link. It can be `Config`, or `Protobuf`.
-    #[serde(default, skip_serializing_if = "is_default", rename = "type")]
-    pub type_of: LinkType,
-    ///
-    /// Custom headers for gRPC reflection server.
-    #[serde(default, skip_serializing_if = "is_default")]
-    pub headers: Option<Vec<KeyValue>>,
-    ///
-    /// Additional metadata pertaining to the linked resource.
-    #[serde(default, skip_serializing_if = "is_default")]
-    pub meta: Option<serde_json::Value>,
-    ///
-    /// The proto paths to be used when resolving dependencies.
-    /// Only valid when [`Link::type_of`] is [`LinkType::Protobuf`]
-    #[serde(default, skip_serializing_if = "is_default")]
-    pub proto_paths: Option<Vec<String>>,
 }

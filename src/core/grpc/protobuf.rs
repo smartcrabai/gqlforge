@@ -484,7 +484,7 @@ pub mod tests {
 
     #[tokio::test]
     async fn service_not_found() -> Result<()> {
-        let grpc_method = GrpcMethod::try_from("greetings._unknown.foo").unwrap();
+        let grpc_method = "greetings._unknown.foo".parse::<GrpcMethod>().unwrap();
         let file = ProtobufSet::from_proto_file(get_proto_file(protobuf::GREETINGS).await?)?;
         let error = file.find_service(&grpc_method).unwrap_err();
 
@@ -498,7 +498,7 @@ pub mod tests {
 
     #[tokio::test]
     async fn method_not_found() -> Result<()> {
-        let grpc_method = GrpcMethod::try_from("greetings.Greeter._unknown").unwrap();
+        let grpc_method = "greetings.Greeter._unknown".parse::<GrpcMethod>().unwrap();
         let file = ProtobufSet::from_proto_file(get_proto_file(protobuf::GREETINGS).await?)?;
         let service = file.find_service(&grpc_method)?;
         let error = service.find_operation(&grpc_method).unwrap_err();
@@ -510,7 +510,7 @@ pub mod tests {
 
     #[tokio::test]
     async fn greetings_proto_file() -> Result<()> {
-        let grpc_method = GrpcMethod::try_from("greetings.Greeter.SayHello").unwrap();
+        let grpc_method = "greetings.Greeter.SayHello".parse::<GrpcMethod>().unwrap();
         let file = ProtobufSet::from_proto_file(get_proto_file(protobuf::GREETINGS).await?)?;
         let service = file.find_service(&grpc_method)?;
         let operation = service.find_operation(&grpc_method)?;
@@ -531,7 +531,7 @@ pub mod tests {
 
     #[tokio::test]
     async fn news_proto_file() -> Result<()> {
-        let grpc_method = GrpcMethod::try_from("news.NewsService.GetNews").unwrap();
+        let grpc_method = "news.NewsService.GetNews".parse::<GrpcMethod>().unwrap();
 
         let file = ProtobufSet::from_proto_file(get_proto_file(protobuf::NEWS).await?)?;
         let service = file.find_service(&grpc_method)?;
@@ -557,7 +557,7 @@ pub mod tests {
 
     #[tokio::test]
     async fn news_proto_file_with_proto_paths() -> Result<()> {
-        let grpc_method = GrpcMethod::try_from("news.NewsService.GetNews").unwrap();
+        let grpc_method = "news.NewsService.GetNews".parse::<GrpcMethod>().unwrap();
 
         let path: &str = protobuf::NEWS_PROTO_PATHS;
         let proto_paths = Some(vec![
@@ -594,7 +594,7 @@ pub mod tests {
 
     #[tokio::test]
     async fn oneof_proto_file() -> Result<()> {
-        let grpc_method = GrpcMethod::try_from("oneof.OneOfService.GetOneOf").unwrap();
+        let grpc_method = "oneof.OneOfService.GetOneOf".parse::<GrpcMethod>().unwrap();
 
         let file = ProtobufSet::from_proto_file(get_proto_file(protobuf::ONEOF).await?)?;
         let service = file.find_service(&grpc_method)?;
@@ -649,7 +649,7 @@ pub mod tests {
 
     #[tokio::test]
     async fn news_proto_file_multiple_messages() -> Result<()> {
-        let grpc_method = GrpcMethod::try_from("news.NewsService.GetMultipleNews").unwrap();
+        let grpc_method = "news.NewsService.GetMultipleNews".parse::<GrpcMethod>().unwrap();
         let file = ProtobufSet::from_proto_file(get_proto_file(protobuf::NEWS).await?)?;
         let service = file.find_service(&grpc_method)?;
         let multiple_operation = service.find_operation(&grpc_method)?;
@@ -688,7 +688,7 @@ pub mod tests {
 
     #[tokio::test]
     async fn map_proto_file() -> Result<()> {
-        let grpc_method = GrpcMethod::try_from("map.MapService.GetMap").unwrap();
+        let grpc_method = "map.MapService.GetMap".parse::<GrpcMethod>().unwrap();
 
         let file = ProtobufSet::from_proto_file(get_proto_file(protobuf::MAP).await?)?;
         let service = file.find_service(&grpc_method)?;
@@ -716,7 +716,7 @@ pub mod tests {
 
     #[tokio::test]
     async fn optional_proto_file() -> Result<()> {
-        let grpc_method = GrpcMethod::try_from("type.TypeService.Get").unwrap();
+        let grpc_method = "type.TypeService.Get".parse::<GrpcMethod>().unwrap();
 
         let file = ProtobufSet::from_proto_file(get_proto_file(protobuf::OPTIONAL).await?)?;
         let service = file.find_service(&grpc_method)?;
@@ -749,7 +749,7 @@ pub mod tests {
 
     #[tokio::test]
     async fn scalars_proto_file() -> Result<()> {
-        let grpc_method = GrpcMethod::try_from("scalars.Example.Get").unwrap();
+        let grpc_method = "scalars.Example.Get".parse::<GrpcMethod>().unwrap();
 
         let file = ProtobufSet::from_proto_file(get_proto_file(protobuf::SCALARS).await?)?;
         let service = file.find_service(&grpc_method)?;
@@ -853,7 +853,7 @@ pub mod tests {
 
     #[tokio::test]
     async fn boolean_as_string_in_json() -> Result<()> {
-        let grpc_method = GrpcMethod::try_from("scalars.Example.Get").unwrap();
+        let grpc_method = "scalars.Example.Get".parse::<GrpcMethod>().unwrap();
 
         let file = ProtobufSet::from_proto_file(get_proto_file(protobuf::SCALARS).await?)?;
         let service = file.find_service(&grpc_method)?;

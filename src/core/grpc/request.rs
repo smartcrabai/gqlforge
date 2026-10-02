@@ -169,7 +169,7 @@ mod tests {
 
         let file_descriptor_set =
             protox::compile([protobuf::GREETINGS, protobuf::ERRORS], [protobuf::SELF]);
-        let grpc_method = GrpcMethod::try_from("greetings.Greeter.SayHello").unwrap();
+        let grpc_method = "greetings.Greeter.SayHello".parse::<GrpcMethod>().unwrap();
         let file = ProtobufSet::from_proto_file(file_descriptor_set.unwrap())?;
         let service = file.find_service(&grpc_method)?;
         let operation = service.find_operation(&grpc_method)?;

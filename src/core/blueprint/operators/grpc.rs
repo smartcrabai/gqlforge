@@ -156,10 +156,10 @@ impl Display for GrpcMethod {
     }
 }
 
-impl TryFrom<&str> for GrpcMethod {
-    type Error = ValidationError<crate::core::blueprint::BlueprintError>;
+impl std::str::FromStr for GrpcMethod {
+    type Err = ValidationError<crate::core::blueprint::BlueprintError>;
 
-    fn try_from(value: &str) -> Result<Self, Self::Error> {
+    fn from_str(value: &str) -> Result<Self, Self::Err> {
         let parts: Vec<&str> = value.rsplitn(3, '.').collect();
         match &parts[..] {
             &[name, service, id] => {
@@ -185,7 +185,7 @@ pub fn compile_grpc(inputs: CompileGrpc) -> Valid<IR, BlueprintError> {
     let validate_with_schema = inputs.validate_with_schema;
     let dedupe = grpc.dedupe.unwrap_or_default();
 
-    Valid::from(GrpcMethod::try_from(grpc.method.as_str()))
+    Valid::from(grpc.method.parse::<GrpcMethod>())
         .and_then(|method| {
             let file_descriptor_set = config_module.extensions().get_file_descriptor_set();
 
@@ -255,7 +255,6 @@ pub fn compile_grpc(inputs: CompileGrpc) -> Valid<IR, BlueprintError> {
 #[cfg(test)]
 mod tests {
     #![expect(clippy::unwrap_used, reason = "test code")]
-    use std::convert::TryFrom;
 
     use gqlforge_valid::ValidationError;
 
@@ -264,8 +263,12 @@ mod tests {
 
     #[test]
     fn try_from_grpc_method() {
-        let method = GrpcMethod::try_from("package_name.ServiceName.MethodName").unwrap();
-        let method1 = GrpcMethod::try_from("package.name.ServiceName.MethodName").unwrap();
+        let method = "package_name.ServiceName.MethodName"
+            .parse::<GrpcMethod>()
+            .unwrap();
+        let method1 = "package.name.ServiceName.MethodName"
+            .parse::<GrpcMethod>()
+            .unwrap();
 
         assert_eq!(method.package, "package_name");
         assert_eq!(method.service, "ServiceName");
@@ -278,7 +281,7 @@ mod tests {
 
     #[test]
     fn try_from_grpc_method_invalid() {
-        let result = GrpcMethod::try_from("package_name.ServiceName");
+        let result = "package_name.ServiceName".parse::<GrpcMethod>();
 
         assert!(result.is_err());
         assert_eq!(
