@@ -649,7 +649,9 @@ pub mod tests {
 
     #[tokio::test]
     async fn news_proto_file_multiple_messages() -> Result<()> {
-        let grpc_method = "news.NewsService.GetMultipleNews".parse::<GrpcMethod>().unwrap();
+        let grpc_method = "news.NewsService.GetMultipleNews"
+            .parse::<GrpcMethod>()
+            .unwrap();
         let file = ProtobufSet::from_proto_file(get_proto_file(protobuf::NEWS).await?)?;
         let service = file.find_service(&grpc_method)?;
         let multiple_operation = service.find_operation(&grpc_method)?;
