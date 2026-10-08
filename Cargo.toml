@@ -131,7 +131,7 @@ nom = "8.0.0"
 prost = "0.14"
 prost-reflect = { version = "0.16", features = ["serde"] }
 protox = "0.10"
-protox-parse = "0.9"
+protox-parse = "0.10"
 regex = "1.12.3"
 reqwest = { workspace = true }
 reqwest-middleware = "0.5"
