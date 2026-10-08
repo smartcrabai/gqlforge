@@ -130,7 +130,7 @@ lru = { version = "0.18.0" }
 nom = "8.0.0"
 prost = "0.14"
 prost-reflect = { version = "0.16", features = ["serde"] }
-protox = "0.9"
+protox = "0.10"
 protox-parse = "0.9"
 regex = "1.12.3"
 reqwest = { workspace = true }
