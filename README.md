@@ -78,6 +78,9 @@ Give us a star.
 
 Watch us for updates.
 
+If you find Gqlforge useful, consider [sponsoring smartcrabai](https://github.com/sponsors/smartcrabai)
+to support its development and maintenance.
+
 ### Acknowledgements
 
 This project is based on [Tailcall](https://github.com/tailcallhq/tailcall).
