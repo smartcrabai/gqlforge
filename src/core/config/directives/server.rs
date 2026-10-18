@@ -30,7 +30,7 @@ use crate::core::macros::MergeRight;
 /// comprehensive set of server configurations. It dictates how the server
 /// behaves and helps tune gqlforge for various use-cases.
 pub struct Server {
-    #[deprecated(note = "No longer used, TODO: drop it")]
+    #[deprecated(since = "0.1.0", note = "No longer used, TODO: drop it")]
     #[serde(default, skip_serializing, rename = "enableJIT")]
     #[schemars(skip)]
     pub enable_jit: Option<bool>,

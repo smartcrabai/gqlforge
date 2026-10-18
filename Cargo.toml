@@ -126,7 +126,7 @@ hyper-util = { version = "0.1", features = [
   "client-legacy",
 ] }
 indexmap = { workspace = true }
-lru = { version = "0.18.0" }
+lru = { version = "0.19.0" }
 nom = "8.0.0"
 prost = "0.14"
 prost-reflect = { version = "0.16", features = ["serde"] }
