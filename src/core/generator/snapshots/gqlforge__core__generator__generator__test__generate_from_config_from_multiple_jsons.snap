@@ -14,10 +14,10 @@ type InCompatibleProperty {
 type Query {
   inCompatibleObjects: [JSON] @http(url: "https://example.com/api/v2/users")
   inCompatibleProperties: InCompatibleProperty @http(url: "https://example.com/")
-  userData: [Userdatum] @http(url: "https://example.com/users")
+  userData: [UserDatum] @http(url: "https://example.com/users")
 }
 
-type Userdatum {
+type UserDatum {
   adult: Boolean
   age: Int
   name: String
