@@ -234,7 +234,7 @@ http-cache-semantics = { version = "3", default-features = false, features = [
   "serde",
   "reqwest",
 ] }
-httpmock = "0.9"
+httpmock = { version = "0.9", features = ["http2"] }
 insta = { workspace = true }
 maplit = "1.0.2"
 markdown = "1.0.0"
