@@ -391,9 +391,9 @@ dependencies = [
 
 [[package]]
 name = "aws-sdk-dsql"
-version = "1.75.0"
+version = "1.76.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "b9ad64bba9cae48af4b0b0d654e50a437eb46ef265812d84232351508ef8621b"
+checksum = "a94789f83f3ae992ace12dfa9278e159171d6b40a261145bedd82b829750c821"
 dependencies = [
  "arc-swap",
  "aws-credential-types",
@@ -418,9 +418,9 @@ dependencies = [
 
 [[package]]
 name = "aws-sdk-s3"
-version = "1.153.0"
+version = "1.154.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "6c5bee59f57aeef2dbbfbee57f50405cbc07a5cacbba40f350a317dfcdb10916"
+checksum = "910c6e60689f021154dc701ad219035066fb94decce71ee72ff0f06e90df4067"
 dependencies = [
  "arc-swap",
  "aws-credential-types",
@@ -2913,6 +2913,7 @@ dependencies = [
  "http 1.5.0",
  "http-body-util",
  "hyper 1.12.0",
+ "hyper-rustls 0.27.10",
  "hyper-util",
  "path-tree",
  "regex",
