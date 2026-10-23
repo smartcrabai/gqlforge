@@ -400,8 +400,8 @@ impl Context {
                     let type_of = graphql_type.into_object_type().to_string();
                     let val = Arg {
                         type_of: Type::from(type_of).into_required(),
-                        /* Setting it not null by default. There's no way to infer this
-                         * from proto file */
+                        /* Setting it not null by default. There's no way to
+                         * infer this from proto file */
                         doc: None,
                         modify: None,
                         default_value: None,

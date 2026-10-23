@@ -336,7 +336,8 @@ impl OPHash {
 pub struct OperationPlan<Input> {
     pub root_name: String,
     pub operation_type: OperationType,
-    // TODO: drop index from here. Embed all the necessary information in each field of the plan.
+    // TODO: drop index from here. Embed all the necessary information in each
+    // field of the plan.
     pub index: Arc<Index>,
     pub is_introspection_query: bool,
     pub is_dedupe: bool,
@@ -458,9 +459,10 @@ impl<Input> OperationPlan<Input> {
         match &field.type_condition {
             Some(type_condition) => match value.get_type_name() {
                 Some(value_type) => self.index.is_type_implements(value_type, type_condition),
-                // if there is no __typename in value that means there is a bug in implementation
-                // such we haven't resolved the concrete type or type shouldn't be
-                // inferred here at all and we should just use the field
+                // if there is no __typename in value that means there is a bug
+                // in implementation such we haven't resolved the concrete type
+                // or type shouldn't be inferred here at all and we should just
+                // use the field
                 None => true,
             },
             // if there is no type_condition restriction then use this field

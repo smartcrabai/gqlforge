@@ -34,8 +34,8 @@ impl<'a, Input> RequestContext<'a, Input> {
 pub struct Context<'a, Input, Output> {
     value: Option<&'a Output>,
     args: Option<indexmap::IndexMap<Name, Input>>,
-    // TODO: remove the args, since they're already present inside the fields and add support for
-    // default values.
+    // TODO: remove the args, since they're already present inside the fields
+    // and add support for default values.
     field: &'a Field<Input>,
     request: &'a RequestContext<'a, Input>,
 }

@@ -130,10 +130,10 @@ impl<V: Serialize> From<Response<V>> for AnyResponse<Vec<u8>> {
                 public: response.cache_control.public,
             },
             is_ok: response.errors.is_empty(),
-            // Safely serialize the response to JSON bytes. Since the response is always valid,
-            // serialization is expected to succeed. In the unlikely event of a failure,
-            // default to an empty byte array. TODO: return error instead of default
-            // value.
+            // Safely serialize the response to JSON bytes. Since the response
+            // is always valid, serialization is expected to succeed. In the
+            // unlikely event of a failure, default to an empty byte array.
+            // TODO: return error instead of default value.
             body: Arc::new(serde_json::to_vec(&response).unwrap_or_default()),
         }
     }

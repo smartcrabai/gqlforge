@@ -38,8 +38,8 @@ impl KeyedDiscriminator {
     /// possible types, an error will be returned.
     pub fn resolve_type(&self, value: &Value) -> Result<String> {
         match value {
-            // INFO: when a value is null you cannot use __typename so we are safe returning
-            // whatever
+            // INFO: when a value is null you cannot use __typename so we are
+            // safe returning whatever
             Value::Null => Ok("NULL".to_string()),
             Value::Object(index_map) => {
                 let index_map_len = index_map.len();
