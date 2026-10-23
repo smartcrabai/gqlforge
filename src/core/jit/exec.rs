@@ -128,8 +128,8 @@ where
                         // "fix"
                         .unwrap_or(Output::null()))
                 })?,
-                // if the present field doesn't have IR, still go through nested fields to check
-                // if they've IR.
+                // if the present field doesn't have IR, still go through nested
+                // fields to check if they've IR.
                 None => Output::null(),
             };
 
