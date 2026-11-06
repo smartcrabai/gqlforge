@@ -202,8 +202,8 @@ fn to_script(
                 timeout: config_module
                     .server
                     .script
-                    .clone()
-                    .map_or_else(|| None, |script| script.timeout)
+                    .as_ref()
+                    .and_then(|script| script.timeout)
                     .map(Duration::from_millis),
             }))
         },
