@@ -178,7 +178,7 @@ gqlforge-valid = { workspace = true }
 headers = { workspace = true }
 htpasswd-verify = { version = "0.3.0" } # uses fork (see [patch.crates-io])
 http = { workspace = true }
-jsonwebtoken = { version = "11.0.0", features = ["aws_lc_rs"] }
+jsonwebtoken = { version = "12.0.0", features = ["aws_lc_rs"] }
 opentelemetry = { version = "0.33", features = ["trace", "logs", "metrics"] }
 opentelemetry-appender-tracing = "0.33"
 opentelemetry-http = "0.33"
