@@ -540,10 +540,10 @@ mod tests {
         assert_eq!(rendered.args[1], "*");
         // Remaining args are field/value pairs (order follows the JSON object).
         assert_eq!(rendered.args.len(), 6);
-        assert!(rendered.args.contains(&"name".to_string()));
-        assert!(rendered.args.contains(&"Alice".to_string()));
-        assert!(rendered.args.contains(&"age".to_string()));
-        assert!(rendered.args.contains(&"30".to_string()));
+        assert!(rendered.args.iter().any(|a| a == "name"));
+        assert!(rendered.args.iter().any(|a| a == "Alice"));
+        assert!(rendered.args.iter().any(|a| a == "age"));
+        assert!(rendered.args.iter().any(|a| a == "30"));
     }
 
     #[test]
